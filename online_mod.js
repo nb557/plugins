@@ -1,4 +1,4 @@
-//28.09.2022 - Mirror for rezka2 option
+//05.10.2022 - Use network.native() for rezka, kinobase, cdnmovies
 
 (function () {
   'use strict';
@@ -544,7 +544,7 @@
       var url = embed + 'serial/' + voice + '/iframe?h=gidonline.io';
       network.clear();
       network.timeout(10000);
-      network.silent(url, function (str) {
+      network["native"](url, function (str) {
         extractData(str);
         call();
       }, function (a, c) {
@@ -569,7 +569,7 @@
     function getFirstTranlate(id, call) {
       network.clear();
       network.timeout(10000);
-      network.silent(embed + 'embed/' + id, function (str) {
+      network["native"](embed + 'embed/' + id, function (str) {
         extractData(str);
         if (extract.voice.length) call(getChoiceVoice().token);else component.emptyForQuery(select_title);
       }, function (a, c) {
@@ -582,7 +582,7 @@
     function getEmbed(url) {
       network.clear();
       network.timeout(10000);
-      network.silent(url, function (str) {
+      network["native"](url, function (str) {
         component.loading(false);
         extractData(str);
         filter();
@@ -730,7 +730,7 @@
 
       network.clear();
       network.timeout(5000);
-      network.silent(url, function (str) {
+      network["native"](url, function (str) {
         var videos = str.match("'file': '(.*?)'");
 
         if (videos) {
@@ -1704,7 +1704,7 @@
       var url = embed + "search?query=" + encodeURIComponent(component.cleanTitle(select_title));
       network.clear();
       network.timeout(1000 * 10);
-      network.silent(url, function (str) {
+      network["native"](url, function (str) {
         str = str.replace(/\n/g, '');
         var links = object.movie.number_of_seasons ? str.match(/<a href="\/serial\/([^"]*)" class="link"[^>]*>(.*?)<\/a>/g) : str.match(/<a href="\/film\/([^"]*)" class="link"[^>]*>(.*?)<\/a>/g);
         var search_date = object.search_date || object.movie.release_date || object.movie.first_air_date || object.movie.last_air_date || '0000';
@@ -1974,7 +1974,7 @@
     function getPage(url) {
       network.clear();
       network.timeout(1000 * 10);
-      network.silent(embed + url, function (str) {
+      network["native"](embed + url, function (str) {
         str = str.replace(/\n/g, '');
         var MOVIE_ID = str.match('var MOVIE_ID = ([^;]+);');
         var IDENTIFIER = str.match('var IDENTIFIER = "([^"]+)"');
@@ -1992,7 +1992,7 @@
           data_url = Lampa.Utils.addUrlComponent(data_url, "_=" + Date.now());
           network.clear();
           network.timeout(1000 * 10);
-          network.silent(embed + data_url, function (user_data) {
+          network["native"](embed + data_url, function (user_data) {
             if (user_data.vod_hash && user_data.vod_time) {
               var file_url = "vod/" + select_id;
               file_url = Lampa.Utils.addUrlComponent(file_url, "identifier=" + identifier);
@@ -2003,7 +2003,7 @@
               file_url = Lampa.Utils.addUrlComponent(file_url, "_=" + Date.now());
               network.clear();
               network.timeout(1000 * 10);
-              network.silent(embed + file_url, function (files) {
+              network["native"](embed + file_url, function (files) {
                 component.loading(false);
                 extractData(files, str);
                 filter();
@@ -2541,11 +2541,11 @@
       if (object.movie.imdb_id) url = Lampa.Utils.addUrlComponent(url, 'imdb_id=' + encodeURIComponent(object.movie.imdb_id));else url = url_by_title;
       network.clear();
       network.timeout(10000);
-      network.silent(url, function (json) {
+      network["native"](url, function (json) {
         if (json.data && Object.keys(json.data).length) display(json.data);else if (object.movie.imdb_id) {
           network.clear();
           network.timeout(10000);
-          network.silent(url_by_title, function (json) {
+          network["native"](url_by_title, function (json) {
             if (json.data && Object.keys(json.data).length) display(json.data);else display({});
           }, function (a, c) {
             component.empty(network.errorDecode(a, c));
@@ -2559,7 +2559,7 @@
     this.find = function (url) {
       network.clear();
       network.timeout(10000);
-      network.silent('https:' + url, function (json) {
+      network["native"]('https:' + url, function (json) {
         parse(json);
         component.loading(false);
       }, function (a, c) {
@@ -2709,7 +2709,7 @@
       var url = element.file;
       network.clear();
       network.timeout(5000);
-      network.silent(url, function (str) {
+      network["native"](url, function (str) {
         var file = '';
         var quality = false;
         var items = extractItems(str, url);
@@ -5562,7 +5562,7 @@
     Lampa.Template.add('online_mod_folder', "<div class=\"online selector\">\n        <div class=\"online__body\">\n            <div style=\"position: absolute;left: 0;top: -0.3em;width: 2.4em;height: 2.4em\">\n                <svg style=\"height: 2.4em; width:  2.4em;\" viewBox=\"0 0 128 112\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n                    <rect y=\"20\" width=\"128\" height=\"92\" rx=\"13\" fill=\"white\"/>\n                    <path d=\"M29.9963 8H98.0037C96.0446 3.3021 91.4079 0 86 0H42C36.5921 0 31.9555 3.3021 29.9963 8Z\" fill=\"white\" fill-opacity=\"0.23\"/>\n                    <rect x=\"11\" y=\"8\" width=\"106\" height=\"76\" rx=\"13\" fill=\"white\" fill-opacity=\"0.51\"/>\n                </svg>\n            </div>\n            <div class=\"online__title\" style=\"padding-left: 2.1em;\">{title}</div>\n            <div class=\"online__quality\" style=\"padding-left: 3.4em;\">{quality}{info}</div>\n        </div>\n    </div>");
   }
 
-  var button = "<div class=\"full-start__button selector view--online_mod\" data-subtitle=\"online_mod 28.09.2022\">\n    <svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:svgjs=\"http://svgjs.com/svgjs\" version=\"1.1\" width=\"512\" height=\"512\" x=\"0\" y=\"0\" viewBox=\"0 0 244 260\" style=\"enable-background:new 0 0 512 512\" xml:space=\"preserve\" class=\"\">\n    <g xmlns=\"http://www.w3.org/2000/svg\">\n        <path d=\"M242,88v170H10V88h41l-38,38h37.1l38-38h38.4l-38,38h38.4l38-38h38.3l-38,38H204L242,88L242,88z M228.9,2l8,37.7l0,0 L191.2,10L228.9,2z M160.6,56l-45.8-29.7l38-8.1l45.8,29.7L160.6,56z M84.5,72.1L38.8,42.4l38-8.1l45.8,29.7L84.5,72.1z M10,88 L2,50.2L47.8,80L10,88z\" fill=\"currentColor\"/>\n    </g></svg>\n\n    <span>#{online_mod_title}</span>\n    </div>"; // нужна заглушка, а то при страте лампы говорит пусто
+  var button = "<div class=\"full-start__button selector view--online_mod\" data-subtitle=\"online_mod 05.10.2022\">\n    <svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:svgjs=\"http://svgjs.com/svgjs\" version=\"1.1\" width=\"512\" height=\"512\" x=\"0\" y=\"0\" viewBox=\"0 0 244 260\" style=\"enable-background:new 0 0 512 512\" xml:space=\"preserve\" class=\"\">\n    <g xmlns=\"http://www.w3.org/2000/svg\">\n        <path d=\"M242,88v170H10V88h41l-38,38h37.1l38-38h38.4l-38,38h38.4l38-38h38.3l-38,38H204L242,88L242,88z M228.9,2l8,37.7l0,0 L191.2,10L228.9,2z M160.6,56l-45.8-29.7l38-8.1l45.8,29.7L160.6,56z M84.5,72.1L38.8,42.4l38-8.1l45.8,29.7L84.5,72.1z M10,88 L2,50.2L47.8,80L10,88z\" fill=\"currentColor\"/>\n    </g></svg>\n\n    <span>#{online_mod_title}</span>\n    </div>"; // нужна заглушка, а то при страте лампы говорит пусто
 
   Lampa.Component.add('online_mod', component); //то же самое
 
