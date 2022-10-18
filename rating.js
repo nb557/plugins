@@ -104,7 +104,7 @@
 					var id = cards[0].kp_id || cards[0].kinopoiskId || cards[0].filmId;
 					network.clear();
 					network.timeout(5000);
-					network.silent(params.rating_url + id + '.xml', function (str) {
+					network["native"](params.rating_url + id + '.xml', function (str) {
 						var ratingKinopoisk = 0;
 						var ratingImdb = 0;
 						var xml = $($.parseXML(str));
