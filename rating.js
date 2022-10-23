@@ -35,13 +35,13 @@
 			if (card.imdb_id) url = Lampa.Utils.addUrlComponent(url + 'api/v2.2/films', 'imdbId=' + encodeURIComponent(card.imdb_id));
 			else url = url_by_title;
 			network.clear();
-			network.timeout(5000);
+			network.timeout(15000);
 			network.silent(url, function (json) {
 				if (json.items && json.items.length) chooseFilm(json.items);
 				else if (json.films && json.films.length) chooseFilm(json.films);
 				else if (card.imdb_id) {
 					network.clear();
-					network.timeout(5000);
+					network.timeout(15000);
 					network.silent(url_by_title, function (json) {
 						if (json.items && json.items.length) chooseFilm(json.items);
 						else if (json.films && json.films.length) chooseFilm(json.films);
@@ -124,7 +124,7 @@
 						return _showRating(movieRating, params.id);
 					}, function (a, c) {
 						network.clear();
-						network.timeout(5000);
+						network.timeout(15000);
 						network.silent(params.url + 'api/v2.2/films/' + id, function (data) {
 							var movieRating = _setCache(params.id, {
 								kp: data.ratingKinopoisk,
