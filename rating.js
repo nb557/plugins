@@ -7,8 +7,8 @@
 		var search_date = card.release_date || card.first_air_date || card.last_air_date || '0000';
 		var search_year = parseInt((search_date + '').slice(0, 4));
 		var orig = card.original_title || card.original_name;
-		var kp_prox = Lampa.Storage.field('online_mod_proxy_kp') === true ? 'https://lampa-cors.herokuapp.com/' : '';
-		//var kp_prox = Lampa.Storage.field('online_mod_proxy_kp') === true ? 'https://cors-fallback.herokuapp.com/' : '';
+		//var kp_prox = Lampa.Storage.field('online_mod_proxy_kp') === true ? 'https://lampa-cors.herokuapp.com/' : '';
+		var kp_prox = Lampa.Storage.field('online_mod_proxy_kp') === true ? 'https://cors-fallback.herokuapp.com/' : '';
 		var params = {
 			id: card.id,
 			url: kp_prox + 'https://kinopoiskapiunofficial.tech/',
