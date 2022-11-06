@@ -4489,7 +4489,7 @@
       //var my_proxy = 'https://cors-fallback.herokuapp.com/';
       var my_proxy = 'https://cors-fallback.herokuapp.com/';
       var alt_proxy = 'http://prox.lampa.stream/';
-      var cub_proxy = 'http://proxy.cub.watch/cdn/';
+      var cub_proxy = 'http://proxy.silanavoza.xyz/cdn/';
 
       if (Lampa.Storage.field('online_mod_proxy_' + name) === true) {
         if (name === 'kp') return my_proxy;
