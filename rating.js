@@ -102,27 +102,7 @@
 				}
 				if (cards.length == 1 && is_sure) {
 					var id = cards[0].kp_id || cards[0].kinopoiskId || cards[0].filmId;
-					network.clear();
-					network.timeout(5000);
-					network["native"](params.rating_url + id + '.xml', function (str) {
-						var ratingKinopoisk = 0;
-						var ratingImdb = 0;
-						var xml = $($.parseXML(str));
-						var kp_rating = xml.find('kp_rating');
-						if (kp_rating.length) {
-							ratingKinopoisk = parseFloat(kp_rating.text());
-						}
-						var imdb_rating = xml.find('imdb_rating');
-						if (imdb_rating.length) {
-							ratingImdb = parseFloat(imdb_rating.text());
-						}
-						var movieRating = _setCache(params.id, {
-							kp: ratingKinopoisk,
-							imdb: ratingImdb,
-							timestamp: new Date().getTime()
-						}); // Кешируем данные
-						return _showRating(movieRating, params.id);
-					}, function (a, c) {
+					var base_search = function base_search() {
 						network.clear();
 						network.timeout(15000);
 						network.silent(params.url + 'api/v2.2/films/' + id, function (data) {
@@ -133,10 +113,39 @@
 							}); // Кешируем данные
 							return _showRating(movieRating, params.id);
 						}, function (a, c) {
-							Lampa.Noty.show(network.errorDecode(a, c));
+							Lampa.Noty.show('Рейтинг KP   ' + network.errorDecode(a, c));
 						}, false, {
 							headers: params.headers
 						});
+					};
+					network.clear();
+					network.timeout(5000);
+					network["native"](params.rating_url + id + '.xml', function (str) {
+						if (str.indexOf('<rating>') >= 0) {
+							try {
+								var ratingKinopoisk = 0;
+								var ratingImdb = 0;
+								var xml = $($.parseXML(str));
+								var kp_rating = xml.find('kp_rating');
+								if (kp_rating.length) {
+									ratingKinopoisk = parseFloat(kp_rating.text());
+								}
+								var imdb_rating = xml.find('imdb_rating');
+								if (imdb_rating.length) {
+									ratingImdb = parseFloat(imdb_rating.text());
+								}
+								var movieRating = _setCache(params.id, {
+									kp: ratingKinopoisk,
+									imdb: ratingImdb,
+									timestamp: new Date().getTime()
+								}); // Кешируем данные
+								return _showRating(movieRating, params.id);
+							} catch (ex) {
+							}
+						}
+						base_search();
+					}, function (a, c) {
+						base_search();
 					}, false, {
 						dataType: 'text'
 					});
