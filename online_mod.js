@@ -4485,9 +4485,8 @@
     }
 
     this.proxy = function (name) {
-      //var my_proxy = 'https://lampa-cors.herokuapp.com/';
+      var my_proxy = 'https://lampa-cors.herokuapp.com/';
       //var my_proxy = 'https://cors-fallback.herokuapp.com/';
-      var my_proxy = 'https://cors-fallback.herokuapp.com/';
       var alt_proxy = 'http://prox.lampa.stream/';
       var cub_proxy = 'http://proxy.silanavoza.xyz/cdn/';
 
