@@ -1,4 +1,4 @@
-//18.01.2022 - Fix collaps
+//18.01.2023 - Fix collaps
 
 (function () {
   'use strict';
