@@ -1,4 +1,4 @@
-//22.02.2023 - Fix kinobase
+//28.02.2023 - Update hdvb
 
 (function () {
   'use strict';
@@ -1704,6 +1704,7 @@
      * @param {Object} _object
      * @param {String} kinopoisk_id
      */
+
 
     this.search = function (_object, kinopoisk_id, data) {
       var _this = this;
@@ -3470,6 +3471,7 @@
     var network = new Lampa.Reguest();
     var extract = {};
     var results = [];
+    var backend = 'http://back.freebie.tom.ru/lampa/hdvburl?v=799';
     var object = _object;
     var select_title = '';
     var select_id = '';
@@ -3479,7 +3481,6 @@
       voice: 0,
       quality: 0
     };
-    var translator = {};
     /**
      * Поиск
      * @param {Object} _object
@@ -3495,49 +3496,26 @@
         return;
       }
 
-      var url = 'https://apivb.info/api/videos.json?token=5e2fe4c70bafd9a7414c4f170ee1b192&id_kp=' + kinopoisk_id;
+      var url = backend;
+      url = Lampa.Utils.addUrlComponent(url, 'id=' + object.movie.id);
+      url = Lampa.Utils.addUrlComponent(url, 'kinopoisk_id=' + select_id);
+      url = Lampa.Utils.addUrlComponent(url, 'title=' + encodeURIComponent(select_title));
       network.clear();
       network.timeout(10000);
       network.silent(url, function (found) {
         results = [];
 
-        if (!found) {
-          component.emptyForQuery(select_title);
-        } else if (found.error || found.text) {
-          component.empty(found.error || found.text);
-        } else {
-          (typeof found === "string" ? Lampa.Arrays.decodeJson(found, []) : found).forEach(function (result, keyt) {
-            result.link = result.iframe_url;
-            result.serial = result.type == 'serial' ? 1 : 0;
-            result.translation_id = keyt;
-            result.translation = result.translator;
-
-            if (result.serial == 1) {
-              result.seasons = [];
-              result.serial_episodes.forEach(function (season, keys) {
-                result.last_season = season.season_number;
-                result.seasons[season.season_number] = [];
-
-                if (season.episodes) {
-                  season.episodes.forEach(function (episode, keye) {
-                    result.seasons[season.season_number][episode] = {
-                      link: result.link
-                    };
-                  });
-                }
-              });
-            } else {
-              result.movie = {
-                link: result.link
-              };
-            }
-
-            translator[result.translation] = result.translation_id;
-            results[result.translation_id] = Object.assign({}, result);
-          });
+        if (found && found.result && found.action === 'done') {
+          results = (typeof found.data === "string" ? Lampa.Arrays.decodeJson(found.data, []) : found.data) || [];
           success(results);
           component.loading(false);
           if (!results.length) component.emptyForQuery(select_title);
+        } else {
+          if (found && (found.error || found.text)) {
+            component.empty(found.error || found.text);
+          } else {
+            component.emptyForQuery(select_title);
+          }
         }
       }, function (a, c) {
         component.empty(network.errorDecode(a, c));
@@ -3609,35 +3587,55 @@
 
 
     function extractData(json) {
+      extract = {};
       json.forEach(function (translation, keyt) {
+        if (translation == null) return;
+
         if (translation.serial == 1) {
           extract[keyt] = {
             seasons: [],
             file: translation.link,
             serial: translation.serial
           };
-
-          for (var keys in translation.seasons) {
-            var season = translation.seasons[keys];
+          translation.playlists.forEach(function (season, keys) {
+            if (season == null) return;
             var episodes = [];
+            season.forEach(function (episode, keye) {
+              if (episode == null) return;
+              var link = translation.link;
+              var max_quality = Object.keys(episode).slice(-1).pop();
 
-            for (var keye in season) {
-              var episode = season[keye];
+              if (max_quality != null) {
+                link = episode[max_quality];
+              }
+
               episodes[keye] = {
                 id: keys + '_' + keye,
                 season: keys,
                 episode: keye,
-                media: episode,
+                media: {
+                  link: link,
+                  playlists: episode
+                },
                 translation: keyt
               };
-            }
-
+            });
             extract[keyt].seasons[keys] = episodes;
-          }
+          });
         } else if (translation.serial == 0) {
-          var movie = translation.movie;
+          var movie = translation.playlists;
+          var link = translation.link;
+          var max_quality = Object.keys(movie).slice(-1).pop();
+
+          if (max_quality != null) {
+            link = movie[max_quality];
+          }
+
           extract[keyt] = {
-            media: movie,
+            media: {
+              link: link,
+              playlists: movie
+            },
             translation: translation.translation,
             serial: translation.serial
           };
@@ -3694,7 +3692,7 @@
       if (!filter_items.season[choice.season]) choice.season = 0;
       results.forEach(function (translation, keyt) {
         if (translation.serial == 1) {
-          if (translation.seasons[choice.season + 1] && translation.seasons[choice.season + 1].length) {
+          if (translation.playlists[choice.season + 1] && translation.playlists[choice.season + 1].length) {
             if (filter_items.voice.indexOf(translation.translation) == -1) {
               filter_items.voice.push(translation.translation);
               filter_items.voice_info.push({
@@ -3763,24 +3761,17 @@
       return filtred;
     }
 
-    function extractItems(str, url) {
+    function extractItems(playlists) {
       try {
-        var base_url = url.substring(0, url.lastIndexOf('/'));
-        var items = component.parseM3U(str).map(function (item) {
-          var link = item.link;
-          var quality = item.height;
-          var alt_quality = link.match(/\b(\d\d\d+)\b/);
-
-          if (alt_quality) {
-            var alt_height = parseInt(alt_quality[1]);
-            if (alt_height > quality && alt_height <= 4320) quality = alt_height;
-          }
-
-          return {
+        var items = [];
+        Object.keys(playlists).forEach(function (key) {
+          var link = playlists[key];
+          var quality = parseInt(key);
+          items.push({
             label: quality ? quality + 'p' : '360p ~ 1080p',
             quality: quality,
-            file: link.indexOf('://') == -1 ? base_url + '/' + link : link
-          };
+            file: link
+          });
         });
         items.sort(function (a, b) {
           if (b.quality > a.quality) return 1;
@@ -3795,19 +3786,6 @@
       return [];
     }
 
-    function getStreamQuality(element, call, error) {
-      network.clear();
-      network.timeout(10000);
-      network.silent(element.media.link, function (plist) {
-        element.media.items = extractItems(plist, element.media.link);
-        return call(element);
-      }, function (a, c) {
-        error(network.errorDecode(a, c));
-      }, false, {
-        dataType: 'text'
-      });
-    }
-
     function getStream(element, call, error) {
       if (element.media.items) {
         return call(getFile(element));
@@ -3820,32 +3798,18 @@
         return;
       }
 
-      if (link.substr(-5) === ".m3u8") {
-        getStreamQuality(element, function (element) {
-          return call(getFile(element));
-        }, error);
-        return;
+      if (link.startsWith('http') && (link.substr(-5) === ".m3u8" || link.substr(-4) === ".mp4")) {
+        element.media.items = extractItems(element.media.playlists);
+        return call(getFile(element));
       }
 
-      var post_data = {
-        serial: results[element.translation].serial,
-        link: link,
-        referer: link,
-        translator: results[element.translation].translation,
-        season: element.season,
-        episode: element.episode
-      };
-
-      if (!link.startsWith('http')) {
-        post_data.referer = results[element.translation].link;
-        post_data.host = results[element.translation].host;
-        post_data.key = results[element.translation].key;
-      }
-
-      var url = component.proxy('hdvb') + 'http://freebie.tom.ru/hdvburl?v=799&id_kp=' + select_id;
-      if (element.translation) url = Lampa.Utils.addUrlComponent(url, 'translation=' + element.translation);
+      var url = backend;
+      url = Lampa.Utils.addUrlComponent(url, 'id=' + object.movie.id);
+      url = Lampa.Utils.addUrlComponent(url, 'kinopoisk_id=' + select_id);
+      url = Lampa.Utils.addUrlComponent(url, 'translation=' + results[element.translation].translator_id);
       if (element.season) url = Lampa.Utils.addUrlComponent(url, 'season=' + element.season);
       if (element.episode) url = Lampa.Utils.addUrlComponent(url, 'episode=' + element.episode);
+      url = Lampa.Utils.addUrlComponent(url, 'link=' + link);
       network.clear();
       network.timeout(15000);
       network.silent(url, function (str) {
@@ -3854,47 +3818,32 @@
           return;
         }
 
-        var result = results[element.translation];
+        var json = JSON.parse(str);
 
-        if (result.serial == 1) {
-          if (!link.startsWith('http')) {
-            result.seasons[element.season][element.episode].link = str;
-          } else {
-            Lampa.Arrays.decodeJson(str, []).forEach(function (season) {
-              result.host = season.host;
-              result.key = season.key;
-              season.folder.forEach(function (episode) {
-                episode.folder.forEach(function (translation) {
-                  var keyt = translator[translation.title];
-
-                  if (typeof keyt !== 'undefined') {
-                    results[keyt].seasons[season.id][episode.episode].link = translation.file;
-                  }
-                });
-              });
-            });
-            results.forEach(function (translation) {
-              translation.host = result.host;
-              translation.key = result.key;
-            });
-          }
-        } else {
-          result.movie.link = str;
-        }
-
-        var new_link = element.media.link;
-
-        if (!new_link || new_link.substr(-5) !== ".m3u8") {
-          error();
+        if (!(json.playlists && Object.keys(json.playlists).length)) {
+          error('Ссылки на видео не получены');
           return;
         }
 
-        getStreamQuality(element, function (element) {
+        var new_link = '';
+        var max_quality = Object.keys(json.playlists).slice(-1).pop();
+
+        if (max_quality != null) {
+          new_link = json.playlists[max_quality];
+        }
+
+        element.media.link = new_link;
+        element.media.playlists = json.playlists;
+
+        if (new_link.startsWith('http') && (new_link.substr(-5) === ".m3u8" || new_link.substr(-4) === ".mp4")) {
+          element.media.items = extractItems(element.media.playlists);
           return call(getFile(element));
-        }, error);
+        }
+
+        error();
       }, function (a, c) {
         error(network.errorDecode(a, c));
-      }, JSON.stringify(post_data), {
+      }, false, {
         dataType: 'text'
       });
     }
@@ -5571,7 +5520,7 @@
     Lampa.Template.add('online_mod_folder', "<div class=\"online selector\">\n        <div class=\"online__body\">\n            <div style=\"position: absolute;left: 0;top: -0.3em;width: 2.4em;height: 2.4em\">\n                <svg style=\"height: 2.4em; width:  2.4em;\" viewBox=\"0 0 128 112\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n                    <rect y=\"20\" width=\"128\" height=\"92\" rx=\"13\" fill=\"white\"/>\n                    <path d=\"M29.9963 8H98.0037C96.0446 3.3021 91.4079 0 86 0H42C36.5921 0 31.9555 3.3021 29.9963 8Z\" fill=\"white\" fill-opacity=\"0.23\"/>\n                    <rect x=\"11\" y=\"8\" width=\"106\" height=\"76\" rx=\"13\" fill=\"white\" fill-opacity=\"0.51\"/>\n                </svg>\n            </div>\n            <div class=\"online__title\" style=\"padding-left: 2.1em;\">{title}</div>\n            <div class=\"online__quality\" style=\"padding-left: 3.4em;\">{quality}{info}</div>\n        </div>\n    </div>");
   }
 
-  var button = "<div class=\"full-start__button selector view--online_mod\" data-subtitle=\"online_mod 22.02.2023\">\n    <svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:svgjs=\"http://svgjs.com/svgjs\" version=\"1.1\" width=\"512\" height=\"512\" x=\"0\" y=\"0\" viewBox=\"0 0 244 260\" style=\"enable-background:new 0 0 512 512\" xml:space=\"preserve\" class=\"\">\n    <g xmlns=\"http://www.w3.org/2000/svg\">\n        <path d=\"M242,88v170H10V88h41l-38,38h37.1l38-38h38.4l-38,38h38.4l38-38h38.3l-38,38H204L242,88L242,88z M228.9,2l8,37.7l0,0 L191.2,10L228.9,2z M160.6,56l-45.8-29.7l38-8.1l45.8,29.7L160.6,56z M84.5,72.1L38.8,42.4l38-8.1l45.8,29.7L84.5,72.1z M10,88 L2,50.2L47.8,80L10,88z\" fill=\"currentColor\"/>\n    </g></svg>\n\n    <span>#{online_mod_title}</span>\n    </div>"; // нужна заглушка, а то при страте лампы говорит пусто
+  var button = "<div class=\"full-start__button selector view--online_mod\" data-subtitle=\"online_mod 28.02.2023\">\n    <svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:svgjs=\"http://svgjs.com/svgjs\" version=\"1.1\" width=\"512\" height=\"512\" x=\"0\" y=\"0\" viewBox=\"0 0 244 260\" style=\"enable-background:new 0 0 512 512\" xml:space=\"preserve\" class=\"\">\n    <g xmlns=\"http://www.w3.org/2000/svg\">\n        <path d=\"M242,88v170H10V88h41l-38,38h37.1l38-38h38.4l-38,38h38.4l38-38h38.3l-38,38H204L242,88L242,88z M228.9,2l8,37.7l0,0 L191.2,10L228.9,2z M160.6,56l-45.8-29.7l38-8.1l45.8,29.7L160.6,56z M84.5,72.1L38.8,42.4l38-8.1l45.8,29.7L84.5,72.1z M10,88 L2,50.2L47.8,80L10,88z\" fill=\"currentColor\"/>\n    </g></svg>\n\n    <span>#{online_mod_title}</span>\n    </div>"; // нужна заглушка, а то при страте лампы говорит пусто
 
   Lampa.Component.add('online_mod', component); //то же самое
 
