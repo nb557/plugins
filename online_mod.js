@@ -133,7 +133,7 @@
         var items = component.parsePlaylist(str).map(function (item) {
           var quality = item.label.match(/(\d\d\d+)p/);
           var file = item.links[0];
-          if (file) file = 'http:' + file;
+          if (file) file = 'https:' + file;
           return {
             label: item.label,
             quality: quality ? parseInt(quality[1]) : NaN,
@@ -167,7 +167,7 @@
         var src = movie.iframe_src;
         network.clear();
         network.timeout(20000);
-        network.silent('http:' + src, function (raw) {
+        network.silent('https:' + src, function (raw) {
           get_links_wait = false;
           component.render().find('.broadcast__scan').remove();
           var math = raw.replace(/\n/g, '').match(/id="files" value="(.*?)"/);
@@ -4077,7 +4077,7 @@
         var items = component.parsePlaylist(str).map(function (item) {
           var quality = item.label.match(/(\d\d\d+)p/);
           var file = item.links[0];
-          if (file) file = 'http:' + file;
+          if (file) file = 'https:' + file;
           return {
             label: item.label,
             quality: quality ? parseInt(quality[1]) : NaN,
@@ -4287,7 +4287,7 @@
         subtitles = subs.map(function (item) {
           return {
             label: item.lang,
-            url: 'http:' + item.url
+            url: 'https:' + item.url
           };
         });
       }
