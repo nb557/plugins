@@ -287,11 +287,17 @@
         voice_info: []
       };
       results.slice(0, 1).forEach(function (movie) {
-        if (movie.season_count) {
-          var s = movie.season_count;
+        if (movie.episodes) {
+          var season_count = 1;
+          movie.episodes.forEach(function (episode) {
+            if (episode.season_num > season_count) {
+              season_count = episode.season_num;
+            }
+          });
 
+          var s = season_count;
           while (s--) {
-            filter_items.season.push(Lampa.Lang.translate('torrent_serial_season') + ' ' + (movie.season_count - s));
+            filter_items.season.push(Lampa.Lang.translate('torrent_serial_season') + ' ' + (season_count - s));
           }
         }
 
@@ -304,7 +310,7 @@
                 if (!filter_items.voice_info.find(function (v) {
                   return v.id == media.translation.id;
                 })) {
-                  filter_items.voice.push(media.translation.shorter_title);
+                  filter_items.voice.push(media.translation.shorter_title || media.translation.short_title || media.translation.title);
                   filter_items.voice_info.push({
                     id: media.translation.id
                   });
@@ -4231,11 +4237,17 @@
         voice_info: []
       };
       results.slice(0, 1).forEach(function (movie) {
-        if (movie.season_count) {
-          var s = movie.season_count;
+        if (movie.episodes) {
+          var season_count = 1;
+          movie.episodes.forEach(function (episode) {
+            if (episode.season_num > season_count) {
+              season_count = episode.season_num;
+            }
+          });
 
+          var s = season_count;
           while (s--) {
-            filter_items.season.push(Lampa.Lang.translate('torrent_serial_season') + ' ' + (movie.season_count - s));
+            filter_items.season.push(Lampa.Lang.translate('torrent_serial_season') + ' ' + (season_count - s));
           }
         }
 
@@ -4248,7 +4260,7 @@
                 if (!filter_items.voice_info.find(function (v) {
                   return v.id == media.translation.id;
                 })) {
-                  filter_items.voice.push(media.translation.shorter_title);
+                  filter_items.voice.push(media.translation.shorter_title || media.translation.short_title || media.translation.title);
                   filter_items.voice_info.push({
                     id: media.translation.id
                   });
