@@ -2724,20 +2724,45 @@
       return [];
     }
     /**
+     * Получить потоки
+     * @param {String} str 
+     * @returns array
+     */
+
+
+    function extractItemsPlaylist(str, url) {
+      try {
+        var items = component.parsePlaylist(str).map(function (item) {
+          var quality = item.label.match(/(\d\d\d+)p/);
+          var file = item.links[0];
+          return {
+            label: item.label,
+            quality: quality ? parseInt(quality[1]) : NaN,
+            file: file || ''
+          };
+        });
+        items.sort(function (a, b) {
+          if (b.quality > a.quality) return 1;
+          if (b.quality < a.quality) return -1;
+          if (b.label > a.label) return 1;
+          if (b.label < a.label) return -1;
+          return 0;
+        });
+        return items;
+      } catch (e) {}
+
+      return [];
+    }
+    /**
      * Получить поток
      * @param {*} element 
      */
 
 
-    function getStream(element, call, error) {
-      if (element.stream) return call(element);
-      var url = element.file;
-      network.clear();
-      network.timeout(5000);
-      network["native"](url, function (str) {
+    function parseStream(element, call, error, itemsExtractor, str, url) {
         var file = '';
         var quality = false;
-        var items = extractItems(str, url);
+        var items = itemsExtractor(str, url);
 
         if (items && items.length) {
           file = items[0].file;
@@ -2754,6 +2779,24 @@
           element.qualitys = quality;
           call(element);
         } else error();
+    }
+    /**
+     * Получить поток
+     * @param {*} element 
+     */
+
+
+    function getStream(element, call, error) {
+      if (element.stream) return call(element);
+      var url = element.file || '';
+      if (url.charAt(0) === '[') {
+        parseStream(element, call, error, extractItemsPlaylist, url, '');
+        return;
+      }
+      network.clear();
+      network.timeout(5000);
+      network["native"](url, function (str) {
+        parseStream(element, call, error, extractItems, str, url);
       }, error, false, {
         dataType: 'text'
       });
