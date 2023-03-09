@@ -2790,6 +2790,27 @@
       if (element.stream) return call(element);
       var url = element.file || '';
       if (url.charAt(0) === '[') {
+        var file = '';
+        var items = extractItemsPlaylist(url, '');
+
+        if (items && items.length) {
+          file = items[0].file;
+          file = file.replace(/\/[^\/]*\.m3u8$/, '/hls.m3u8');
+        }
+
+        if (file.substr(-9) === '/hls.m3u8') {
+          network.clear();
+          network.timeout(5000);
+          network["native"](file, function (str) {
+            parseStream(element, call, error, extractItems, str, file);
+          }, function (a, c) {
+            parseStream(element, call, error, extractItemsPlaylist, url, '');
+          }, false, {
+            dataType: 'text'
+          });
+          return;
+        }
+
         parseStream(element, call, error, extractItemsPlaylist, url, '');
         return;
       }
