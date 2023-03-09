@@ -75,29 +75,33 @@
 					c.tmp_year = parseInt((year + '').slice(0, 4));
 					return !c.tmp_year || !search_year || c.tmp_year > search_year - 2 && c.tmp_year < search_year + 2;
 				});
-				if (orig) {
-					var _tmp = cards.filter(function (elem) {
-						return equalTitle(elem.orig_title || elem.nameOriginal || elem.en_title || elem.nameEn || elem.ru_title || elem.nameRu, orig);
-					});
-					if (_tmp.length) {
-						cards = _tmp;
-						is_sure = true;
+				if (cards.length) {
+					if (orig) {
+						var _tmp = cards.filter(function (elem) {
+							return equalTitle(elem.orig_title || elem.nameOriginal || elem.en_title || elem.nameEn || elem.ru_title || elem.nameRu, orig);
+						});
+						if (_tmp.length) {
+							cards = _tmp;
+							is_sure = true;
+						}
 					}
-				}
-				if (card.title) {
-					var _tmp2 = cards.filter(function (elem) {
-						return equalTitle(elem.title || elem.ru_title || elem.nameRu || elem.en_title || elem.nameEn || elem.orig_title || elem.nameOriginal, card.title);
-					});
-					if (_tmp2.length) {
-						cards = _tmp2;
-						is_sure = true;
+					if (card.title) {
+						var _tmp2 = cards.filter(function (elem) {
+							return equalTitle(elem.title || elem.ru_title || elem.nameRu || elem.en_title || elem.nameEn || elem.orig_title || elem.nameOriginal, card.title);
+						});
+						if (_tmp2.length) {
+							cards = _tmp2;
+							is_sure = true;
+						}
 					}
-				}
-				if (cards.length > 1 && search_year) {
-					var _tmp3 = cards.filter(function (c) {
-						return c.tmp_year == search_year;
-					});
-					if (_tmp3.length) cards = _tmp3;
+					if (cards.length > 1 && search_year) {
+						var _tmp3 = cards.filter(function (c) {
+							return c.tmp_year == search_year;
+						});
+						if (_tmp3.length) cards = _tmp3;
+					}
+				} else {
+					cards = items;
 				}
 				if (cards.length == 1 && is_sure) {
 					var id = cards[0].kp_id || cards[0].kinopoiskId || cards[0].filmId;
