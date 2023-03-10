@@ -1,4 +1,4 @@
-//09.03.2023 - Fix videocdn (partially)
+//10.03.2023 - Fix kinobase
 
 (function () {
   'use strict';
@@ -164,10 +164,10 @@
 
       if (movie) {
         get_links_wait = true;
-        var src = movie.iframe_src;
+        var src = 'https:' + movie.iframe_src;
         network.clear();
         network.timeout(20000);
-        network.silent('https:' + src, function (raw) {
+        network.silent(src, function (raw) {
           get_links_wait = false;
           component.render().find('.broadcast__scan').remove();
           var math = raw.replace(/\n/g, '').match(/id="files" value="(.*?)"/);
@@ -294,8 +294,8 @@
               season_count = episode.season_num;
             }
           });
-
           var s = season_count;
+
           while (s--) {
             filter_items.season.push(Lampa.Lang.translate('torrent_serial_season') + ' ' + (season_count - s));
           }
@@ -360,15 +360,20 @@
                 return b.max_quality - a.max_quality;
               });
               temp.slice(0, 1).forEach(function (media) {
+                var num = parseInt(episode.num);
+                if (isNaN(num)) num = episode.num;
                 filtred.push({
-                  episode: parseInt(episode.num),
+                  episode: num,
                   season: episode.season_num,
-                  title: 'S' + episode.season_num + ' / ' + Lampa.Lang.translate('torrent_serial_episode') + ' ' + episode.num + ' - ' + (episode.ru_title || episode.orig_title),
+                  title: 'S' + episode.season_num + ' / ' + Lampa.Lang.translate('torrent_serial_episode') + ' ' + num + ' - ' + (episode.ru_title || episode.orig_title),
                   quality: media.max_quality + 'p',
                   info: ' / ' + filter_items.voice[choice.voice],
                   max_quality: media.max_quality,
                   translation: media.translation_id
                 });
+              });
+              filtred.sort(function (a, b) {
+                return a.episode - b.episode;
               });
             }
           });
@@ -1840,7 +1845,7 @@
 
       if (is_playlist) {
         extract.forEach(function (item) {
-          if (item.playlist) {
+          if (item.playlist || item.folder) {
             filter_items.season.push(item.title || item.comment || '');
           }
         });
@@ -1850,9 +1855,11 @@
 
       if (is_playlist) {
         extract.forEach(function (item, i) {
-          if (item.playlist) {
+          var playlist = item.playlist || item.folder;
+
+          if (playlist) {
             if (i == choice.season) {
-              item.playlist.forEach(function (eps) {
+              playlist.forEach(function (eps) {
                 if (eps.file) {
                   component.parsePlaylist(eps.file).forEach(function (el) {
                     if (el.voice && filter_items.voice.indexOf(el.voice) == -1) {
@@ -1883,8 +1890,8 @@
         var playlist = extract;
         var season = object.movie.number_of_seasons && 1;
 
-        if (extract[choice.season] && extract[choice.season].playlist) {
-          playlist = extract[choice.season].playlist;
+        if (extract[choice.season] && (extract[choice.season].playlist || extract[choice.season].folder)) {
+          playlist = extract[choice.season].playlist || extract[choice.season].folder;
           season = parseInt(extract[choice.season].title || extract[choice.season].comment || '');
           if (isNaN(season)) season = 1;
         }
@@ -2760,25 +2767,25 @@
 
 
     function parseStream(element, call, error, itemsExtractor, str, url) {
-        var file = '';
-        var quality = false;
-        var items = itemsExtractor(str, url);
+      var file = '';
+      var quality = false;
+      var items = itemsExtractor(str, url);
 
-        if (items && items.length) {
-          file = items[0].file;
-          quality = {};
-          items.forEach(function (item) {
-            quality[item.label] = item.file;
-          });
-          var preferably = Lampa.Storage.get('video_quality_default', '1080') + 'p';
-          if (quality[preferably]) file = quality[preferably];
-        }
+      if (items && items.length) {
+        file = items[0].file;
+        quality = {};
+        items.forEach(function (item) {
+          quality[item.label] = item.file;
+        });
+        var preferably = Lampa.Storage.get('video_quality_default', '1080') + 'p';
+        if (quality[preferably]) file = quality[preferably];
+      }
 
-        if (file) {
-          element.stream = file;
-          element.qualitys = quality;
-          call(element);
-        } else error();
+      if (file) {
+        element.stream = file;
+        element.qualitys = quality;
+        call(element);
+      } else error();
     }
     /**
      * Получить поток
@@ -2789,9 +2796,10 @@
     function getStream(element, call, error) {
       if (element.stream) return call(element);
       var url = element.file || '';
+
       if (url.charAt(0) === '[') {
         var file = '';
-        var items = extractItemsPlaylist(url, '');
+        var items = extractItemsPlaylist(url);
 
         if (items && items.length) {
           file = items[0].file;
@@ -2814,6 +2822,7 @@
         parseStream(element, call, error, extractItemsPlaylist, url, '');
         return;
       }
+
       network.clear();
       network.timeout(5000);
       network["native"](url, function (str) {
@@ -4308,8 +4317,8 @@
               season_count = episode.season_num;
             }
           });
-
           var s = season_count;
+
           while (s--) {
             filter_items.season.push(Lampa.Lang.translate('torrent_serial_season') + ' ' + (season_count - s));
           }
@@ -4389,16 +4398,21 @@
                 return b.max_quality - a.max_quality;
               });
               temp.slice(0, 1).forEach(function (media) {
+                var num = parseInt(episode.num);
+                if (isNaN(num)) num = episode.num;
                 filtred.push({
-                  episode: parseInt(episode.num),
+                  episode: num,
                   season: episode.season_num,
-                  title: 'S' + episode.season_num + ' / ' + Lampa.Lang.translate('torrent_serial_episode') + ' ' + episode.num + ' - ' + (episode.ru_title || episode.orig_title),
+                  title: 'S' + episode.season_num + ' / ' + Lampa.Lang.translate('torrent_serial_episode') + ' ' + num + ' - ' + (episode.ru_title || episode.orig_title),
                   quality: media.max_quality + 'p',
                   info: ' / ' + filter_items.voice[choice.voice],
                   max_quality: media.max_quality,
                   translation: media.translation_id,
                   subtitles: parseSubtitles(media.subtitles)
                 });
+              });
+              filtred.sort(function (a, b) {
+                return a.episode - b.episode;
               });
             }
           });
@@ -5609,7 +5623,7 @@
     Lampa.Template.add('online_mod_folder', "<div class=\"online selector\">\n        <div class=\"online__body\">\n            <div style=\"position: absolute;left: 0;top: -0.3em;width: 2.4em;height: 2.4em\">\n                <svg style=\"height: 2.4em; width:  2.4em;\" viewBox=\"0 0 128 112\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n                    <rect y=\"20\" width=\"128\" height=\"92\" rx=\"13\" fill=\"white\"/>\n                    <path d=\"M29.9963 8H98.0037C96.0446 3.3021 91.4079 0 86 0H42C36.5921 0 31.9555 3.3021 29.9963 8Z\" fill=\"white\" fill-opacity=\"0.23\"/>\n                    <rect x=\"11\" y=\"8\" width=\"106\" height=\"76\" rx=\"13\" fill=\"white\" fill-opacity=\"0.51\"/>\n                </svg>\n            </div>\n            <div class=\"online__title\" style=\"padding-left: 2.1em;\">{title}</div>\n            <div class=\"online__quality\" style=\"padding-left: 3.4em;\">{quality}{info}</div>\n        </div>\n    </div>");
   }
 
-  var button = "<div class=\"full-start__button selector view--online_mod\" data-subtitle=\"online_mod 09.03.2023\">\n    <svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:svgjs=\"http://svgjs.com/svgjs\" version=\"1.1\" width=\"512\" height=\"512\" x=\"0\" y=\"0\" viewBox=\"0 0 244 260\" style=\"enable-background:new 0 0 512 512\" xml:space=\"preserve\" class=\"\">\n    <g xmlns=\"http://www.w3.org/2000/svg\">\n        <path d=\"M242,88v170H10V88h41l-38,38h37.1l38-38h38.4l-38,38h38.4l38-38h38.3l-38,38H204L242,88L242,88z M228.9,2l8,37.7l0,0 L191.2,10L228.9,2z M160.6,56l-45.8-29.7l38-8.1l45.8,29.7L160.6,56z M84.5,72.1L38.8,42.4l38-8.1l45.8,29.7L84.5,72.1z M10,88 L2,50.2L47.8,80L10,88z\" fill=\"currentColor\"/>\n    </g></svg>\n\n    <span>#{online_mod_title}</span>\n    </div>"; // нужна заглушка, а то при страте лампы говорит пусто
+  var button = "<div class=\"full-start__button selector view--online_mod\" data-subtitle=\"online_mod 10.03.2023\">\n    <svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:svgjs=\"http://svgjs.com/svgjs\" version=\"1.1\" width=\"512\" height=\"512\" x=\"0\" y=\"0\" viewBox=\"0 0 244 260\" style=\"enable-background:new 0 0 512 512\" xml:space=\"preserve\" class=\"\">\n    <g xmlns=\"http://www.w3.org/2000/svg\">\n        <path d=\"M242,88v170H10V88h41l-38,38h37.1l38-38h38.4l-38,38h38.4l38-38h38.3l-38,38H204L242,88L242,88z M228.9,2l8,37.7l0,0 L191.2,10L228.9,2z M160.6,56l-45.8-29.7l38-8.1l45.8,29.7L160.6,56z M84.5,72.1L38.8,42.4l38-8.1l45.8,29.7L84.5,72.1z M10,88 L2,50.2L47.8,80L10,88z\" fill=\"currentColor\"/>\n    </g></svg>\n\n    <span>#{online_mod_title}</span>\n    </div>"; // нужна заглушка, а то при страте лампы говорит пусто
 
   Lampa.Component.add('online_mod', component); //то же самое
 
