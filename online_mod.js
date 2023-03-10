@@ -2795,10 +2795,10 @@
 
         if (items && items.length) {
           file = items[0].file;
-          file = file.replace(/\/[^\/]*\.m3u8$/, '/hls.m3u8');
+          file = file.replace(/\/\d*([^\/]*\.m3u8)$/, '/hls$1');
         }
 
-        if (file.substr(-9) === '/hls.m3u8') {
+        if (file.substr(-5) === '.m3u8') {
           network.clear();
           network.timeout(5000);
           network["native"](file, function (str) {
