@@ -4390,7 +4390,7 @@
         subtitles = subs.map(function (item) {
           return {
             label: item.lang,
-            url: 'https:' + item.url
+            url: 'http:' + item.url
           };
         });
       }
