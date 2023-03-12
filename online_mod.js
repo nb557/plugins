@@ -2350,7 +2350,7 @@
                 };
               });
               filtred.push({
-                file: prefer_dash && episode.dash || episode.hls,
+                file: (prefer_dash && episode.dash || episode.hls || '').replace('https://', 'http://'),
                 episode: parseInt(episode.episode),
                 season: season.season,
                 title: episode.title,
@@ -2359,7 +2359,7 @@
                 subtitles: episode.cc ? episode.cc.map(function (c) {
                   return {
                     label: c.name,
-                    url: c.url
+                    url: (c.url || '').replace('https://', 'http://')
                   };
                 }) : false,
                 audio_tracks: audio_tracks.length ? audio_tracks : false
@@ -2376,14 +2376,14 @@
           };
         });
         filtred.push({
-          file: prefer_dash && extract.source.dash || extract.source.hls,
+          file: (prefer_dash && extract.source.dash || extract.source.hls || '').replace('https://', 'http://'),
           title: extract.title,
           quality: max_quality ? max_quality + 'p / ' : '',
           info: extract.source.audio.names.slice(0, 5).join(', '),
           subtitles: extract.source.cc ? extract.source.cc.map(function (c) {
             return {
               label: c.name,
-              url: c.url
+              url: (c.url || '').replace('https://', 'http://')
             };
           }) : false,
           audio_tracks: audio_tracks.length ? audio_tracks : false
