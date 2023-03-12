@@ -19,6 +19,7 @@
     var results = [];
     var object = _object;
     var select_title = '';
+    var prefer_mp4 = Lampa.Storage.field('online_mod_prefer_mp4') === true;
     var get_links_wait = false;
     var filter_items = {};
     var choice = {
@@ -133,7 +134,10 @@
         var items = component.parsePlaylist(str).map(function (item) {
           var quality = item.label.match(/(\d\d\d+)p/);
           var file = item.links[0];
-          if (file) file = 'https:' + file;
+          if (file) {
+            file = 'https:' + file;
+            if (prefer_mp4) file = file.replace(/(\.mp4):hls:manifest\.m3u8$/i, '$1');
+          }
           return {
             label: item.label,
             quality: quality ? parseInt(quality[1]) : NaN,
