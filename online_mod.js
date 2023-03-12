@@ -135,7 +135,7 @@
           var quality = item.label.match(/(\d\d\d+)p/);
           var file = item.links[0];
           if (file) {
-            file = 'https:' + file;
+            file = 'http:' + file;
             if (prefer_mp4) file = file.replace(/(\.mp4):hls:manifest\.m3u8$/i, '$1');
           }
           return {
@@ -4167,7 +4167,7 @@
         var items = component.parsePlaylist(str).map(function (item) {
           var quality = item.label.match(/(\d\d\d+)p/);
           var file = item.links[0];
-          if (file) file = 'https:' + file;
+          if (file) file = 'http:' + file;
           return {
             label: item.label,
             quality: quality ? parseInt(quality[1]) : NaN,
