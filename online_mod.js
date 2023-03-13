@@ -1,4 +1,4 @@
-//13.03.2023 - Support prefer stream over HTTP
+//13.03.2023 - Fix rezka HTTP CORS
 
 (function () {
   'use strict';
@@ -171,6 +171,7 @@
         var meta = $('head meta[name="referrer"]');
         var referrer = meta.attr('content') || 'never';
         meta.attr('content', 'origin');
+
         try {
           network.clear();
           network.timeout(20000);
@@ -488,13 +489,13 @@
   function rezka(component, _object) {
     var network = new Lampa.Reguest();
     var extract = {};
-    var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true;
-    var prox = component.proxy('rezka');
-    var embed = prox ? prox + 'http://voidboost.tv/' : (prefer_http ? 'http:' : 'https:') + '//voidboost.tv/';
     var object = _object;
     var select_title = '';
     var select_id = '';
+    var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true;
     var prefer_mp4 = Lampa.Storage.field('online_mod_prefer_mp4') === true;
+    var prox = component.proxy('rezka');
+    var embed = prox ? prox + 'http://voidboost.tv/' : 'https://voidboost.tv/';
     var filter_items = {};
     var choice = {
       season: 0,
@@ -687,11 +688,13 @@
       if (subtitle) {
         subtitles = component.parsePlaylist(subtitle[1]).map(function (item) {
           var link = item.links[0] || '';
+
           if (prefer_http) {
             link = link.replace('https://', 'http://');
           } else {
             link = link.replace('http://', 'https://');
           }
+
           return {
             label: item.label,
             url: link
@@ -726,11 +729,13 @@
 
           if (!links.length) links = item.links;
           var link = links[0] || '';
+
           if (prefer_http) {
             link = link.replace('https://', 'http://');
           } else {
             link = link.replace('http://', 'https://');
           }
+
           return {
             label: item.label,
             quality: quality ? parseInt(quality[1]) : NaN,
@@ -1009,12 +1014,12 @@
   function rezka2(component, _object) {
     var network = new Lampa.Reguest();
     var extract = {};
-    var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true;
-    var prox = component.proxy('rezka2');
-    var embed = prox ? prox + 'https://hdrezka.ag/' : rezka2Mirror();
     var object = _object;
     var select_title = '';
+    var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true;
     var prefer_mp4 = Lampa.Storage.field('online_mod_prefer_mp4') === true;
+    var prox = component.proxy('rezka2');
+    var embed = prox ? prox + 'https://hdrezka.ag/' : rezka2Mirror();
     var logged_in = Lampa.Storage.field('online_mod_rezka2_status') === true && !prox;
     var network_call = logged_in ? network.silent : network["native"];
     var filter_items = {};
@@ -1538,11 +1543,13 @@
 
           if (!links.length) links = item.links;
           var link = links[0] || '';
+
           if (prefer_http) {
             link = link.replace('https://', 'http://');
           } else {
             link = link.replace('http://', 'https://');
           }
+
           return {
             label: item.label,
             quality: quality ? parseInt(quality[1]) : NaN,
@@ -1568,11 +1575,13 @@
       if (str) {
         subtitles = component.parsePlaylist(str).map(function (item) {
           var link = item.links[0] || '';
+
           if (prefer_http) {
             link = link.replace('https://', 'http://');
           } else {
             link = link.replace('http://', 'https://');
           }
+
           return {
             label: item.label,
             url: link
@@ -1727,16 +1736,16 @@
   function kinobase(component, _object) {
     var network = new Lampa.Reguest();
     var extract = [];
-    var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true;
-    var prox = component.proxy('kinobase');
-    var embed = prox ? prox + 'https://kinobase.org/' : kinobaseMirror();
     var object = _object;
     var select_title = '';
     var select_id = '';
     var is_playlist = false;
     var quality_type = '';
     var translation = '';
+    var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true;
     var prefer_mp4 = Lampa.Storage.field('online_mod_prefer_mp4') === true;
+    var prox = component.proxy('kinobase');
+    var embed = prox ? prox + 'https://kinobase.org/' : kinobaseMirror();
     var filter_items = {};
     var choice = {
       season: 0,
@@ -2242,11 +2251,11 @@
   function collaps(component, _object) {
     var network = new Lampa.Reguest();
     var extract = {};
-    var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true;
-    var embed = component.proxy('collaps') + (prefer_http ? 'http:' : 'https:') + '//api.strvid.ws/embed/';
     var object = _object;
     var select_title = '';
+    var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true;
     var prefer_dash = Lampa.Storage.field('online_mod_prefer_dash') === true;
+    var embed = component.proxy('collaps') + (prefer_http ? 'http:' : 'https:') + '//api.strvid.ws/embed/';
     var filter_items = {};
     var choice = {
       season: 0,
@@ -2792,11 +2801,12 @@
       try {
         var items = component.parsePlaylist(str).map(function (item) {
           var quality = item.label.match(/(\d\d\d+)p/);
-          var file = item.links[0] || '';
+          var link = item.links[0] || '';
+          if (prefer_http) link = link.replace('https://', 'http://');
           return {
             label: item.label,
             quality: quality ? parseInt(quality[1]) : NaN,
-            file: file
+            file: link
           };
         });
         items.sort(function (a, b) {
@@ -2855,7 +2865,6 @@
         if (items && items.length) {
           file = items[0].file || '';
           file = file.replace(/\/\d*([^\/]*\.m3u8)$/, '/hls$1');
-          if (prefer_http) file = file.replace('https://', 'http://');
         }
 
         if (file.substr(-5) === '.m3u8') {
@@ -4248,6 +4257,7 @@
         var meta = $('head meta[name="referrer"]');
         var referrer = meta.attr('content') || 'never';
         meta.attr('content', 'origin');
+
         try {
           network.clear();
           network.timeout(20000);
@@ -4434,11 +4444,11 @@
 
       if (Lampa.Arrays.isArray(subs)) {
         subtitles = subs.map(function (item) {
-          var url = item.url || '';
-          if (url) url = (prefer_http ? 'http:' : 'https:') + url;
+          var link = item.url || '';
+          if (link) link = (prefer_http ? 'http:' : 'https:') + link;
           return {
             label: item.lang,
-            url: url
+            url: link
           };
         });
       }
