@@ -4744,7 +4744,7 @@
     };
 
     this.equalTitle = function (t1, t2) {
-      return typeof t1 === 'string' && typeof t2 === 'string' && t1.toLowerCase().replace(/—/g, '-') === t2.toLowerCase().replace(/—/g, '-');
+      return typeof t1 === 'string' && typeof t2 === 'string' && t1.toLowerCase().replace(/—/g, '-').replace(/\s+/g, ' ') === t2.toLowerCase().replace(/—/g, '-').replace(/\s+/g, ' ');
     };
 
     this.find = function () {
@@ -4813,7 +4813,7 @@
           if (cards.length == 1 && is_sure) {
             _this2.extendChoice();
 
-            sources[balanser].search(object, cards[0].kp_id || cards[0].kinopoiskId || cards[0].filmId, cards);
+            sources[balanser].search(object, cards[0].kp_id || cards[0].kinopoiskId || cards[0].filmId || cards[0].imdb_id, cards);
           } else {
             _this2.similars(items);
 
@@ -4891,9 +4891,9 @@
         }
       };
 
-      if (object.movie.kinopoisk_id && ['rezka', 'collaps', 'hdvb'].indexOf(balanser) >= 0) {
+      if (+object.movie.kinopoisk_id && ['rezka', 'collaps', 'hdvb'].indexOf(balanser) >= 0) {
         this.extendChoice();
-        sources[balanser].search(object, object.movie.kinopoisk_id);
+        sources[balanser].search(object, +object.movie.kinopoisk_id);
       } else if (!object.movie.imdb_id && (object.movie.source == 'tmdb' || object.movie.source == 'cub') && ['videocdn', 'videoapi', 'cdnmovies'].indexOf(balanser) >= 0) {
         var tmdburl = (object.movie.name ? 'tv' : 'movie') + '/' + object.movie.id + '/external_ids?api_key=4ef0d7355d9ffb5151e987764708ce96&language=ru';
         var baseurl = typeof Lampa.TMDB !== 'undefined' ? Lampa.TMDB.api(tmdburl) : 'http://api.themoviedb.org/3/' + tmdburl;
