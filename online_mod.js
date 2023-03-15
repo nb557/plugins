@@ -4740,11 +4740,11 @@
     };
 
     this.cleanTitle = function (str) {
-      return str.replace(/[ .,:;!?]+/g, ' ').trim();
+      return str.replace(/[\s.,:;!?]+/g, ' ').trim();
     };
 
     this.equalTitle = function (t1, t2) {
-      return typeof t1 === 'string' && typeof t2 === 'string' && t1.toLowerCase().replace(/—/g, '-').replace(/\s+/g, ' ') === t2.toLowerCase().replace(/—/g, '-').replace(/\s+/g, ' ');
+      return typeof t1 === 'string' && typeof t2 === 'string' && t1.toLowerCase().replace(/—/g, '-').replace(/\s+/g, ' ').trim() === t2.toLowerCase().replace(/—/g, '-').replace(/\s+/g, ' ').trim();
     };
 
     this.find = function () {
@@ -4772,6 +4772,7 @@
 
           var cards = items.filter(function (c) {
             var year = c.start_date || c.year || '0000';
+            if (year === '1969-12-31') year = '0000';
             c.tmp_year = parseInt((year + '').slice(0, 4));
             return !c.tmp_year || !search_year || c.tmp_year > search_year - 2 && c.tmp_year < search_year + 2;
           });
