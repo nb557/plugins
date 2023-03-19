@@ -171,7 +171,7 @@
 		}
 
 		function equalTitle(t1, t2) {
-			return typeof t1 === 'string' && typeof t2 === 'string' && t1.toLowerCase().replace(/—/g, '-') === t2.toLowerCase().replace(/—/g, '-');
+			return typeof t1 === 'string' && typeof t2 === 'string' && t1.toLowerCase().replace(/—/g, '-').replace(/\s+/g, ' ').trim() === t2.toLowerCase().replace(/—/g, '-').replace(/\s+/g, ' ').trim();
 		}
 
 		function _getCache(movie) {

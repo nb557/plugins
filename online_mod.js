@@ -3640,6 +3640,8 @@
       object = _object;
       select_id = kinopoisk_id;
       select_title = object.movie.title;
+      var search_date = object.search_date || object.movie.release_date || object.movie.first_air_date || object.movie.last_air_date || '0000';
+      var search_year = parseInt((search_date + '').slice(0, 4));
 
       if (isNaN(kinopoisk_id)) {
         component.empty("kinopoisk_id is null");
@@ -3650,6 +3652,7 @@
       url = Lampa.Utils.addUrlComponent(url, 'id=' + object.movie.id);
       url = Lampa.Utils.addUrlComponent(url, 'kinopoisk_id=' + select_id);
       url = Lampa.Utils.addUrlComponent(url, 'title=' + encodeURIComponent(select_title));
+      url = Lampa.Utils.addUrlComponent(url, 'year=' + search_year);
       network.clear();
       network.timeout(10000);
       network.silent(url, function (found) {
@@ -5930,7 +5933,10 @@
     if (e.name == 'online_mod') {
       var clear_last_balanser = e.body.find('[data-name="online_mod_clear_last_balanser"]');
       clear_last_balanser.unbind('hover:enter').on('hover:enter', function () {
+        Lampa.Storage.set('online_last_balanser', {});
+        Lampa.Storage.set('online_balanser', '');
         Lampa.Storage.set('online_mod_last_balanser', {});
+        Lampa.Storage.set('online_mod_balanser', '');
         $('.settings-param__status', clear_last_balanser).removeClass('active error wait').addClass('active');
       });
       var rezka2_login = e.body.find('[data-name="online_mod_rezka2_login"]');
