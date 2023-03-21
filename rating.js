@@ -38,7 +38,7 @@
 			network.silent(url, function (json) {
 				if (json.items && json.items.length) chooseFilm(json.items);
 				else if (json.films && json.films.length) chooseFilm(json.films);
-				else if (card.imdb_id) {
+				else if (url !== url_by_title) {
 					network.clear();
 					network.timeout(15000);
 					network.silent(url_by_title, function (json) {
