@@ -2269,7 +2269,12 @@
     this.search = function (_object, kinopoisk_id) {
       object = _object;
       select_title = object.movie.title;
-      var url = embed + 'kp/' + kinopoisk_id;
+      var url = embed;
+      if (+kinopoisk_id) {
+        url += 'kp/' + kinopoisk_id;
+      } else {
+        url += 'imdb/' + kinopoisk_id;
+      }
       network.clear();
       network.timeout(10000);
       network.silent(url, function (str) {
