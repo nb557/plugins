@@ -3096,27 +3096,15 @@
       voice_name: ''
     };
 
-    function decodeSecret(password) {
-      var result = '';
-      if (password) {
-        var input = [25,80,89,90,24,65,31,116,111,117,101,118,65,28,123,90,86,114,7,85,7,95,115,66,68,117,1,121,117,86,127,75,98,117,116,102,98,116,114,102,115,121,0,99,90,70,118,99,92,121,98,99,112,86,3,121,7,122,78,102,91,104,114,99,80,28];
-        var hash = Lampa.Utils.hash(password);
-        while (hash.length < input.length) {
-          hash += hash;
-        }
-        var i = 0;
-        while (i < input.length) {
-          result += String.fromCharCode(input[i] ^ hash.charCodeAt(i));
-          i++;
-        }
-        if (!result.startsWith('.com/s/')) {
-            return '';
-        }
+    function decodeSecret() {
+      var result = component.decodeSecret([]);
+      if (!result.startsWith('.com/s/')) {
+        return '';
       }
       return result;
     }
 
-    var secret = decodeSecret(Lampa.Storage.get('online_mod_secret_password', ''));
+    var secret = decodeSecret();
     var token = secret ? '' : Lampa.Storage.get('filmix_token', '');
 
     if (secret) {
@@ -3662,7 +3650,7 @@
     var network = new Lampa.Reguest();
     var extract = {};
     var results = [];
-    var backend = 'http://back.freebie.tom.ru/lampa/hdvburl?v=799';
+    var backend = 'http://back.freebie.tom.ru/lampa/hdvburl?v=1529';
     var object = _object;
     var select_title = '';
     var select_id = '';
@@ -4678,6 +4666,23 @@
       return '';
     };
 
+    this.decodeSecret = function (input) {
+      var result = '';
+      var password = Lampa.Storage.get('online_mod_secret_password', '');
+      if (input && password) {
+        var hash = Lampa.Utils.hash(password);
+        while (hash.length < input.length) {
+          hash += hash;
+        }
+        var i = 0;
+        while (i < input.length) {
+          result += String.fromCharCode(input[i] ^ hash.charCodeAt(i));
+          i++;
+        }
+      }
+      return result;
+    }
+
     var sources = {
       videocdn: new videocdn(this, object),
       rezka: new rezka(this, object),
@@ -4698,7 +4703,12 @@
       voice: Lampa.Lang.translate('torrent_parser_voice'),
       source: Lampa.Lang.translate('settings_rest_source')
     };
-    var filter_sources = ['videocdn', 'rezka', 'rezka2', 'kinobase', 'collaps', 'cdnmovies', 'filmix']; // шаловливые ручки
+    var filter_sources = ['videocdn', 'rezka', 'rezka2', 'kinobase', 'collaps', 'cdnmovies', 'filmix'];
+    var secret = this.decodeSecret([92, 85, 91, 65, 84]);
+    if (secret === 'debug') {
+        filter_sources.push('hdvb');
+        filter_sources.push('videoapi');
+    } // шаловливые ручки
 
     if (filter_sources.indexOf(balanser) == -1) {
       balanser = 'filmix';
