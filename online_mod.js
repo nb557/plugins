@@ -3653,7 +3653,7 @@
     var network = new Lampa.Reguest();
     var extract = {};
     var results = [];
-    var backend = 'http://back.freebie.tom.ru/lampa/hdvburl?v=1529';
+    var backend = 'http://back.freebie.tom.ru/lampa/hdvburl?v=1612';
     var object = _object;
     var select_title = '';
     var select_id = '';
