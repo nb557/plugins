@@ -3681,9 +3681,11 @@
       }
 
       var url = backend;
+      url = Lampa.Utils.addUrlComponent(url, 'source=' + encodeURIComponent(object.movie.source));
       url = Lampa.Utils.addUrlComponent(url, 'id=' + object.movie.id);
       url = Lampa.Utils.addUrlComponent(url, 'kinopoisk_id=' + select_id);
       url = Lampa.Utils.addUrlComponent(url, 'title=' + encodeURIComponent(select_title));
+      url = Lampa.Utils.addUrlComponent(url, 'serial=' + (object.movie.number_of_seasons ? 1 : 0));
       url = Lampa.Utils.addUrlComponent(url, 'year=' + search_year);
       network.clear();
       network.timeout(10000);
@@ -3989,6 +3991,7 @@
       }
 
       var url = backend;
+      url = Lampa.Utils.addUrlComponent(url, 'source=' + encodeURIComponent(object.movie.source));
       url = Lampa.Utils.addUrlComponent(url, 'id=' + object.movie.id);
       url = Lampa.Utils.addUrlComponent(url, 'kinopoisk_id=' + select_id);
       url = Lampa.Utils.addUrlComponent(url, 'translation=' + results[element.translation].translator_id);
