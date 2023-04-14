@@ -1,4 +1,4 @@
-//09.04.2023 - Kinobase only https
+//14.04.2023 - Fix kinobase
 
 (function () {
   'use strict';
@@ -706,7 +706,7 @@
     }
     /**
      * Получить потоки
-     * @param {String} str 
+     * @param {String} str
      * @returns array
      */
 
@@ -939,8 +939,11 @@
 
         if (viewed.indexOf(hash_file) !== -1) item.append('<div class="torrent-item__viewed">' + Lampa.Template.get('icon_star', {}, true) + '</div>');
         item.on('hover:enter', function () {
+          if (element.loading) return;
           if (object.movie.id) Lampa.Favorite.add('history', object.movie, 100);
+          element.loading = true;
           getStream(element, function (element) {
+            element.loading = false;
             var first = {
               url: element.stream,
               quality: element.qualitys,
@@ -985,6 +988,7 @@
               Lampa.Storage.set('online_view', viewed);
             }
           }, function () {
+            element.loading = false;
             Lampa.Noty.show(Lampa.Lang.translate('online_mod_nolink'));
           });
         });
@@ -1661,8 +1665,11 @@
 
         if (viewed.indexOf(hash_file) !== -1) item.append('<div class="torrent-item__viewed">' + Lampa.Template.get('icon_star', {}, true) + '</div>');
         item.on('hover:enter', function () {
+          if (element.loading) return;
           if (object.movie.id) Lampa.Favorite.add('history', object.movie, 100);
+          element.loading = true;
           getStream(element, function (element) {
+            element.loading = false;
             var first = {
               url: element.stream,
               quality: element.qualitys,
@@ -1707,6 +1714,7 @@
               Lampa.Storage.set('online_view', viewed);
             }
           }, function () {
+            element.loading = false;
             Lampa.Noty.show(Lampa.Lang.translate('online_mod_nolink'));
           });
         });
@@ -2058,22 +2066,35 @@
           select_id = MOVIE_ID[1];
           var identifier = IDENTIFIER[1];
           var player_cuid = PLAYER_CUID[1];
-          var data_url = "user_data";
+          var data_url = "user_data.js";
           data_url = Lampa.Utils.addUrlComponent(data_url, "page=movie");
           data_url = Lampa.Utils.addUrlComponent(data_url, "movie_id=" + select_id);
           data_url = Lampa.Utils.addUrlComponent(data_url, "cuid=" + player_cuid);
           data_url = Lampa.Utils.addUrlComponent(data_url, "device=DESKTOP");
-          data_url = Lampa.Utils.addUrlComponent(data_url, "_=" + Date.now());
+          data_url = Lampa.Utils.addUrlComponent(data_url, "_=" + Math.floor(Date.now() / 1e3));
           network.clear();
           network.timeout(1000 * 10);
-          network["native"](embed + data_url, function (user_data) {
-            if (user_data.vod_hash && user_data.vod_time) {
+          network["native"](embed + data_url, function (user_data_script) {
+            var vod_hash, vod_time;
+
+            try {
+              var user_data = user_data_script && eval(user_data_script.replace('}eval(', '}('));
+
+              if (typeof user_data === 'string') {
+                var marx13_vod_hash = user_data.match('var marx13_vod_hash = "([^"]+)"');
+                if (marx13_vod_hash) vod_hash = marx13_vod_hash[1];
+                var marx13_vod_time = user_data.match('var marx13_vod_time = "([^"]+)"');
+                if (marx13_vod_time) vod_time = marx13_vod_time[1];
+              }
+            } catch (e) {}
+
+            if (vod_hash && vod_time) {
               var file_url = "vod/" + select_id;
               file_url = Lampa.Utils.addUrlComponent(file_url, "identifier=" + identifier);
               file_url = Lampa.Utils.addUrlComponent(file_url, "player_type=new");
               file_url = Lampa.Utils.addUrlComponent(file_url, "file_type=" + (prefer_mp4 ? "mp4" : "hls"));
-              file_url = Lampa.Utils.addUrlComponent(file_url, "st=" + user_data.vod_hash);
-              file_url = Lampa.Utils.addUrlComponent(file_url, "e=" + user_data.vod_time);
+              file_url = Lampa.Utils.addUrlComponent(file_url, "st=" + vod_hash);
+              file_url = Lampa.Utils.addUrlComponent(file_url, "e=" + vod_time);
               file_url = Lampa.Utils.addUrlComponent(file_url, "_=" + Date.now());
               network.clear();
               network.timeout(1000 * 10);
@@ -2090,6 +2111,8 @@
             } else component.empty(Lampa.Lang.translate('torrent_parser_no_hash'));
           }, function (a, c) {
             component.empty(network.errorDecode(a, c));
+          }, false, {
+            dataType: 'text'
           });
         } else component.emptyForQuery(select_title);
       }, function (a, c) {
@@ -2757,7 +2780,7 @@
     }
     /**
      * Получить потоки
-     * @param {String} str 
+     * @param {String} str
      * @returns array
      */
 
@@ -2796,7 +2819,7 @@
     }
     /**
      * Получить потоки
-     * @param {String} str 
+     * @param {String} str
      * @returns array
      */
 
@@ -2827,7 +2850,7 @@
     }
     /**
      * Получить поток
-     * @param {*} element 
+     * @param {*} element
      */
 
 
@@ -2854,7 +2877,7 @@
     }
     /**
      * Получить поток
-     * @param {*} element 
+     * @param {*} element
      */
 
 
@@ -3008,8 +3031,11 @@
 
         if (viewed.indexOf(hash_file) !== -1) item.append('<div class="torrent-item__viewed">' + Lampa.Template.get('icon_star', {}, true) + '</div>');
         item.on('hover:enter', function () {
+          if (element.loading) return;
           if (object.movie.id) Lampa.Favorite.add('history', object.movie, 100);
+          element.loading = true;
           getStream(element, function (element) {
+            element.loading = false;
             var first = {
               url: element.stream,
               quality: element.qualitys,
@@ -3054,6 +3080,7 @@
               Lampa.Storage.set('online_view', viewed);
             }
           }, function () {
+            element.loading = false;
             Lampa.Noty.show(Lampa.Lang.translate('online_mod_nolink'));
           });
         });
@@ -4065,8 +4092,8 @@
 
         if (viewed.indexOf(hash_file) !== -1) item.append('<div class="torrent-item__viewed">' + Lampa.Template.get('icon_star', {}, true) + '</div>');
         item.on('hover:enter', function () {
-          if (object.movie.id) Lampa.Favorite.add('history', object.movie, 100);
           if (element.loading) return;
+          if (object.movie.id) Lampa.Favorite.add('history', object.movie, 100);
           element.loading = true;
           getStream(element, function (extra) {
             element.loading = false;
@@ -5781,7 +5808,7 @@
     Lampa.Template.add('online_mod_folder', "<div class=\"online selector\">\n        <div class=\"online__body\">\n            <div style=\"position: absolute;left: 0;top: -0.3em;width: 2.4em;height: 2.4em\">\n                <svg style=\"height: 2.4em; width:  2.4em;\" viewBox=\"0 0 128 112\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n                    <rect y=\"20\" width=\"128\" height=\"92\" rx=\"13\" fill=\"white\"/>\n                    <path d=\"M29.9963 8H98.0037C96.0446 3.3021 91.4079 0 86 0H42C36.5921 0 31.9555 3.3021 29.9963 8Z\" fill=\"white\" fill-opacity=\"0.23\"/>\n                    <rect x=\"11\" y=\"8\" width=\"106\" height=\"76\" rx=\"13\" fill=\"white\" fill-opacity=\"0.51\"/>\n                </svg>\n            </div>\n            <div class=\"online__title\" style=\"padding-left: 2.1em;\">{title}</div>\n            <div class=\"online__quality\" style=\"padding-left: 3.4em;\">{quality}{info}</div>\n        </div>\n    </div>");
   }
 
-  var button = "<div class=\"full-start__button selector view--online_mod\" data-subtitle=\"online_mod 09.04.2023\">\n    <svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:svgjs=\"http://svgjs.com/svgjs\" version=\"1.1\" width=\"512\" height=\"512\" x=\"0\" y=\"0\" viewBox=\"0 0 244 260\" style=\"enable-background:new 0 0 512 512\" xml:space=\"preserve\" class=\"\">\n    <g xmlns=\"http://www.w3.org/2000/svg\">\n        <path d=\"M242,88v170H10V88h41l-38,38h37.1l38-38h38.4l-38,38h38.4l38-38h38.3l-38,38H204L242,88L242,88z M228.9,2l8,37.7l0,0 L191.2,10L228.9,2z M160.6,56l-45.8-29.7l38-8.1l45.8,29.7L160.6,56z M84.5,72.1L38.8,42.4l38-8.1l45.8,29.7L84.5,72.1z M10,88 L2,50.2L47.8,80L10,88z\" fill=\"currentColor\"/>\n    </g></svg>\n\n    <span>#{online_mod_title}</span>\n    </div>"; // нужна заглушка, а то при страте лампы говорит пусто
+  var button = "<div class=\"full-start__button selector view--online_mod\" data-subtitle=\"online_mod 14.04.2023\">\n    <svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:svgjs=\"http://svgjs.com/svgjs\" version=\"1.1\" width=\"512\" height=\"512\" x=\"0\" y=\"0\" viewBox=\"0 0 244 260\" style=\"enable-background:new 0 0 512 512\" xml:space=\"preserve\" class=\"\">\n    <g xmlns=\"http://www.w3.org/2000/svg\">\n        <path d=\"M242,88v170H10V88h41l-38,38h37.1l38-38h38.4l-38,38h38.4l38-38h38.3l-38,38H204L242,88L242,88z M228.9,2l8,37.7l0,0 L191.2,10L228.9,2z M160.6,56l-45.8-29.7l38-8.1l45.8,29.7L160.6,56z M84.5,72.1L38.8,42.4l38-8.1l45.8,29.7L84.5,72.1z M10,88 L2,50.2L47.8,80L10,88z\" fill=\"currentColor\"/>\n    </g></svg>\n\n    <span>#{online_mod_title}</span>\n    </div>"; // нужна заглушка, а то при страте лампы говорит пусто
 
   Lampa.Component.add('online_mod', component); //то же самое
 
