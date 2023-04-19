@@ -61,6 +61,10 @@
 		function chooseFilm(items) {
 			if (items && items.length) {
 				var is_sure = false;
+				items.forEach(function (c) {
+					var year = c.start_date || c.year || '0000';
+					c.tmp_year = parseInt((year + '').slice(0, 4));
+				});
 				if (card.imdb_id) {
 					var tmp = items.filter(function (elem) {
 						return (elem.imdb_id || elem.imdbId) == card.imdb_id;
@@ -70,11 +74,7 @@
 						is_sure = true;
 					}
 				}
-				var cards = items.filter(function (c) {
-					var year = c.start_date || c.year || '0000';
-					c.tmp_year = parseInt((year + '').slice(0, 4));
-					return !c.tmp_year || !search_year || c.tmp_year > search_year - 2 && c.tmp_year < search_year + 2;
-				});
+				var cards = items;
 				if (cards.length) {
 					if (orig) {
 						var _tmp = cards.filter(function (elem) {
@@ -98,13 +98,14 @@
 						var _tmp3 = cards.filter(function (c) {
 							return c.tmp_year == search_year;
 						});
+						if (!_tmp3.length) _tmp3 = cards.filter(function (c) {
+							return !c.tmp_year && c.tmp_year > search_year - 2 && c.tmp_year < search_year + 2;
+						});
 						if (_tmp3.length) cards = _tmp3;
 					}
-				} else {
-					cards = items;
 				}
 				if (cards.length == 1 && is_sure) {
-					var id = cards[0].kp_id || cards[0].kinopoiskId || cards[0].filmId;
+					var id = cards[0].kp_id || cards[0].kinopoisk_id || cards[0].kinopoiskId || cards[0].filmId;
 					var base_search = function base_search() {
 						network.clear();
 						network.timeout(15000);

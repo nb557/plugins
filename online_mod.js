@@ -1,4 +1,4 @@
-//14.04.2023 - Fix kinobase
+//19.04.2023 - Fix videocdn search by title
 
 (function () {
   'use strict';
@@ -38,15 +38,23 @@
     this.search = function (_object, kinopoisk_id, data) {
       object = _object;
       var itm = data[0];
-      select_title = itm.title || object.movie.title;
+      select_title = itm.title || itm.ru_title || itm.en_title || itm.orig_title || object.movie.title;
+
+      if (itm.episodes || itm.media) {
+        results = [itm];
+        success(results);
+        component.loading(false);
+        return;
+      }
+
       var url = component.proxy('videocdn') + 'https://videocdn.tv/api/';
       var type = itm.iframe_src.split('/').slice(-2)[0];
       if (type == 'movie') type = 'movies';
       if (type == 'anime') type = 'animes';
       url += type;
       url = Lampa.Utils.addUrlComponent(url, 'api_token=3i40G5TSECmLF77oAqnEgbx61ZWaOYaE');
-      url = Lampa.Utils.addUrlComponent(url, 'query=' + (itm.imdb_id ? encodeURIComponent(itm.imdb_id) : itm.kp_id ? encodeURIComponent(itm.kp_id) : encodeURIComponent(select_title)));
-      url = Lampa.Utils.addUrlComponent(url, 'field=' + (itm.imdb_id ? 'imdb_id' : itm.kp_id ? 'kinopoisk_id' : 'title'));
+      url = Lampa.Utils.addUrlComponent(url, 'query=' + (itm.imdb_id ? encodeURIComponent(itm.imdb_id) : itm.kp_id || itm.kinopoisk_id ? encodeURIComponent(itm.kp_id || itm.kinopoisk_id) : encodeURIComponent(select_title)));
+      url = Lampa.Utils.addUrlComponent(url, 'field=' + (itm.imdb_id ? 'imdb_id' : itm.kp_id || itm.kinopoisk_id ? 'kinopoisk_id' : 'title'));
       network.clear();
       network.timeout(20000);
       network.silent(url, function (found) {
@@ -376,7 +384,7 @@
                 filtred.push({
                   episode: num,
                   season: episode.season_num,
-                  title: 'S' + episode.season_num + ' / ' + Lampa.Lang.translate('torrent_serial_episode') + ' ' + num + ' - ' + (episode.ru_title || episode.orig_title),
+                  title: 'S' + episode.season_num + ' / ' + Lampa.Lang.translate('torrent_serial_episode') + ' ' + num + ' - ' + (episode.title || episode.ru_title || episode.en_title || episode.orig_title),
                   quality: media.max_quality + 'p',
                   info: ' / ' + filter_items.voice[choice.voice],
                   max_quality: media.max_quality,
@@ -1064,6 +1072,7 @@
         var links = str.match(/<li><a href=.*?<\/li>/g);
 
         if (links) {
+          var is_sure = false;
           var items = links.map(function (l) {
             var li = $(l);
             var link = $('a', li);
@@ -1093,39 +1102,41 @@
               link: link.attr('href')
             };
           });
-          var is_sure = false;
-          var cards = items.filter(function (c) {
-            return !c.year || !search_year || c.year > search_year - 2 && c.year < search_year + 2;
-          });
+          var cards = items;
 
-          if (orig) {
-            var tmp = cards.filter(function (c) {
-              return component.equalTitle(c.orig_title, orig);
-            });
+          if (cards.length) {
+            if (orig) {
+              var tmp = cards.filter(function (c) {
+                return component.equalTitle(c.orig_title, orig);
+              });
 
-            if (tmp.length) {
-              cards = tmp;
-              is_sure = true;
+              if (tmp.length) {
+                cards = tmp;
+                is_sure = true;
+              }
             }
-          }
 
-          if (select_title) {
-            var _tmp = cards.filter(function (c) {
-              return component.equalTitle(c.title, select_title);
-            });
+            if (select_title) {
+              var _tmp = cards.filter(function (c) {
+                return component.equalTitle(c.title, select_title);
+              });
 
-            if (_tmp.length) {
-              cards = _tmp;
-              is_sure = true;
+              if (_tmp.length) {
+                cards = _tmp;
+                is_sure = true;
+              }
             }
-          }
 
-          if (cards.length > 1 && search_year) {
-            var _tmp2 = cards.filter(function (c) {
-              return c.year == search_year;
-            });
+            if (cards.length > 1 && search_year) {
+              var _tmp2 = cards.filter(function (c) {
+                return c.year == search_year;
+              });
 
-            if (_tmp2.length) cards = _tmp2;
+              if (!_tmp2.length) _tmp2 = cards.filter(function (c) {
+                return !c.year && c.year > search_year - 2 && c.year < search_year + 2;
+              });
+              if (_tmp2.length) cards = _tmp2;
+            }
           }
 
           if (cards.length == 1 && is_sure) getPage(cards[0].link);else if (items.length) {
@@ -1789,6 +1800,7 @@
         var search_year = parseInt((search_date + '').slice(0, 4));
 
         if (links) {
+          var is_sure = false;
           var items = links.map(function (l) {
             var link = $(l),
                 titl = link.attr('title') || link.text() || '';
@@ -1806,28 +1818,30 @@
               link: link.attr('href')
             };
           });
-          var is_sure = false;
-          var cards = items.filter(function (c) {
-            return !c.year || !search_year || c.year > search_year - 2 && c.year < search_year + 2;
-          });
+          var cards = items;
 
-          if (select_title) {
-            var tmp = cards.filter(function (c) {
-              return component.equalTitle(c.title, select_title);
-            });
+          if (cards.length) {
+            if (select_title) {
+              var tmp = cards.filter(function (c) {
+                return component.equalTitle(c.title, select_title);
+              });
 
-            if (tmp.length) {
-              cards = tmp;
-              is_sure = true;
+              if (tmp.length) {
+                cards = tmp;
+                is_sure = true;
+              }
             }
-          }
 
-          if (cards.length > 1 && search_year) {
-            var _tmp = cards.filter(function (c) {
-              return c.year == search_year;
-            });
+            if (cards.length > 1 && search_year) {
+              var _tmp = cards.filter(function (c) {
+                return c.year == search_year;
+              });
 
-            if (_tmp.length) cards = _tmp;
+              if (!_tmp.length) _tmp = cards.filter(function (c) {
+                return !c.year && c.year > search_year - 2 && c.year < search_year + 2;
+              });
+              if (_tmp.length) cards = _tmp;
+            }
           }
 
           if (cards.length == 1 && is_sure) getPage(cards[0].link);else if (items.length) {
@@ -2580,13 +2594,17 @@
 
       var display = function display(data) {
         if (data && Object.keys(data).length) {
+          var is_sure = false;
           var items = [];
 
           for (var id in data) {
             items.push(data[id]);
           }
 
-          var is_sure = false;
+          items.forEach(function (c) {
+            var year = c.start_date || c.year || '0000';
+            c.tmp_year = parseInt((year + '').slice(0, 4));
+          });
 
           if (object.movie.imdb_id) {
             var tmp = items.filter(function (elem) {
@@ -2599,11 +2617,7 @@
             }
           }
 
-          var cards = items.filter(function (c) {
-            var year = c.start_date || c.year || '0000';
-            c.tmp_year = parseInt((year + '').slice(0, 4));
-            return !c.tmp_year || !search_year || c.tmp_year > search_year - 2 && c.tmp_year < search_year + 2;
-          });
+          var cards = items;
 
           if (cards.length) {
             if (orig) {
@@ -2633,10 +2647,11 @@
                 return c.tmp_year == search_year;
               });
 
+              if (!_tmp3.length) _tmp3 = cards.filter(function (c) {
+                return !c.tmp_year && c.tmp_year > search_year - 2 && c.tmp_year < search_year + 2;
+              });
               if (_tmp3.length) cards = _tmp3;
             }
-          } else {
-            cards = items;
           }
 
           if (cards.length == 1 && is_sure) {
@@ -3173,39 +3188,44 @@
       network.timeout(10000);
       network.silent(url, function (json) {
         var is_sure = false;
-        var cards = json.filter(function (c) {
+        json.forEach(function (c) {
           if (!c.year && c.alt_name) c.year = parseInt(c.alt_name.split('-').pop());
-          return !c.year || !search_year || c.year > search_year - 2 && c.year < search_year + 2;
         });
+        var cards = json;
 
-        if (orig) {
-          var tmp = cards.filter(function (c) {
-            return component.equalTitle(c.original_title, orig);
-          });
+        if (cards.length) {
+          if (orig) {
+            var tmp = cards.filter(function (c) {
+              return component.equalTitle(c.original_title, orig);
+            });
 
-          if (tmp.length) {
-            cards = tmp;
-            is_sure = true;
+            if (tmp.length) {
+              cards = tmp;
+              is_sure = true;
+            }
           }
-        }
 
-        if (select_title) {
-          var _tmp = cards.filter(function (c) {
-            return component.equalTitle(c.title, select_title);
-          });
+          if (select_title) {
+            var _tmp = cards.filter(function (c) {
+              return component.equalTitle(c.title, select_title);
+            });
 
-          if (_tmp.length) {
-            cards = _tmp;
-            is_sure = true;
+            if (_tmp.length) {
+              cards = _tmp;
+              is_sure = true;
+            }
           }
-        }
 
-        if (cards.length > 1 && search_year) {
-          var _tmp2 = cards.filter(function (c) {
-            return c.year == search_year;
-          });
+          if (cards.length > 1 && search_year) {
+            var _tmp2 = cards.filter(function (c) {
+              return c.year == search_year;
+            });
 
-          if (_tmp2.length) cards = _tmp2;
+            if (!_tmp2.length) _tmp2 = cards.filter(function (c) {
+              return !c.year && c.year > search_year - 2 && c.year < search_year + 2;
+            });
+            if (_tmp2.length) cards = _tmp2;
+          }
         }
 
         if (cards.length == 1 && is_sure) _this.find(cards[0].id);else if (json.length) {
@@ -4189,7 +4209,15 @@
     this.search = function (_object, kinopoisk_id, data) {
       object = _object;
       var itm = data[0];
-      select_title = itm.title || object.movie.title;
+      select_title = itm.title || itm.ru_title || itm.en_title || itm.orig_title || object.movie.title;
+
+      if (itm.episodes || itm.media) {
+        results = [itm];
+        success(results);
+        component.loading(false);
+        return;
+      }
+
       var url = component.proxy('videoapi') + 'https://videoapi.tv/api/';
       var type = itm.iframe_src.split('/').slice(-2)[0];
       if (type == 'movie') type = 'movies';
@@ -4544,7 +4572,7 @@
                 filtred.push({
                   episode: num,
                   season: episode.season_num,
-                  title: 'S' + episode.season_num + ' / ' + Lampa.Lang.translate('torrent_serial_episode') + ' ' + num + ' - ' + (episode.ru_title || episode.orig_title),
+                  title: 'S' + episode.season_num + ' / ' + Lampa.Lang.translate('torrent_serial_episode') + ' ' + num + ' - ' + (episode.title || episode.ru_title || episode.en_title || episode.orig_title),
                   quality: media.max_quality + 'p',
                   info: ' / ' + filter_items.voice[choice.voice],
                   max_quality: media.max_quality,
@@ -4786,6 +4814,7 @@
 
       filter.render().find('.selector').on('hover:focus', function (e) {
         last_filter = e.target;
+        scroll.update($(e.target), true);
       });
 
       filter.onSelect = function (type, a, b) {
@@ -4852,6 +4881,12 @@
       var display = function display(items) {
         if (items && items.length) {
           var is_sure = false;
+          items.forEach(function (c) {
+            if (c.start_date === '1969-12-31') c.start_date = '';
+            if (c.year === '1969-12-31') c.year = '';
+            var year = c.start_date || c.year || '0000';
+            c.tmp_year = parseInt((year + '').slice(0, 4));
+          });
 
           if (object.movie.imdb_id) {
             var tmp = items.filter(function (elem) {
@@ -4864,12 +4899,7 @@
             }
           }
 
-          var cards = items.filter(function (c) {
-            var year = c.start_date || c.year || '0000';
-            if (year === '1969-12-31') year = '0000';
-            c.tmp_year = parseInt((year + '').slice(0, 4));
-            return !c.tmp_year || !search_year || c.tmp_year > search_year - 2 && c.tmp_year < search_year + 2;
-          });
+          var cards = items;
 
           if (cards.length) {
             if (orig) {
@@ -4899,16 +4929,17 @@
                 return c.tmp_year == search_year;
               });
 
+              if (!_tmp3.length) _tmp3 = cards.filter(function (c) {
+                return !c.tmp_year && c.tmp_year > search_year - 2 && c.tmp_year < search_year + 2;
+              });
               if (_tmp3.length) cards = _tmp3;
             }
-          } else {
-            cards = items;
           }
 
           if (cards.length == 1 && is_sure) {
             _this2.extendChoice();
 
-            sources[balanser].search(object, cards[0].kp_id || cards[0].kinopoiskId || cards[0].filmId || cards[0].imdb_id, cards);
+            sources[balanser].search(object, cards[0].kp_id || cards[0].kinopoisk_id || cards[0].kinopoiskId || cards[0].filmId || cards[0].imdb_id, cards);
           } else {
             _this2.similars(items);
 
@@ -4919,32 +4950,55 @@
 
       var vcdn_search = function vcdn_search() {
         var url;
+        var params;
 
         if (balanser == 'videoapi') {
-          url = _this2.proxy('videoapi') + 'https://videoapi.tv/api/short';
-          url = Lampa.Utils.addUrlComponent(url, 'api_token=qR0taraBKvEZULgjoIRj69AJ7O6Pgl9O');
+          url = _this2.proxy('videoapi') + 'https://videoapi.tv/api/';
+          params = Lampa.Utils.addUrlComponent('', 'api_token=qR0taraBKvEZULgjoIRj69AJ7O6Pgl9O');
         } else {
-          url = _this2.proxy('videocdn') + 'https://videocdn.tv/api/short';
-          url = Lampa.Utils.addUrlComponent(url, 'api_token=3i40G5TSECmLF77oAqnEgbx61ZWaOYaE');
+          url = _this2.proxy('videocdn') + 'https://videocdn.tv/api/';
+          params = Lampa.Utils.addUrlComponent('', 'api_token=3i40G5TSECmLF77oAqnEgbx61ZWaOYaE');
         }
 
-        var url_by_title = Lampa.Utils.addUrlComponent(url, 'title=' + encodeURIComponent(query));
-        if (object.movie.imdb_id) url = Lampa.Utils.addUrlComponent(url, 'imdb_id=' + encodeURIComponent(object.movie.imdb_id));else if (+object.movie.kinopoisk_id) url = Lampa.Utils.addUrlComponent(url, 'kinopoisk_id=' + encodeURIComponent(+object.movie.kinopoisk_id));else url = url_by_title;
-        network.clear();
-        network.timeout(1000 * 15);
-        network.silent(url, function (json) {
-          if (json.data && json.data.length) display(json.data);else if (url !== url_by_title) {
-            network.clear();
-            network.timeout(1000 * 15);
-            network.silent(url_by_title, function (json) {
-              if (json.data && json.data.length) display(json.data);else display([]);
-            }, function (a, c) {
-              _this2.empty(network.errorDecode(a, c));
+        var params_by_title = params;
+        params_by_title = Lampa.Utils.addUrlComponent(params_by_title, 'query=' + encodeURIComponent(query));
+        params_by_title = Lampa.Utils.addUrlComponent(params_by_title, 'field=title');
+        if (object.movie.imdb_id) params = Lampa.Utils.addUrlComponent(params, 'imdb_id=' + encodeURIComponent(object.movie.imdb_id));else if (+object.movie.kinopoisk_id) params = Lampa.Utils.addUrlComponent(params, 'kinopoisk_id=' + encodeURIComponent(+object.movie.kinopoisk_id));else params = params_by_title;
+
+        var vcdn_api_search = function vcdn_api_search(api, data, callback) {
+          network.clear();
+          network.timeout(1000 * 15);
+          network.silent(url + api, function (json) {
+            if (json.data && json.data.length) data = data.concat(json.data);
+            if (callback) callback(data);
+          }, function (a, c) {
+            if (a.status == 404 && a.responseJSON && a.responseJSON.result === false || a.status == 0 && c !== 'timeout') {
+              if (callback) callback(data);
+            } else _this2.empty(network.errorDecode(a, c));
+          });
+        };
+
+        var vcdn_title_search = function vcdn_title_search() {
+          vcdn_api_search('movies' + params_by_title, [], function (data) {
+            vcdn_api_search('animes' + params_by_title, data, function (data) {
+              vcdn_api_search('tv-series' + params_by_title, data, function (data) {
+                vcdn_api_search('anime-tv-series' + params_by_title, data, function (data) {
+                  vcdn_api_search('show-tv-series' + params_by_title, data, function (data) {
+                    if (data && data.length) display(data);else display([]);
+                  });
+                });
+              });
             });
-          } else display([]);
-        }, function (a, c) {
-          _this2.empty(network.errorDecode(a, c));
-        });
+          });
+        };
+
+        if (params === params_by_title) {
+          vcdn_title_search();
+        } else {
+          vcdn_api_search('short' + params, [], function (data) {
+            if (data && data.length) display(data);else vcdn_title_search();
+          });
+        }
       };
 
       var kp_search = function kp_search() {
@@ -5116,7 +5170,7 @@
 
           _this3.extendChoice();
 
-          sources[balanser].search(object, elem.kp_id || elem.kinopoiskId || elem.filmId || elem.imdb_id, [elem]);
+          sources[balanser].search(object, elem.kp_id || elem.kinopoisk_id || elem.kinopoiskId || elem.filmId || elem.imdb_id, [elem]);
         });
 
         _this3.append(item);
@@ -5808,7 +5862,7 @@
     Lampa.Template.add('online_mod_folder', "<div class=\"online selector\">\n        <div class=\"online__body\">\n            <div style=\"position: absolute;left: 0;top: -0.3em;width: 2.4em;height: 2.4em\">\n                <svg style=\"height: 2.4em; width:  2.4em;\" viewBox=\"0 0 128 112\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n                    <rect y=\"20\" width=\"128\" height=\"92\" rx=\"13\" fill=\"white\"/>\n                    <path d=\"M29.9963 8H98.0037C96.0446 3.3021 91.4079 0 86 0H42C36.5921 0 31.9555 3.3021 29.9963 8Z\" fill=\"white\" fill-opacity=\"0.23\"/>\n                    <rect x=\"11\" y=\"8\" width=\"106\" height=\"76\" rx=\"13\" fill=\"white\" fill-opacity=\"0.51\"/>\n                </svg>\n            </div>\n            <div class=\"online__title\" style=\"padding-left: 2.1em;\">{title}</div>\n            <div class=\"online__quality\" style=\"padding-left: 3.4em;\">{quality}{info}</div>\n        </div>\n    </div>");
   }
 
-  var button = "<div class=\"full-start__button selector view--online_mod\" data-subtitle=\"online_mod 14.04.2023\">\n    <svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:svgjs=\"http://svgjs.com/svgjs\" version=\"1.1\" width=\"512\" height=\"512\" x=\"0\" y=\"0\" viewBox=\"0 0 244 260\" style=\"enable-background:new 0 0 512 512\" xml:space=\"preserve\" class=\"\">\n    <g xmlns=\"http://www.w3.org/2000/svg\">\n        <path d=\"M242,88v170H10V88h41l-38,38h37.1l38-38h38.4l-38,38h38.4l38-38h38.3l-38,38H204L242,88L242,88z M228.9,2l8,37.7l0,0 L191.2,10L228.9,2z M160.6,56l-45.8-29.7l38-8.1l45.8,29.7L160.6,56z M84.5,72.1L38.8,42.4l38-8.1l45.8,29.7L84.5,72.1z M10,88 L2,50.2L47.8,80L10,88z\" fill=\"currentColor\"/>\n    </g></svg>\n\n    <span>#{online_mod_title}</span>\n    </div>"; // нужна заглушка, а то при страте лампы говорит пусто
+  var button = "<div class=\"full-start__button selector view--online_mod\" data-subtitle=\"online_mod 19.04.2023\">\n    <svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:svgjs=\"http://svgjs.com/svgjs\" version=\"1.1\" width=\"512\" height=\"512\" x=\"0\" y=\"0\" viewBox=\"0 0 244 260\" style=\"enable-background:new 0 0 512 512\" xml:space=\"preserve\" class=\"\">\n    <g xmlns=\"http://www.w3.org/2000/svg\">\n        <path d=\"M242,88v170H10V88h41l-38,38h37.1l38-38h38.4l-38,38h38.4l38-38h38.3l-38,38H204L242,88L242,88z M228.9,2l8,37.7l0,0 L191.2,10L228.9,2z M160.6,56l-45.8-29.7l38-8.1l45.8,29.7L160.6,56z M84.5,72.1L38.8,42.4l38-8.1l45.8,29.7L84.5,72.1z M10,88 L2,50.2L47.8,80L10,88z\" fill=\"currentColor\"/>\n    </g></svg>\n\n    <span>#{online_mod_title}</span>\n    </div>"; // нужна заглушка, а то при страте лампы говорит пусто
 
   Lampa.Component.add('online_mod', component); //то же самое
 
