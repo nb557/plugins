@@ -4867,7 +4867,7 @@
     };
 
     this.equalTitle = function (t1, t2) {
-      return typeof t1 === 'string' && typeof t2 === 'string' && t1.toLowerCase().replace(/—/g, '-').replace(/\s+/g, ' ').trim() === t2.toLowerCase().replace(/—/g, '-').replace(/\s+/g, ' ').trim();
+      return typeof t1 === 'string' && typeof t2 === 'string' && t1.toLowerCase().replace(/—/g, '-').replace(/[\s.,:;!?]+/g, ' ').trim() === t2.toLowerCase().replace(/—/g, '-').replace(/[\s.,:;!?]+/g, ' ').trim();
     };
 
     this.find = function () {
