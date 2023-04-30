@@ -3723,7 +3723,7 @@
     var network = new Lampa.Reguest();
     var extract = {};
     var results = [];
-    var backend = 'http://back.freebie.tom.ru/lampa/hdvburl?v=1612';
+    var backend = 'http://back.freebie.tom.ru/lampa/hdvburl?v=1628';
     var object = _object;
     var select_title = '';
     var select_id = '';
@@ -3755,7 +3755,7 @@
       url = Lampa.Utils.addUrlComponent(url, 'id=' + object.movie.id);
       url = Lampa.Utils.addUrlComponent(url, 'kinopoisk_id=' + select_id);
       url = Lampa.Utils.addUrlComponent(url, 'title=' + encodeURIComponent(select_title));
-      url = Lampa.Utils.addUrlComponent(url, 'serial=' + (object.movie.number_of_seasons ? 1 : 0));
+      if (object.movie.source == 'tmdb' || object.movie.source == 'cub') url = Lampa.Utils.addUrlComponent(url, 'serial=' + (object.movie.number_of_seasons ? 1 : 0));
       url = Lampa.Utils.addUrlComponent(url, 'year=' + search_year);
       network.clear();
       network.timeout(10000);
@@ -4076,9 +4076,13 @@
           return;
         }
 
-        var json = JSON.parse(str);
+        var json;
 
-        if (!(json.playlists && Object.keys(json.playlists).length)) {
+        try {
+            json = JSON.parse(str);
+        } catch (e) {}
+
+        if (!(json && json.playlists && Object.keys(json.playlists).length)) {
           error('Ссылки на видео не получены');
           return;
         }
