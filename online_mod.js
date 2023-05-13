@@ -3723,7 +3723,7 @@
     var network = new Lampa.Reguest();
     var extract = {};
     var results = [];
-    var backend = 'http://back.freebie.tom.ru/lampa/hdvburl?v=1628';
+    var backend = 'http://back.freebie.tom.ru/lampa/hdvburl?v=1709';
     var object = _object;
     var select_title = '';
     var select_id = '';
@@ -4071,7 +4071,7 @@
       network.clear();
       network.timeout(15000);
       network.silent(url, function (str) {
-        if (!str || str == 'VideoNotFound' || str == 'error' || str == '10' || str.indexOf('"error"') !== -1) {
+        if (!str || str == 'VideoNotFound' || str == 'error' || str == '10') {
           error(str);
           return;
         }
@@ -4079,11 +4079,11 @@
         var json;
 
         try {
-            json = JSON.parse(str);
+          json = JSON.parse(str);
         } catch (e) {}
 
         if (!(json && json.playlists && Object.keys(json.playlists).length)) {
-          error('Ссылки на видео не получены');
+          error(json && json.error || !json && str || '');
           return;
         }
 
