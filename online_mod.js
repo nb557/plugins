@@ -1133,7 +1133,7 @@
               });
 
               if (!_tmp2.length) _tmp2 = cards.filter(function (c) {
-                return !c.year && c.year > search_year - 2 && c.year < search_year + 2;
+                return c.year && c.year > search_year - 2 && c.year < search_year + 2;
               });
               if (_tmp2.length) cards = _tmp2;
             }
@@ -1842,7 +1842,7 @@
               });
 
               if (!_tmp.length) _tmp = cards.filter(function (c) {
-                return !c.year && c.year > search_year - 2 && c.year < search_year + 2;
+                return c.year && c.year > search_year - 2 && c.year < search_year + 2;
               });
               if (_tmp.length) cards = _tmp;
             }
@@ -2652,7 +2652,7 @@
               });
 
               if (!_tmp3.length) _tmp3 = cards.filter(function (c) {
-                return !c.tmp_year && c.tmp_year > search_year - 2 && c.tmp_year < search_year + 2;
+                return c.tmp_year && c.tmp_year > search_year - 2 && c.tmp_year < search_year + 2;
               });
               if (_tmp3.length) cards = _tmp3;
             }
@@ -3253,7 +3253,7 @@
             });
 
             if (!_tmp2.length) _tmp2 = cards.filter(function (c) {
-              return !c.year && c.year > search_year - 2 && c.year < search_year + 2;
+              return c.year && c.year > search_year - 2 && c.year < search_year + 2;
             });
             if (_tmp2.length) cards = _tmp2;
           }
@@ -4971,7 +4971,7 @@
               });
 
               if (!_tmp3.length) _tmp3 = cards.filter(function (c) {
-                return !c.tmp_year && c.tmp_year > search_year - 2 && c.tmp_year < search_year + 2;
+                return c.tmp_year && c.tmp_year > search_year - 2 && c.tmp_year < search_year + 2;
               });
               if (_tmp3.length) cards = _tmp3;
             }

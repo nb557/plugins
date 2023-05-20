@@ -101,7 +101,7 @@
 							return c.tmp_year == search_year;
 						});
 						if (!_tmp3.length) _tmp3 = cards.filter(function (c) {
-							return !c.tmp_year && c.tmp_year > search_year - 2 && c.tmp_year < search_year + 2;
+							return c.tmp_year && c.tmp_year > search_year - 2 && c.tmp_year < search_year + 2;
 						});
 						if (_tmp3.length) cards = _tmp3;
 					}
