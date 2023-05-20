@@ -61,6 +61,7 @@
 		function chooseFilm(items) {
 			if (items && items.length) {
 				var is_sure = false;
+				var is_imdb = false;
 				items.forEach(function (c) {
 					var year = c.start_date || c.year || '0000';
 					c.tmp_year = parseInt((year + '').slice(0, 4));
@@ -72,6 +73,7 @@
 					if (tmp.length) {
 						items = tmp;
 						is_sure = true;
+						is_imdb = true;
 					}
 				}
 				var cards = items;
@@ -103,6 +105,9 @@
 						});
 						if (_tmp3.length) cards = _tmp3;
 					}
+				}
+				if (cards.length == 1 && is_sure && !is_imdb && search_year && cards[0].tmp_year) {
+					is_sure = cards[0].tmp_year > search_year - 2 && cards[0].tmp_year < search_year + 2;
 				}
 				if (cards.length == 1 && is_sure) {
 					var id = cards[0].kp_id || cards[0].kinopoisk_id || cards[0].kinopoiskId || cards[0].filmId;

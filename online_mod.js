@@ -1139,6 +1139,10 @@
             }
           }
 
+          if (cards.length == 1 && is_sure && search_year && cards[0].year) {
+            is_sure = cards[0].year > search_year - 2 && cards[0].year < search_year + 2;
+          }
+
           if (cards.length == 1 && is_sure) getPage(cards[0].link);else if (items.length) {
             _this.wait_similars = true;
             items.forEach(function (c) {
@@ -1842,6 +1846,10 @@
               });
               if (_tmp.length) cards = _tmp;
             }
+          }
+
+          if (cards.length == 1 && is_sure && search_year && cards[0].year) {
+            is_sure = cards[0].year > search_year - 2 && cards[0].year < search_year + 2;
           }
 
           if (cards.length == 1 && is_sure) getPage(cards[0].link);else if (items.length) {
@@ -2589,6 +2597,7 @@
       var display = function display(data) {
         if (data && Object.keys(data).length) {
           var is_sure = false;
+          var is_imdb = false;
           var items = [];
 
           for (var id in data) {
@@ -2608,6 +2617,7 @@
             if (tmp.length) {
               items = tmp;
               is_sure = true;
+              is_imdb = true;
             }
           }
 
@@ -2646,6 +2656,10 @@
               });
               if (_tmp3.length) cards = _tmp3;
             }
+          }
+
+          if (cards.length == 1 && is_sure && !is_imdb && search_year && cards[0].tmp_year) {
+            is_sure = cards[0].tmp_year > search_year - 2 && cards[0].tmp_year < search_year + 2;
           }
 
           if (cards.length == 1 && is_sure) {
@@ -3243,6 +3257,10 @@
             });
             if (_tmp2.length) cards = _tmp2;
           }
+        }
+
+        if (cards.length == 1 && is_sure && search_year && cards[0].year) {
+          is_sure = cards[0].year > search_year - 2 && cards[0].year < search_year + 2;
         }
 
         if (cards.length == 1 && is_sure) _this.find(cards[0].id);else if (json.length) {
@@ -4902,6 +4920,7 @@
       var display = function display(items) {
         if (items && items.length) {
           var is_sure = false;
+          var is_imdb = false;
           items.forEach(function (c) {
             if (c.start_date === '1969-12-31') c.start_date = '';
             if (c.year === '1969-12-31') c.year = '';
@@ -4917,6 +4936,7 @@
             if (tmp.length) {
               items = tmp;
               is_sure = true;
+              is_imdb = true;
             }
           }
 
@@ -4955,6 +4975,10 @@
               });
               if (_tmp3.length) cards = _tmp3;
             }
+          }
+
+          if (cards.length == 1 && is_sure && !is_imdb && search_year && cards[0].tmp_year) {
+            is_sure = cards[0].tmp_year > search_year - 2 && cards[0].tmp_year < search_year + 2;
           }
 
           if (cards.length == 1 && is_sure) {
