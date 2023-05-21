@@ -1,0 +1,35 @@
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="referrer" content="origin">
+    <title>Proxy</title>
+</head>
+<body>
+    <script>
+        window.addEventListener('message', function(event) {
+            var data = event.data;
+            var source = event.source;
+
+            if (data && data.message === 'proxyMessage' && data.message_id && data.method && data.url) {
+                var xhr = new XMLHttpRequest();
+                xhr.timeout = data.timeout || 60 * 1000;
+                xhr.onreadystatechange = function () {
+                    if (xhr.readyState === XMLHttpRequest.DONE) {
+                        source.postMessage({
+                            message: 'proxyResponse',
+                            message_id: data.message_id,
+                            status: xhr.status,
+                            responseText: xhr.responseText
+                        }, '*');
+                    }
+                };
+                if (data.method === 'POST') {
+                    xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+                }
+                xhr.open(data.method, data.url);
+                xhr.send(data.post_data);
+            }
+        });
+    </script>
+</body>
+</html>
