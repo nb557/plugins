@@ -2087,7 +2087,7 @@
         if (MOVIE_ID && IDENTIFIER && PLAYER_CUID) {
           select_id = MOVIE_ID[1];
           var identifier = IDENTIFIER[1];
-          var player_cuid = PLAYER_CUID[1];
+          PLAYER_CUID[1];
           var data_url = "videoplayer.js";
           data_url = Lampa.Utils.addUrlComponent(data_url, "movie_id=" + select_id);
           data_url = Lampa.Utils.addUrlComponent(data_url, "IDENTIFIER=" + identifier);
@@ -2100,15 +2100,19 @@
             var vod_url;
 
             (function () {
-              var XMLHttpRequest = function () {
+              var XMLHttpRequest = function XMLHttpRequest() {
                 this.open = function (method, url) {
                   vod_url = url;
                 };
+
                 this.send = function () {};
               };
+
               try {
                 eval(vod_script);
               } catch (e) {}
+
+              return XMLHttpRequest; //не удалять
             })();
 
             if (vod_url) {
