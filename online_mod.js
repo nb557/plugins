@@ -2103,16 +2103,27 @@
         if (MOVIE_ID && IDENTIFIER && PLAYER_CUID) {
           select_id = MOVIE_ID[1];
           var identifier = IDENTIFIER[1];
-          PLAYER_CUID[1];
-          var data_url = "videoplayer.js";
-          data_url = Lampa.Utils.addUrlComponent(data_url, "movie_id=" + select_id);
-          data_url = Lampa.Utils.addUrlComponent(data_url, "IDENTIFIER=" + identifier);
-          data_url = Lampa.Utils.addUrlComponent(data_url, "player_type=new");
-          data_url = Lampa.Utils.addUrlComponent(data_url, "file_type=" + (prefer_mp4 ? "mp4" : "hls"));
-          data_url = Lampa.Utils.addUrlComponent(data_url, "_=" + Math.floor(Date.now() / 1e3));
+          var player_cuid = PLAYER_CUID[1];
+          var user_url = "user_data";
+          user_url = Lampa.Utils.addUrlComponent(user_url, "page=movie");
+          user_url = Lampa.Utils.addUrlComponent(user_url, "movie_id=" + select_id);
+          user_url = Lampa.Utils.addUrlComponent(user_url, "cuid=" + player_cuid);
+          user_url = Lampa.Utils.addUrlComponent(user_url, "device=DESKTOP");
+          user_url = Lampa.Utils.addUrlComponent(user_url, "_=" + Date.now());
+          var player_url = "videoplayer.js";
+          player_url = Lampa.Utils.addUrlComponent(player_url, "movie_id=" + select_id);
+          player_url = Lampa.Utils.addUrlComponent(player_url, "IDENTIFIER=" + identifier);
+          player_url = Lampa.Utils.addUrlComponent(player_url, "player_type=new");
+          player_url = Lampa.Utils.addUrlComponent(player_url, "file_type=" + (prefer_mp4 ? "mp4" : "hls"));
+          player_url = Lampa.Utils.addUrlComponent(player_url, "_=" + Math.floor(Date.now() / 1e3));
           network.clear();
           network.timeout(1000 * 10);
-          network["native"](embed + data_url, function (vod_script) {
+          network["native"](embed + user_url, function () {}, function () {}, false, {
+            dataType: 'text',
+            withCredentials: !prox
+          });
+          network.timeout(1000 * 10);
+          network["native"](embed + player_url, function (vod_script) {
             var vod_data, vod_url;
 
             try {
@@ -2144,13 +2155,15 @@
               }, function (a, c) {
                 component.empty(network.errorDecode(a, c));
               }, false, {
-                dataType: 'text'
+                dataType: 'text',
+                withCredentials: !prox
               });
             } else component.empty(Lampa.Lang.translate('torrent_parser_no_hash'));
           }, function (a, c) {
             component.empty(network.errorDecode(a, c));
           }, false, {
-            dataType: 'text'
+            dataType: 'text',
+            withCredentials: !prox
           });
         } else component.emptyForQuery(select_title);
       }, function (a, c) {
