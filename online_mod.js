@@ -513,7 +513,7 @@
     var prefer_mp4 = Lampa.Storage.field('online_mod_prefer_mp4') === true;
     var prox = component.proxy('rezka');
     var embed = prox ? prox + 'http://voidboost.tv/' : 'https://voidboost.tv/';
-    var iframe_proxy = !prox && Lampa.Storage.field('online_mod_iframe_proxy') === true && window.location.protocol.startsWith('http');
+    var iframe_proxy = !prox && Lampa.Storage.field('online_mod_iframe_proxy') === true && window.location.protocol.startsWith('http') && !Lampa.Platform.is('android');
     var filter_items = {};
     var choice = {
       season: 0,
