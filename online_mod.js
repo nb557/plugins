@@ -1,4 +1,4 @@
-//27.05.2023 - Use iframe proxy
+//27.05.2023 - Use iframe proxy and fix kinobase
 
 (function () {
   'use strict';
@@ -2113,11 +2113,25 @@
           network.clear();
           network.timeout(1000 * 10);
           network["native"](embed + data_url, function (vod_script) {
-            var vod_url;
+            var vod_data, vod_url;
 
             try {
-              vod_url = (0, eval)('"use strict"; (function () { var url; var XMLHttpRequest = function XMLHttpRequest() { this.open = function (m, u) { url = u; }; this.send = function () {}; }; try { eval(' + JSON.stringify(vod_script) + '); } catch (e) {} return url; })();');
+              var tmp = $.get;
+              try {
+                vod_data = (0, eval)('"use strict"; (function () { var url, params, $ = {}; $.get = function (u, p) { url = u; params = p; }; var XMLHttpRequest = function XMLHttpRequest() { this.open = function (m, u) { url = u; }; this.send = function () {}; }; try { eval(' + JSON.stringify(vod_script) + '); } catch (e) {} return {url: url, params: params}; })();');
+              } finally {
+                $.get = tmp;
+              }
             } catch (e) {}
+
+            if (vod_data && vod_data.url) {
+               vod_url = vod_data.url;
+               if (vod_data.params) {
+                 for (var name in vod_data.params) {
+                   vod_url = Lampa.Utils.addUrlComponent(vod_url, name + "=" + encodeURIComponent(vod_data.params[name]));
+                 }
+               }
+            }
 
             if (vod_url) {
               network.clear();
