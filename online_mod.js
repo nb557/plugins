@@ -5209,7 +5209,13 @@
     this.proxyCall = function (method, url, timeout, post_data, call_success, call_fail) {
         if (proxyWindow && proxyCalls) {
           timeout = timeout || 60 * 1000;
-          var message_id = crypto.getRandomValues(new Uint8Array(16)).toString();
+          var message_id;
+
+          try {
+            message_id = crypto.getRandomValues(new Uint8Array(16)).toString();
+          } catch (e) {}
+          if (!message_id) message_id = Math.random().toString();
+
           proxyCalls[message_id] = {success: call_success, fail: call_fail};
           proxyWindow.postMessage({
               message: 'proxyMessage',
@@ -5302,7 +5308,7 @@
     this.loading = function (status) {
       if (status) this.activity.loader(true);else {
         this.activity.loader(false);
-        this.activity.toggle();
+        if (Lampa.Controller.enabled().name === 'content') this.activity.toggle();
       }
     };
     /**
