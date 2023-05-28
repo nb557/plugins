@@ -4771,6 +4771,10 @@
     }
   }
 
+  var proxyInitialized = false;
+  var proxyWindow;
+  var proxyCalls = {};
+
   function component(object) {
     var network = new Lampa.Reguest();
     var scroll = new Lampa.Scroll({
@@ -5207,7 +5211,8 @@
     };
 
     this.proxyCall = function (method, url, timeout, post_data, call_success, call_fail) {
-        if (proxyWindow && proxyCalls) {
+      var process = function () {
+        if (proxyWindow) {
           timeout = timeout || 60 * 1000;
           var message_id;
 
@@ -5218,12 +5223,12 @@
 
           proxyCalls[message_id] = {success: call_success, fail: call_fail};
           proxyWindow.postMessage({
-              message: 'proxyMessage',
-              message_id: message_id,
-              method: method,
-              url: url,
-              timeout: timeout,
-              post_data: post_data
+            message: 'proxyMessage',
+            message_id: message_id,
+            method: method,
+            url: url,
+            timeout: timeout,
+            post_data: post_data
           }, '*');
           setTimeout(function () {
             var call = proxyCalls[message_id];
@@ -5235,6 +5240,44 @@
         } else {
           if (call_fail) call_fail({status: 0, responseText: ''}, 'abort');
         }
+      };
+      if (!proxyInitialized) {
+        proxyInitialized = true;
+        var proxyOrigin = Lampa.Utils.protocol() + 'nb557.surge.sh';
+        var proxyIframe = document.createElement('iframe');
+        proxyIframe.setAttribute('src', proxyOrigin + '/proxy.html');
+        proxyIframe.setAttribute('width', '0');
+        proxyIframe.setAttribute('height', '0');
+        proxyIframe.setAttribute('tabindex', '-1');
+        proxyIframe.setAttribute('title', 'empty');
+        proxyIframe.setAttribute('style', 'display:none');
+        proxyIframe.addEventListener('load', function (t) {
+          proxyWindow = proxyIframe.contentWindow;
+          window.addEventListener('message', function(event) {
+            var data = event.data;
+            if (event.origin === proxyOrigin && data && data.message === 'proxyResponse' && data.message_id) {
+              var call = proxyCalls[data.message_id];
+              if (call) {
+                delete proxyCalls[data.message_id];
+                if (data.status === 200) {
+                  if (call.success) call.success(data.responseText);
+                } else {
+                  if (call.fail) call.fail({status: data.status, responseText: data.responseText});
+                }
+              }
+            }
+          });
+          if (process) process();
+          process = null;
+        });
+        document.body.appendChild(proxyIframe);
+        setTimeout(function () {
+          if (process) process();
+          process = null;
+        }, 1000);
+      } else {
+        process();
+      }
     };
 
     this.extendChoice = function () {
@@ -6004,38 +6047,7 @@
       });
       e.object.activity.render().find('.view--torrent').after(btn);
     }
-  });
-
-  var proxyWindow;
-  var proxyCalls = {};
-
-  if (!proxyWindow) {
-    var proxyOrigin = Lampa.Utils.protocol() + 'nb557.surge.sh';
-    var proxyIframe = document.createElement('iframe');
-    proxyIframe.setAttribute('src', proxyOrigin + '/proxy.html');
-    proxyIframe.setAttribute('width', '0');
-    proxyIframe.setAttribute('height', '0');
-    proxyIframe.setAttribute('tabindex', '-1');
-    proxyIframe.setAttribute('title', 'empty');
-    proxyIframe.setAttribute('style', 'display:none');
-    document.body.appendChild(proxyIframe);
-    proxyWindow = proxyIframe.contentWindow;
-
-    window.addEventListener('message', function(event) {
-      var data = event.data;
-      if (event.origin === proxyOrigin && data && data.message === 'proxyResponse' && data.message_id) {
-        var call = proxyCalls[data.message_id];
-        if (call) {
-          delete proxyCalls[data.message_id];
-          if (data.status === 200) {
-            if (call.success) call.success(data.responseText);
-          } else {
-            if (call.fail) call.fail({status: data.status, responseText: data.responseText});
-          }
-        }
-      }
-    });
-  } ///////FILMIX/////////
+  }); ///////FILMIX/////////
 
   var network = new Lampa.Reguest();
   var api_url = 'http://filmixapp.cyou/api/v2/';
