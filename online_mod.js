@@ -18,12 +18,12 @@
     var extract = {};
     var results = [];
     var object = _object;
+    var get_links_wait = false;
     var select_title = '';
     var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true;
     var prefer_mp4 = Lampa.Storage.field('online_mod_prefer_mp4') === true;
     var prox = component.proxy('videocdn');
     var iframe_proxy = !prox && Lampa.Storage.field('online_mod_iframe_proxy') === true && !window.location.protocol.startsWith('http');
-    var get_links_wait = false;
     var filter_items = {};
     var choice = {
       season: 0,
@@ -178,7 +178,8 @@
       if (movie) {
         get_links_wait = true;
         var src = (prefer_http ? 'http:' : 'https:') + movie.iframe_src;
-        var call_success = function (raw) {
+
+        var call_success = function call_success(raw) {
           get_links_wait = false;
           component.render().find('.broadcast__scan').remove();
           var math = raw.replace(/\n/g, '').match(/id="files" value="(.*?)"/);
@@ -215,7 +216,8 @@
             }
           }
         };
-        var call_fail = function () {
+
+        var call_fail = function call_fail() {
           get_links_wait = false;
           component.render().find('.broadcast__scan').remove();
         };
@@ -788,7 +790,7 @@
         url += 'movie/' + element.voice.token + '/iframe?h=gidonline.io';
       }
 
-      var call_success = function (str) {
+      var call_success = function call_success(str) {
         var videos = str.match("'file': '(.*?)'");
 
         if (videos) {
@@ -2128,6 +2130,7 @@
 
             try {
               var tmp = $.get;
+
               try {
                 vod_data = (0, eval)('"use strict"; (function () { var url, params, $ = {}; $.get = function (u, p) { url = u; params = p; }; var XMLHttpRequest = function XMLHttpRequest() { this.open = function (m, u) { url = u; }; this.send = function () {}; }; try { eval(' + JSON.stringify(vod_script) + '); } catch (e) {} return {url: url, params: params}; })();');
               } finally {
@@ -2136,12 +2139,13 @@
             } catch (e) {}
 
             if (vod_data && vod_data.url) {
-               vod_url = vod_data.url;
-               if (vod_data.params) {
-                 for (var name in vod_data.params) {
-                   vod_url = Lampa.Utils.addUrlComponent(vod_url, name + "=" + encodeURIComponent(vod_data.params[name]));
-                 }
-               }
+              vod_url = vod_data.url;
+
+              if (vod_data.params) {
+                for (var name in vod_data.params) {
+                  vod_url = Lampa.Utils.addUrlComponent(vod_url, name + "=" + encodeURIComponent(vod_data.params[name]));
+                }
+              }
             }
 
             if (vod_url) {
@@ -4264,9 +4268,9 @@
     var extract = {};
     var results = [];
     var object = _object;
+    var get_links_wait = false;
     var select_title = '';
     var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true;
-    var get_links_wait = false;
     var filter_items = {};
     var choice = {
       season: 0,
@@ -5211,7 +5215,7 @@
     };
 
     this.proxyCall = function (method, url, timeout, post_data, call_success, call_fail) {
-      var process = function () {
+      var process = function process() {
         if (proxyWindow) {
           timeout = timeout || 60 * 1000;
           var message_id;
@@ -5219,9 +5223,12 @@
           try {
             message_id = crypto.getRandomValues(new Uint8Array(16)).toString();
           } catch (e) {}
-          if (!message_id) message_id = Math.random().toString();
 
-          proxyCalls[message_id] = {success: call_success, fail: call_fail};
+          if (!message_id) message_id = Math.random().toString();
+          proxyCalls[message_id] = {
+            success: call_success,
+            fail: call_fail
+          };
           proxyWindow.postMessage({
             message: 'proxyMessage',
             message_id: message_id,
@@ -5232,15 +5239,23 @@
           }, '*');
           setTimeout(function () {
             var call = proxyCalls[message_id];
+
             if (call) {
               delete proxyCalls[message_id];
-              if (call.fail) call.fail({status: 0, responseText: ''}, 'timeout');
+              if (call.fail) call.fail({
+                status: 0,
+                responseText: ''
+              }, 'timeout');
             }
           }, timeout + 1000);
         } else {
-          if (call_fail) call_fail({status: 0, responseText: ''}, 'abort');
+          if (call_fail) call_fail({
+            status: 0,
+            responseText: ''
+          }, 'abort');
         }
       };
+
       if (!proxyInitialized) {
         proxyInitialized = true;
         var proxyOrigin = Lampa.Utils.protocol() + 'nb557.surge.sh';
@@ -5251,18 +5266,24 @@
         proxyIframe.setAttribute('tabindex', '-1');
         proxyIframe.setAttribute('title', 'empty');
         proxyIframe.setAttribute('style', 'display:none');
-        proxyIframe.addEventListener('load', function (t) {
+        proxyIframe.addEventListener('load', function () {
           proxyWindow = proxyIframe.contentWindow;
-          window.addEventListener('message', function(event) {
+          window.addEventListener('message', function (event) {
             var data = event.data;
+
             if (event.origin === proxyOrigin && data && data.message === 'proxyResponse' && data.message_id) {
               var call = proxyCalls[data.message_id];
+
               if (call) {
                 delete proxyCalls[data.message_id];
+
                 if (data.status === 200) {
                   if (call.success) call.success(data.responseText);
                 } else {
-                  if (call.fail) call.fail({status: data.status, responseText: data.responseText});
+                  if (call.fail) call.fail({
+                    status: data.status,
+                    responseText: data.responseText
+                  });
                 }
               }
             }
