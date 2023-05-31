@@ -2133,7 +2133,7 @@
               var tmp = $.get;
 
               try {
-                vod_data = (0, eval)('"use strict"; (function () { var res = [], $ = {}; $.get = function (u, p, f) { res.push({url: u, params: p, call: (f || "").toString()}); }; var XMLHttpRequest = function XMLHttpRequest() { this.open = function (m, u) { res.push({url: u}); }; this.send = function () {}; }; try { eval(' + JSON.stringify(vod_script) + '); } catch (e) {} return res; })();');
+                vod_data = (0, eval)('"use strict"; (function() { var res = [], pl = false, $ = {}; $.get = function(u, p, f) { pl = false; f && f("file|||Выкл."); res.push({ url: u, params: p, pl: pl }); }; var XMLHttpRequest = function XMLHttpRequest() { this.open = function(m, u) { res.push({ url: u }); }; this.send = function() {}; }; var new_player = function() { pl = true; }; try { eval(' + JSON.stringify(vod_script) + '); } catch (e) {} return res; })();');
               } finally {
                 $.get = tmp;
               }
@@ -2143,28 +2143,17 @@
 
             if (vod_data) {
               vod_data.forEach(function (data) {
+                if (!data.pl) return;
                 var url = data.url || '';
-                var have_player = data.call && data.call.indexOf('new_player') !== -1;
-                var have_id = false;
-                var have_equal = false;
-                var values = [];
 
                 if (data.params) {
                   for (var name in data.params) {
                     var value = encodeURIComponent(data.params[name]);
-                    if (/^\d+$/.test(value)) {
-                      have_id = true;
-                    }
-                    if (values.indexOf(value) !== -1) {
-                      have_equal = true;
-                    } else {
-                      values.push(value);
-                    }
                     url = Lampa.Utils.addUrlComponent(url, name + "=" + value);
                   }
                 }
 
-                if (/^\/vod\/\d+\?/.test(url) && url.indexOf('=new') !== -1 && url.indexOf('=' + file_type) !== -1 && have_player && have_id && !have_equal) {
+                if (/^\/vod\/\d+\?/.test(url) && url.indexOf('=new') !== -1 && url.indexOf('=' + file_type) !== -1) {
                   vod_url = url.substring(1);
                 }
               });
