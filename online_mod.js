@@ -2133,7 +2133,7 @@
               var tmp = $.get;
 
               try {
-                vod_data = (0, eval)('"use strict"; (function () { var res = [], $ = {}; $.get = function (u, p) { res.push({url: u, params: p}); }; var XMLHttpRequest = function XMLHttpRequest() { this.open = function (m, u) { res.push({url: u}); }; this.send = function () {}; }; try { eval(' + JSON.stringify(vod_script) + '); } catch (e) {} return res; })();');
+                vod_data = (0, eval)('"use strict"; (function () { var res = [], $ = {}; $.get = function (u, p, f) { res.push({url: u, params: p, call: (f || "").toString()}); }; var XMLHttpRequest = function XMLHttpRequest() { this.open = function (m, u) { res.push({url: u}); }; this.send = function () {}; }; try { eval(' + JSON.stringify(vod_script) + '); } catch (e) {} return res; })();');
               } finally {
                 $.get = tmp;
               }
@@ -2144,6 +2144,7 @@
             if (vod_data) {
               vod_data.forEach(function (data) {
                 var url = data.url || '';
+                var have_player = data.call && data.call.indexOf('new_player') !== -1;
                 var have_id = false;
                 var have_equal = false;
                 var values = [];
@@ -2163,7 +2164,7 @@
                   }
                 }
 
-                if (/^\/vod\/\d+\?/.test(url) && url.indexOf('=new') !== -1 && url.indexOf('=' + file_type) !== -1 && have_id && !have_equal) {
+                if (/^\/vod\/\d+\?/.test(url) && url.indexOf('=new') !== -1 && url.indexOf('=' + file_type) !== -1 && have_player && have_id && !have_equal) {
                   vod_url = url.substring(1);
                 }
               });
