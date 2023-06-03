@@ -23,6 +23,7 @@
     var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true;
     var prefer_mp4 = Lampa.Storage.field('online_mod_prefer_mp4') === true;
     var prox = component.proxy('videocdn');
+    var embed = prox + (prefer_http ? 'http:' : 'https:') + '//videocdn.tv/api/';
     var iframe_proxy = !prox && Lampa.Storage.field('online_mod_iframe_proxy') === true && !window.location.protocol.startsWith('http');
     var filter_items = {};
     var choice = {
@@ -49,7 +50,7 @@
         return;
       }
 
-      var url = prox + 'https://videocdn.tv/api/';
+      var url = embed;
       var type = itm.iframe_src.split('/').slice(-2)[0];
       if (type == 'movie') type = 'movies';
       if (type == 'anime') type = 'animes';
@@ -4534,7 +4535,8 @@
       };
 
       var vcdn_search = function vcdn_search() {
-        var url = _this2.proxy('videocdn') + 'https://videocdn.tv/api/';
+        var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true;
+        var url = _this2.proxy('videocdn') + (prefer_http ? 'http:' : 'https:') + '//videocdn.tv/api/';
         var params = Lampa.Utils.addUrlComponent('', 'api_token=3i40G5TSECmLF77oAqnEgbx61ZWaOYaE');
         var params_by_title = params;
         params_by_title = Lampa.Utils.addUrlComponent(params_by_title, 'query=' + encodeURIComponent(query));
