@@ -1879,7 +1879,7 @@
             component.similars(items);
             component.loading(false);
           } else component.emptyForQuery(select_title);
-        } else if (str.indexOf('/recaptcha/api.js') || str.indexOf('form action="/check?')) {
+        } else if (str.indexOf('/recaptcha/api.js') !== -1 || str.indexOf('form action="/check?') !== -1) {
             if (prox) {
               component.empty('Требуется пройти капчу. Попробуйте использовать зеркало вместо прокси');
             } else {
