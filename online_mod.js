@@ -1879,6 +1879,12 @@
             component.similars(items);
             component.loading(false);
           } else component.emptyForQuery(select_title);
+        } else if (str.indexOf('/recaptcha/api.js') || str.indexOf('form action="/check?')) {
+            if (prox) {
+              component.empty('Требуется пройти капчу. Попробуйте использовать зеркало вместо прокси');
+            } else {
+              component.empty('Требуется пройти капчу по адресу: ' + embed);
+            }
         } else component.emptyForQuery(select_title);
       }, function (a, c) {
         component.empty(network.errorDecode(a, c));
@@ -4303,7 +4309,7 @@
       if (Lampa.Storage.field('online_mod_proxy_' + name) === true) {
         if (name === 'rezka') return alt_proxy;
         if (name === 'rezka2') return alt_proxy;
-        if (name === 'kinobase') return proxy1;
+        if (name === 'kinobase') return alt_proxy;
       }
 
       return '';
