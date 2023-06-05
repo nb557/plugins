@@ -1,4 +1,4 @@
-//03.06.2023 - Fix kinobase
+//05.06.2023 - Improve search
 
 (function () {
   'use strict';
@@ -462,7 +462,7 @@
               url: extra.file,
               quality: extra.quality,
               timeline: element.timeline,
-              title: element.season ? element.title : object.movie.title + ' / ' + element.title
+              title: element.season ? element.title : select_title + ' / ' + element.title
             };
 
             if (element.season) {
@@ -531,7 +531,7 @@
     this.search = function (_object, kinopoisk_id) {
       object = _object;
       select_id = kinopoisk_id;
-      select_title = object.movie.title;
+      select_title = object.search || object.movie.title;
       getFirstTranlate(kinopoisk_id, function (voice) {
         getFilm(kinopoisk_id, voice);
       });
@@ -976,7 +976,7 @@
               quality: element.qualitys,
               subtitles: element.subtitles,
               timeline: element.timeline,
-              title: element.season ? element.title : object.movie.title + ' / ' + element.title
+              title: element.season ? element.title : select_title + ' / ' + element.title
             };
             Lampa.Player.play(first);
 
@@ -1076,21 +1076,16 @@
     this.search = function (_object, kinopoisk_id, data) {
       var _this = this;
 
-      if (this.wait_similars && data && data[0].is_similars) return getPage(data[0].link);
       object = _object;
       select_title = object.search || object.movie.title;
+      if (this.wait_similars && data && data[0].is_similars) return getPage(data[0].link);
       var search_date = object.search_date || object.movie.release_date || object.movie.first_air_date || object.movie.last_air_date || '0000';
       var search_year = parseInt((search_date + '').slice(0, 4));
       var orig = object.movie.original_title || object.movie.original_name;
       var url = embed + 'engine/ajax/search.php';
-      var postdata = 'q=' + encodeURIComponent(component.cleanTitle(select_title));
-      network.clear();
-      network.timeout(10000);
-      network_call(url, function (str) {
-        str = str.replace(/\n/g, '');
-        var links = str.match(/<li><a href=.*?<\/li>/g);
 
-        if (links) {
+      var display = function display(links) {
+        if (links && links.length) {
           var is_sure = false;
           var items = links.map(function (l) {
             var li = $(l);
@@ -1171,12 +1166,36 @@
             component.loading(false);
           } else component.emptyForQuery(select_title);
         } else component.emptyForQuery(select_title);
-      }, function (a, c) {
-        component.empty(network.errorDecode(a, c));
-      }, postdata, {
-        dataType: 'text',
-        withCredentials: logged_in
-      });
+      };
+
+      var query_search = function query_search(query, data, callback) {
+        var postdata = 'q=' + encodeURIComponent(query);
+        network.clear();
+        network.timeout(10000);
+        network_call(url, function (str) {
+          str = str.replace(/\n/g, '');
+          var links = str.match(/<li><a href=.*?<\/li>/g);
+          if (links && links.length) data = data.concat(links);
+          if (callback) callback(data);
+        }, function (a, c) {
+          component.empty(network.errorDecode(a, c));
+        }, postdata, {
+          dataType: 'text',
+          withCredentials: logged_in
+        });
+      };
+
+      var query_title_search = function query_title_search() {
+        query_search(component.cleanTitle(select_title), [], function (data) {
+          if (data && data.length) display(data);else display([]);
+        });
+      };
+
+      if (!object.clarification && (object.movie.imdb_id || +object.movie.kinopoisk_id)) {
+        query_search('+' + (object.movie.imdb_id || +object.movie.kinopoisk_id), [], function (data) {
+          if (data && data.length) display(data);else query_title_search();
+        });
+      } else query_title_search();
     };
 
     this.extendChoice = function (saved) {
@@ -1709,7 +1728,7 @@
               quality: element.qualitys,
               subtitles: element.subtitles,
               timeline: element.timeline,
-              title: element.season ? element.title : object.movie.title + ' / ' + element.title
+              title: element.season ? element.title : select_title + ' / ' + element.title
             };
             Lampa.Player.play(first);
 
@@ -1810,9 +1829,9 @@
     this.search = function (_object, kinopoisk_id, data) {
       var _this = this;
 
-      if (this.wait_similars && data && data[0].is_similars) return getPage(data[0].link);
       object = _object;
       select_title = object.search || object.movie.title;
+      if (this.wait_similars && data && data[0].is_similars) return getPage(data[0].link);
       var url = embed + "search?query=" + encodeURIComponent(component.cleanTitle(select_title));
       network.clear();
       network.timeout(1000 * 10);
@@ -1880,11 +1899,11 @@
             component.loading(false);
           } else component.emptyForQuery(select_title);
         } else if (str.indexOf('/recaptcha/api.js') !== -1 || str.indexOf('form action="/check?') !== -1) {
-            if (prox) {
-              component.empty('Требуется пройти капчу. Попробуйте использовать зеркало вместо прокси');
-            } else {
-              component.empty('Требуется пройти капчу по адресу: ' + embed);
-            }
+          if (prox) {
+            component.empty(Lampa.Lang.translate('online_mod_captcha_proxy'));
+          } else {
+            component.empty(Lampa.Lang.translate('online_mod_captcha_address') + embed);
+          }
         } else component.emptyForQuery(select_title);
       }, function (a, c) {
         component.empty(network.errorDecode(a, c));
@@ -2083,7 +2102,7 @@
             var el = voices[voice];
             found.push({
               file: file,
-              title: voice || translation || object.movie.title,
+              title: voice || translation || select_title,
               quality: el.quality + 'p' + (quality_type ? ' - ' + quality_type : ''),
               info: '',
               voice: voice,
@@ -2297,7 +2316,7 @@
               quality: element.qualitys,
               subtitles: element.subtitles,
               timeline: element.timeline,
-              title: element.season ? element.title : object.movie.title + (element.title == object.movie.title ? '' : ' / ' + element.title)
+              title: element.season ? element.title : select_title + (element.title == select_title ? '' : ' / ' + element.title)
             };
 
             if (element.season) {
@@ -2361,7 +2380,7 @@
 
     this.search = function (_object, kinopoisk_id) {
       object = _object;
-      select_title = object.movie.title;
+      select_title = object.search || object.movie.title;
       var url = embed;
 
       if (+kinopoisk_id) {
@@ -2573,7 +2592,7 @@
                 tracks: element.audio_tracks
               },
               timeline: element.timeline,
-              title: element.season ? element.title : object.movie.title + (element.title == object.movie.title ? '' : ' / ' + element.title)
+              title: element.season ? element.title : select_title + (element.title == select_title ? '' : ' / ' + element.title)
             };
 
             if (element.season) {
@@ -2644,9 +2663,9 @@
     this.search = function (_object, kinopoisk_id, data) {
       var _this = this;
 
-      if (this.wait_similars && data && data[0].is_similars) return this.find(data[0].iframe_src);
       object = _object;
       select_title = object.search || object.movie.title;
+      if (this.wait_similars && data && data[0].is_similars) return this.find(data[0].iframe_src);
       var search_date = object.search_date || object.movie.release_date || object.movie.first_air_date || object.movie.last_air_date || '0000';
       var search_year = parseInt((search_date + '').slice(0, 4));
       var orig = object.movie.original_title || object.movie.original_name;
@@ -2666,7 +2685,7 @@
             c.tmp_year = parseInt((year + '').slice(0, 4));
           });
 
-          if (object.movie.imdb_id) {
+          if (!object.clarification && object.movie.imdb_id) {
             var tmp = items.filter(function (elem) {
               return elem.imdb_id == object.movie.imdb_id;
             });
@@ -2737,7 +2756,7 @@
       var url = embed;
       url = Lampa.Utils.addUrlComponent(url, 'token=' + token);
       var url_by_title = Lampa.Utils.addUrlComponent(url, 'search=' + encodeURIComponent(select_title));
-      if (object.movie.imdb_id) url = Lampa.Utils.addUrlComponent(url, 'imdb_id=' + encodeURIComponent(object.movie.imdb_id));else if (+object.movie.kinopoisk_id) url = Lampa.Utils.addUrlComponent(url, 'kinopoisk_id=' + encodeURIComponent(+object.movie.kinopoisk_id));else url = url_by_title;
+      if (!object.clarification && object.movie.imdb_id) url = Lampa.Utils.addUrlComponent(url, 'imdb_id=' + encodeURIComponent(object.movie.imdb_id));else if (!object.clarification && +object.movie.kinopoisk_id) url = Lampa.Utils.addUrlComponent(url, 'kinopoisk_id=' + encodeURIComponent(+object.movie.kinopoisk_id));else url = url_by_title;
       network.clear();
       network.timeout(10000);
       network["native"](url, function (json) {
@@ -3144,7 +3163,7 @@
               quality: element.qualitys,
               subtitles: element.subtitles,
               timeline: element.timeline,
-              title: element.season ? element.title : object.movie.title + ' / ' + element.title
+              title: element.season ? element.title : select_title + ' / ' + element.title
             };
             Lampa.Player.play(first);
 
@@ -3258,9 +3277,9 @@
     this.search = function (_object, kinopoisk_id, data) {
       var _this = this;
 
-      if (this.wait_similars && data && data[0].is_similars) return this.find(data[0].id);
       object = _object;
       select_title = object.search || object.movie.title;
+      if (this.wait_similars && data && data[0].is_similars) return this.find(data[0].id);
       var search_date = object.search_date || object.movie.release_date || object.movie.first_air_date || object.movie.last_air_date || '0000';
       var search_year = parseInt((search_date + '').slice(0, 4));
       var orig = object.movie.original_title || object.movie.original_name;
@@ -3744,7 +3763,7 @@
               url: extra.file,
               quality: extra.quality,
               timeline: element.timeline,
-              title: element.season ? element.title : object.movie.title + ' / ' + element.title
+              title: element.season ? element.title : select_title + ' / ' + element.title
             };
 
             if (element.season) {
@@ -3810,7 +3829,7 @@
     this.search = function (_object, kinopoisk_id) {
       object = _object;
       select_id = kinopoisk_id;
-      select_title = object.movie.title;
+      select_title = object.search || object.movie.title;
       var search_date = object.search_date || object.movie.release_date || object.movie.first_air_date || object.movie.last_air_date || '0000';
       var search_year = parseInt((search_date + '').slice(0, 4));
 
@@ -4217,7 +4236,7 @@
               url: extra.file,
               quality: extra.quality,
               timeline: element.timeline,
-              title: element.season ? element.title : object.movie.title + ' / ' + element.title
+              title: element.season ? element.title : select_title + ' / ' + element.title
             };
             Lampa.Player.play(first);
 
@@ -4475,7 +4494,7 @@
             c.tmp_year = parseInt((year + '').slice(0, 4));
           });
 
-          if (object.movie.imdb_id) {
+          if (!object.clarification && object.movie.imdb_id) {
             var tmp = items.filter(function (elem) {
               return (elem.imdb_id || elem.imdbId) == object.movie.imdb_id;
             });
@@ -4547,7 +4566,7 @@
         var params_by_title = params;
         params_by_title = Lampa.Utils.addUrlComponent(params_by_title, 'query=' + encodeURIComponent(query));
         params_by_title = Lampa.Utils.addUrlComponent(params_by_title, 'field=title');
-        if (object.movie.imdb_id) params = Lampa.Utils.addUrlComponent(params, 'imdb_id=' + encodeURIComponent(object.movie.imdb_id));else if (+object.movie.kinopoisk_id) params = Lampa.Utils.addUrlComponent(params, 'kinopoisk_id=' + encodeURIComponent(+object.movie.kinopoisk_id));else params = params_by_title;
+        if (!object.clarification && object.movie.imdb_id) params = Lampa.Utils.addUrlComponent(params, 'imdb_id=' + encodeURIComponent(object.movie.imdb_id));else if (!object.clarification && +object.movie.kinopoisk_id) params = Lampa.Utils.addUrlComponent(params, 'kinopoisk_id=' + encodeURIComponent(+object.movie.kinopoisk_id));else params = params_by_title;
 
         var vcdn_api_search = function vcdn_api_search(api, data, callback) {
           network.clear();
@@ -4588,7 +4607,7 @@
       var kp_search = function kp_search() {
         var url = _this2.proxy('kp') + 'https://kinopoiskapiunofficial.tech/api/';
         var url_by_title = Lampa.Utils.addUrlComponent(url + 'v2.1/films/search-by-keyword', 'keyword=' + encodeURIComponent(_this2.cleanTitle(query)));
-        if (object.movie.imdb_id) url = Lampa.Utils.addUrlComponent(url + 'v2.2/films', 'imdbId=' + encodeURIComponent(object.movie.imdb_id));else url = url_by_title;
+        if (!object.clarification && object.movie.imdb_id) url = Lampa.Utils.addUrlComponent(url + 'v2.2/films', 'imdbId=' + encodeURIComponent(object.movie.imdb_id));else url = url_by_title;
         network.clear();
         network.timeout(1000 * 15);
         network.silent(url, function (json) {
@@ -4615,7 +4634,11 @@
       };
 
       var letgo = function letgo() {
-        if (['rezka2', 'kinobase', 'filmix', 'cdnmovies'].indexOf(balanser) >= 0) {
+        if (!object.clarification && object.movie.imdb_id && ['rezka', 'collaps'].indexOf(balanser) >= 0) {
+          _this2.extendChoice();
+
+          sources[balanser].search(object, object.movie.imdb_id);
+        } else if (['rezka2', 'kinobase', 'filmix', 'cdnmovies'].indexOf(balanser) >= 0) {
           _this2.extendChoice();
 
           sources[balanser].search(object);
@@ -4624,10 +4647,10 @@
         }
       };
 
-      if (+object.movie.kinopoisk_id && ['rezka', 'collaps', 'hdvb'].indexOf(balanser) >= 0) {
+      if (!object.clarification && +object.movie.kinopoisk_id && ['rezka', 'collaps', 'hdvb'].indexOf(balanser) >= 0) {
         this.extendChoice();
         sources[balanser].search(object, +object.movie.kinopoisk_id);
-      } else if (!object.movie.imdb_id && (object.movie.source == 'tmdb' || object.movie.source == 'cub') && ['videocdn', 'cdnmovies'].indexOf(balanser) >= 0) {
+      } else if (!object.movie.imdb_id && (object.movie.source == 'tmdb' || object.movie.source == 'cub') && ['kinobase', 'filmix'].indexOf(balanser) == -1) {
         var tmdburl = (object.movie.name ? 'tv' : 'movie') + '/' + object.movie.id + '/external_ids?api_key=4ef0d7355d9ffb5151e987764708ce96&language=ru';
         var baseurl = typeof Lampa.TMDB !== 'undefined' ? Lampa.TMDB.api(tmdburl) : 'http://api.themoviedb.org/3/' + tmdburl;
         network.clear();
@@ -5252,6 +5275,20 @@
       en: 'Working on extracting the link, please wait...',
       zh: '正在提取链接，请稍候...'
     },
+    online_mod_captcha_address: {
+      ru: 'Требуется пройти капчу по адресу: ',
+      uk: 'Потрібно пройти капчу за адресою: ',
+      be: 'Патрабуецца прайсці капчу па адрасе: ',
+      en: 'It is required to pass the captcha at: ',
+      zh: '您需要完成验证码： '
+    },
+    online_mod_captcha_proxy: {
+      ru: 'Требуется пройти капчу. Попробуйте использовать зеркало вместо прокси',
+      uk: 'Потрібно пройти капчу. Спробуйте використовувати дзеркало замість проксі',
+      be: 'Патрабуецца прайсці капчу. Паспрабуйце выкарыстоўваць люстэрка замест проксі',
+      en: 'It is required to pass the captcha. Try to use a mirror instead of a proxy',
+      zh: '您需要通过验证码。 尝试使用镜像而不是代理'
+    },
     online_mod_balanser: {
       ru: 'Балансер',
       uk: 'Балансер',
@@ -5539,7 +5576,7 @@
     Lampa.Template.add('online_mod_folder', "<div class=\"online selector\">\n        <div class=\"online__body\">\n            <div style=\"position: absolute;left: 0;top: -0.3em;width: 2.4em;height: 2.4em\">\n                <svg style=\"height: 2.4em; width:  2.4em;\" viewBox=\"0 0 128 112\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n                    <rect y=\"20\" width=\"128\" height=\"92\" rx=\"13\" fill=\"white\"/>\n                    <path d=\"M29.9963 8H98.0037C96.0446 3.3021 91.4079 0 86 0H42C36.5921 0 31.9555 3.3021 29.9963 8Z\" fill=\"white\" fill-opacity=\"0.23\"/>\n                    <rect x=\"11\" y=\"8\" width=\"106\" height=\"76\" rx=\"13\" fill=\"white\" fill-opacity=\"0.51\"/>\n                </svg>\n            </div>\n            <div class=\"online__title\" style=\"padding-left: 2.1em;\">{title}</div>\n            <div class=\"online__quality\" style=\"padding-left: 3.4em;\">{quality}{info}</div>\n        </div>\n    </div>");
   }
 
-  var button = "<div class=\"full-start__button selector view--online_mod\" data-subtitle=\"online_mod 03.06.2023\">\n    <svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:svgjs=\"http://svgjs.com/svgjs\" version=\"1.1\" width=\"512\" height=\"512\" x=\"0\" y=\"0\" viewBox=\"0 0 244 260\" style=\"enable-background:new 0 0 512 512\" xml:space=\"preserve\" class=\"\">\n    <g xmlns=\"http://www.w3.org/2000/svg\">\n        <path d=\"M242,88v170H10V88h41l-38,38h37.1l38-38h38.4l-38,38h38.4l38-38h38.3l-38,38H204L242,88L242,88z M228.9,2l8,37.7l0,0 L191.2,10L228.9,2z M160.6,56l-45.8-29.7l38-8.1l45.8,29.7L160.6,56z M84.5,72.1L38.8,42.4l38-8.1l45.8,29.7L84.5,72.1z M10,88 L2,50.2L47.8,80L10,88z\" fill=\"currentColor\"/>\n    </g></svg>\n\n    <span>#{online_mod_title}</span>\n    </div>"; // нужна заглушка, а то при страте лампы говорит пусто
+  var button = "<div class=\"full-start__button selector view--online_mod\" data-subtitle=\"online_mod 05.06.2023\">\n    <svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:svgjs=\"http://svgjs.com/svgjs\" version=\"1.1\" width=\"512\" height=\"512\" x=\"0\" y=\"0\" viewBox=\"0 0 244 260\" style=\"enable-background:new 0 0 512 512\" xml:space=\"preserve\" class=\"\">\n    <g xmlns=\"http://www.w3.org/2000/svg\">\n        <path d=\"M242,88v170H10V88h41l-38,38h37.1l38-38h38.4l-38,38h38.4l38-38h38.3l-38,38H204L242,88L242,88z M228.9,2l8,37.7l0,0 L191.2,10L228.9,2z M160.6,56l-45.8-29.7l38-8.1l45.8,29.7L160.6,56z M84.5,72.1L38.8,42.4l38-8.1l45.8,29.7L84.5,72.1z M10,88 L2,50.2L47.8,80L10,88z\" fill=\"currentColor\"/>\n    </g></svg>\n\n    <span>#{online_mod_title}</span>\n    </div>"; // нужна заглушка, а то при страте лампы говорит пусто
 
   Lampa.Component.add('online_mod', component); //то же самое
 
