@@ -46,13 +46,13 @@
 						else if (json.films && json.films.length) chooseFilm(json.films);
 						else chooseFilm([]);
 					}, function (a, c) {
-						Lampa.Noty.show('Рейтинг KP   ' + network.errorDecode(a, c));
+						showError(network.errorDecode(a, c));
 					}, false, {
 						headers: params.headers
 					});
 				} else chooseFilm([]);
 			}, function (a, c) {
-				Lampa.Noty.show('Рейтинг KP   ' + network.errorDecode(a, c));
+				showError(network.errorDecode(a, c));
 			}, false, {
 				headers: params.headers
 			});
@@ -120,9 +120,9 @@
 								imdb: data.ratingImdb,
 								timestamp: new Date().getTime()
 							}); // Кешируем данные
-							return _showRating(movieRating, params.id);
+							return _showRating(movieRating);
 						}, function (a, c) {
-							Lampa.Noty.show('Рейтинг KP   ' + network.errorDecode(a, c));
+							showError(network.errorDecode(a, c));
 						}, false, {
 							headers: params.headers
 						});
@@ -148,7 +148,7 @@
 									imdb: ratingImdb,
 									timestamp: new Date().getTime()
 								}); // Кешируем данные
-								return _showRating(movieRating, params.id);
+								return _showRating(movieRating);
 							} catch (ex) {
 							}
 						}
@@ -178,6 +178,10 @@
 
 		function equalTitle(t1, t2) {
 			return typeof t1 === 'string' && typeof t2 === 'string' && t1.toLowerCase().replace(/—/g, '-').replace(/[\s.,:;!?]+/g, ' ').trim() === t2.toLowerCase().replace(/—/g, '-').replace(/[\s.,:;!?]+/g, ' ').trim();
+		}
+
+		function showError(error) {
+			Lampa.Noty.show('Рейтинг KP: ' + error);
 		}
 
 		function _getCache(movie) {
@@ -210,7 +214,7 @@
 			return data;
 		}
 
-		function _showRating(data, movie) {
+		function _showRating(data) {
 			if (data) {
 				var kp_rating = !isNaN(data.kp) && data.kp !== null ? parseFloat(data.kp).toFixed(1) : '0.0';
 				var imdb_rating = !isNaN(data.imdb) && data.imdb !== null ? parseFloat(data.imdb).toFixed(1) : '0.0';
