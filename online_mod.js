@@ -5088,7 +5088,8 @@
         };
 
         var kp_search = function kp_search() {
-          var url = _this2.proxy('kp') + 'https://kinopoiskapiunofficial.tech/api/';
+          var kp_prox = _this2.proxy('kp');
+          var url = kp_prox + 'https://kinopoiskapiunofficial.tech/api/';
           var url_by_title = Lampa.Utils.addUrlComponent(url + 'v2.1/films/search-by-keyword', 'keyword=' + encodeURIComponent(_this2.cleanTitle(query)));
           if (!object.clarification && object.movie.imdb_id) url = Lampa.Utils.addUrlComponent(url + 'v2.2/films', 'imdbId=' + encodeURIComponent(object.movie.imdb_id));else url = url_by_title;
           network.clear();
