@@ -1,4 +1,4 @@
-//10.07.2023 - Fix iframe proxy
+//17.07.2023 - Add KP cache
 
 (function () {
     'use strict';
@@ -51,6 +51,139 @@
       isDebug: isDebug,
       rezka2Mirror: rezka2Mirror,
       kinobaseMirror: kinobaseMirror
+    };
+
+    var network$1 = new Lampa.Reguest();
+    var cache = {};
+    var total_cnt = 0;
+    var proxy_cnt = 0;
+    var good_cnt = 0;
+    var CACHE_SIZE = 100;
+    var CACHE_TIME = 1000 * 60 * 60;
+
+    function get(method, oncomplite, onerror) {
+      var use_proxy = total_cnt >= 10 && good_cnt > total_cnt / 2;
+      if (!use_proxy) total_cnt++;
+      var kp_prox = 'https://cors.kp556.workers.dev/';
+      var url = 'https://kinopoiskapiunofficial.tech/';
+      url += method;
+      network$1.timeout(15000);
+      network$1.silent((use_proxy ? kp_prox : '') + url, function (json) {
+        oncomplite(json);
+      }, function (a, c) {
+        use_proxy = !use_proxy && (proxy_cnt < 10 || good_cnt > proxy_cnt / 2);
+
+        if (use_proxy && (a.status == 429 || a.status == 0 && a.statusText !== 'timeout')) {
+          proxy_cnt++;
+          network$1.timeout(15000);
+          network$1.silent(kp_prox + url, function (json) {
+            good_cnt++;
+            oncomplite(json);
+          }, onerror, false, {
+            headers: {
+              'X-API-KEY': '2a4a0808-81a3-40ae-b0d3-e11335ede616'
+            }
+          });
+        } else onerror(a, c);
+      }, false, {
+        headers: {
+          'X-API-KEY': '2a4a0808-81a3-40ae-b0d3-e11335ede616'
+        }
+      });
+    }
+
+    function getComplite(method, oncomplite) {
+      get(method, oncomplite, function () {
+        oncomplite(null);
+      });
+    }
+
+    function getCompliteIf(condition, method, oncomplite) {
+      if (condition) getComplite(method, oncomplite);else {
+        setTimeout(function () {
+          oncomplite(null);
+        }, 10);
+      }
+    }
+
+    function getCache(key) {
+      var res = cache[key];
+
+      if (res) {
+        var cache_timestamp = new Date().getTime() - CACHE_TIME;
+        if (res.timestamp > cache_timestamp) return res.value;
+
+        for (var ID in cache) {
+          var node = cache[ID];
+          if (!(node && node.timestamp > cache_timestamp)) delete cache[ID];
+        }
+      }
+
+      return null;
+    }
+
+    function setCache(key, value) {
+      var timestamp = new Date().getTime();
+      var size = Object.keys(cache).length;
+
+      if (size >= CACHE_SIZE) {
+        var cache_timestamp = timestamp - CACHE_TIME;
+
+        for (var ID in cache) {
+          var node = cache[ID];
+          if (!(node && node.timestamp > cache_timestamp)) delete cache[ID];
+        }
+
+        size = Object.keys(cache).length;
+
+        if (size >= CACHE_SIZE) {
+          var timestamps = [];
+
+          for (var _ID in cache) {
+            var _node = cache[_ID];
+            timestamps.push(_node && _node.timestamp || 0);
+          }
+
+          timestamps.sort(function (a, b) {
+            return a - b;
+          });
+          cache_timestamp = timestamps[Math.floor(timestamps.length / 2)];
+
+          for (var _ID2 in cache) {
+            var _node2 = cache[_ID2];
+            if (!(_node2 && _node2.timestamp > cache_timestamp)) delete cache[_ID2];
+          }
+        }
+      }
+
+      cache[key] = {
+        timestamp: timestamp,
+        value: value
+      };
+    }
+
+    function getFromCache(method, oncomplite, onerror) {
+      var json = getCache(method);
+
+      if (json) {
+        setTimeout(function () {
+          oncomplite(json, true);
+        }, 10);
+      } else get(method, oncomplite, onerror);
+    }
+
+    function clear() {
+      network$1.clear();
+    }
+
+    var KP = {
+      get: get,
+      getComplite: getComplite,
+      getCompliteIf: getCompliteIf,
+      getCache: getCache,
+      setCache: setCache,
+      getFromCache: getFromCache,
+      clear: clear
     };
 
     function _typeof(obj) {
@@ -3909,10 +4042,11 @@
       var network = new Lampa.Reguest();
       var extract = {};
       var results = [];
-      var backend = 'http://back.freebie.tom.ru/lampa/hdvburl?v=1827';
+      var backend = 'http://back.freebie.tom.ru/lampa/hdvburl?v=1909';
       var object = _object;
       var select_title = '';
       var select_id = '';
+      var balanser_id = '';
       var filter_items = {};
       var choice = {
         season: 0,
@@ -3939,6 +4073,7 @@
         var url = backend;
         url = Lampa.Utils.addUrlComponent(url, 'source=' + encodeURIComponent(object.movie.source));
         url = Lampa.Utils.addUrlComponent(url, 'id=' + object.movie.id);
+        if (object.movie.imdb_id) url = Lampa.Utils.addUrlComponent(url, 'imdb_id=' + object.movie.imdb_id);
         url = Lampa.Utils.addUrlComponent(url, 'kinopoisk_id=' + select_id);
         url = Lampa.Utils.addUrlComponent(url, 'title=' + encodeURIComponent(select_title));
         if (object.movie.source == 'tmdb' || object.movie.source == 'cub') url = Lampa.Utils.addUrlComponent(url, 'serial=' + (object.movie.number_of_seasons ? 1 : 0));
@@ -3949,6 +4084,7 @@
           results = [];
 
           if (found && found.result && found.action === 'done') {
+            balanser_id = found.balanser_id || found.kpid;
             results = (typeof found.data === "string" ? Lampa.Arrays.decodeJson(found.data, []) : found.data) || [];
             success(results);
             component.loading(false);
@@ -4250,6 +4386,7 @@
         url = Lampa.Utils.addUrlComponent(url, 'source=' + encodeURIComponent(object.movie.source));
         url = Lampa.Utils.addUrlComponent(url, 'id=' + object.movie.id);
         url = Lampa.Utils.addUrlComponent(url, 'kinopoisk_id=' + select_id);
+        if (select_id == 0) url = Lampa.Utils.addUrlComponent(url, 'filmId=' + balanser_id);
         url = Lampa.Utils.addUrlComponent(url, 'translation=' + results[element.translation].translator_id);
         if (element.season) url = Lampa.Utils.addUrlComponent(url, 'season=' + element.season);
         if (element.episode) url = Lampa.Utils.addUrlComponent(url, 'episode=' + element.episode);
@@ -5058,7 +5195,7 @@
               if (json.data && json.data.length) data = data.concat(json.data);
               if (callback) callback(data);
             }, function (a, c) {
-              if (a.status == 404 && a.responseJSON && a.responseJSON.result === false || a.status == 0 && c !== 'timeout') {
+              if (a.status == 404 && a.responseJSON && a.responseJSON.result === false || a.status == 0 && a.statusText !== 'timeout') {
                 if (callback) callback(data);
               } else _this2.empty(network.errorDecode(a, c));
             });
@@ -5088,32 +5225,33 @@
         };
 
         var kp_search = function kp_search() {
-          var kp_prox = _this2.proxy('kp');
-          var url = kp_prox + 'https://kinopoiskapiunofficial.tech/api/';
-          var url_by_title = Lampa.Utils.addUrlComponent(url + 'v2.1/films/search-by-keyword', 'keyword=' + encodeURIComponent(_this2.cleanTitle(query)));
-          if (!object.clarification && object.movie.imdb_id) url = Lampa.Utils.addUrlComponent(url + 'v2.2/films', 'imdbId=' + encodeURIComponent(object.movie.imdb_id));else url = url_by_title;
-          network.clear();
-          network.timeout(1000 * 15);
-          network.silent(url, function (json) {
-            if (json.items && json.items.length) display(json.items);else if (json.films && json.films.length) display(json.films);else if (url !== url_by_title) {
-              network.clear();
-              network.timeout(1000 * 15);
-              network.silent(url_by_title, function (json) {
-                if (json.items && json.items.length) display(json.items);else if (json.films && json.films.length) display(json.films);else vcdn_search();
+          var url;
+          var url_by_title = 'api/v2.1/films/search-by-keyword?keyword=' + encodeURIComponent(_this2.cleanTitle(query));
+          if (!object.clarification && object.movie.imdb_id) url = 'api/v2.2/films?imdbId=' + encodeURIComponent(object.movie.imdb_id);else url = url_by_title;
+          KP.clear();
+          KP.getFromCache(url, function (json, cached) {
+            var items = [];
+            if (json.items && json.items.length) items = json.items;else if (json.films && json.films.length) items = json.films;
+
+            if (items.length) {
+              if (!cached) KP.setCache(url, json);
+              display(items);
+            } else if (url !== url_by_title) {
+              KP.clear();
+              KP.getFromCache(url_by_title, function (json, cached) {
+                var items = [];
+                if (json.items && json.items.length) items = json.items;else if (json.films && json.films.length) items = json.films;
+
+                if (items.length) {
+                  if (!cached) KP.setCache(url_by_title, json);
+                  display(items);
+                } else vcdn_search();
               }, function (a, c) {
                 vcdn_search();
-              }, false, {
-                headers: {
-                  'X-API-KEY': '2d55adfd-019d-4567-bbf7-67d503f61b5a'
-                }
               });
             } else vcdn_search();
           }, function (a, c) {
             vcdn_search();
-          }, false, {
-            headers: {
-              'X-API-KEY': '2d55adfd-019d-4567-bbf7-67d503f61b5a'
-            }
           });
         };
 
@@ -5305,7 +5443,7 @@
           setTimeout(function () {
             if (process) process();
             process = null;
-          }, 3000);
+          }, 10000);
         } else {
           process();
         }
@@ -6075,7 +6213,7 @@
       Lampa.Template.add('online_mod_folder', "<div class=\"online selector\">\n        <div class=\"online__body\">\n            <div style=\"position: absolute;left: 0;top: -0.3em;width: 2.4em;height: 2.4em\">\n                <svg style=\"height: 2.4em; width:  2.4em;\" viewBox=\"0 0 128 112\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n                    <rect y=\"20\" width=\"128\" height=\"92\" rx=\"13\" fill=\"white\"/>\n                    <path d=\"M29.9963 8H98.0037C96.0446 3.3021 91.4079 0 86 0H42C36.5921 0 31.9555 3.3021 29.9963 8Z\" fill=\"white\" fill-opacity=\"0.23\"/>\n                    <rect x=\"11\" y=\"8\" width=\"106\" height=\"76\" rx=\"13\" fill=\"white\" fill-opacity=\"0.51\"/>\n                </svg>\n            </div>\n            <div class=\"online__title\" style=\"padding-left: 2.1em;\">{title}</div>\n            <div class=\"online__quality\" style=\"padding-left: 3.4em;\">{quality}{info}</div>\n        </div>\n    </div>");
     }
 
-    var button = "<div class=\"full-start__button selector view--online_mod\" data-subtitle=\"online_mod 10.07.2023\">\n    <svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:svgjs=\"http://svgjs.com/svgjs\" version=\"1.1\" width=\"512\" height=\"512\" x=\"0\" y=\"0\" viewBox=\"0 0 244 260\" style=\"enable-background:new 0 0 512 512\" xml:space=\"preserve\" class=\"\">\n    <g xmlns=\"http://www.w3.org/2000/svg\">\n        <path d=\"M242,88v170H10V88h41l-38,38h37.1l38-38h38.4l-38,38h38.4l38-38h38.3l-38,38H204L242,88L242,88z M228.9,2l8,37.7l0,0 L191.2,10L228.9,2z M160.6,56l-45.8-29.7l38-8.1l45.8,29.7L160.6,56z M84.5,72.1L38.8,42.4l38-8.1l45.8,29.7L84.5,72.1z M10,88 L2,50.2L47.8,80L10,88z\" fill=\"currentColor\"/>\n    </g></svg>\n\n    <span>#{online_mod_title}</span>\n    </div>"; // нужна заглушка, а то при страте лампы говорит пусто
+    var button = "<div class=\"full-start__button selector view--online_mod\" data-subtitle=\"online_mod 17.07.2023\">\n    <svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:svgjs=\"http://svgjs.com/svgjs\" version=\"1.1\" width=\"512\" height=\"512\" x=\"0\" y=\"0\" viewBox=\"0 0 244 260\" style=\"enable-background:new 0 0 512 512\" xml:space=\"preserve\" class=\"\">\n    <g xmlns=\"http://www.w3.org/2000/svg\">\n        <path d=\"M242,88v170H10V88h41l-38,38h37.1l38-38h38.4l-38,38h38.4l38-38h38.3l-38,38H204L242,88L242,88z M228.9,2l8,37.7l0,0 L191.2,10L228.9,2z M160.6,56l-45.8-29.7l38-8.1l45.8,29.7L160.6,56z M84.5,72.1L38.8,42.4l38-8.1l45.8,29.7L84.5,72.1z M10,88 L2,50.2L47.8,80L10,88z\" fill=\"currentColor\"/>\n    </g></svg>\n\n    <span>#{online_mod_title}</span>\n    </div>"; // нужна заглушка, а то при страте лампы говорит пусто
 
     Lampa.Component.add('online_mod', component); //то же самое
 
