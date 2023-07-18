@@ -11,7 +11,8 @@
     var countries_map = {};
     var CACHE_SIZE = 100;
     var CACHE_TIME = 1000 * 60 * 60;
-    var SOURCE_NAME = 'kp';
+    var SOURCE_NAME = 'KP';
+    var SOURCE_TITLE = 'KP';
 
     function get(method, oncomplite, onerror) {
       var use_proxy = total_cnt >= 10 && good_cnt > total_cnt / 2;
@@ -567,7 +568,7 @@
 
     function discovery() {
       return {
-        title: 'KP',
+        title: SOURCE_TITLE,
         search: search,
         params: {
           align_left: true,
@@ -722,6 +723,8 @@
     }
 
     var KP = {
+      SOURCE_NAME: SOURCE_NAME,
+      SOURCE_TITLE: SOURCE_TITLE,
       main: main,
       menu: menu,
       full: full,
@@ -747,24 +750,37 @@
       name: 'filmix',
       title: 'FILMIX'
     }, {
-      name: 'kp',
-      title: 'KP'
+      name: KP.SOURCE_NAME,
+      title: KP.SOURCE_TITLE
     }];
 
     function startPlugin() {
       window.kp_source_plugin = true;
 
       function addPlugin() {
-        Lampa.Api.sources.kp = KP;
-        Object.defineProperty(Lampa.Api.sources, 'kp', {
+        if (Lampa.Api.sources[KP.SOURCE_NAME]) {
+          Lampa.Noty.show('Установлен плагин несовместимый с kp_source');
+          return;
+        }
+
+        Lampa.Api.sources[KP.SOURCE_NAME] = KP;
+        Object.defineProperty(Lampa.Api.sources, KP.SOURCE_NAME, {
           get: function get() {
             return KP;
           }
         });
-        var sources = {};
-        ALL_SOURCES.forEach(function (s) {
-          if (Lampa.Api.sources[s.name]) sources[s.name] = s.title;
-        });
+        var sources;
+
+        if (Lampa.Params.values && Lampa.Params.values['source']) {
+          sources = Object.assign({}, Lampa.Params.values['source']);
+          sources[KP.SOURCE_NAME] = KP.SOURCE_TITLE;
+        } else {
+          sources = {};
+          ALL_SOURCES.forEach(function (s) {
+            if (Lampa.Api.sources[s.name]) sources[s.name] = s.title;
+          });
+        }
+
         Lampa.Params.select('source', sources, 'tmdb');
       }
 
