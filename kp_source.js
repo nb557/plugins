@@ -136,10 +136,9 @@
       var adult = false;
       var result = {
         "source": SOURCE_NAME,
-        "kp_obj": elem,
         "type": type,
         "adult": false,
-        "id": kinopoisk_id,
+        "id": SOURCE_NAME + '_' + kinopoisk_id,
         "name": elem.nameRu || elem.nameEn || elem.nameOriginal || '',
         "original_name": elem.nameOriginal || elem.nameEn || '',
         "overview": elem.description || elem.shortDescription || '',
@@ -508,8 +507,8 @@
       var oncomplite = arguments.length > 1 ? arguments[1] : undefined;
       var onerror = arguments.length > 2 ? arguments[2] : undefined;
 
-      if (params.card && params.card.source === SOURCE_NAME && params.card.kp_obj && params.card.id) {
-        getById(params.card.id, params, function (json) {
+      if (params.card && params.card.source === SOURCE_NAME && params.card.kinopoisk_id) {
+        getById(params.card.kinopoisk_id, params, function (json) {
           var status = new Lampa.Status(4);
           status.onComplite = oncomplite;
           status.append('movie', json);
