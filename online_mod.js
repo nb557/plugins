@@ -1,4 +1,4 @@
-//17.07.2023 - Add KP cache
+//30.07.2023 - Improve search by imdb_id and kinopoisk_id
 
 (function () {
     'use strict';
@@ -577,7 +577,9 @@
                   return filter_items.voice_info[choice.voice] && m.translation.id == filter_items.voice_info[choice.voice].id;
                 });
                 temp.sort(function (a, b) {
-                  return b.max_quality - a.max_quality;
+                  var cmp = b.max_quality - a.max_quality;
+                  if (!cmp) return cmp;
+                  return b.id - a.id;
                 });
                 temp.slice(0, 1).forEach(function (media) {
                   var num = parseInt(episode.num);
@@ -592,13 +594,28 @@
                     translation: media.translation_id
                   });
                 });
-                filtred.sort(function (a, b) {
-                  return a.episode - b.episode;
-                });
               }
             });
+            filtred.sort(function (a, b) {
+              return a.episode - b.episode;
+            });
           } else if (movie.media) {
+            var temp = {};
+            var translations = [];
             movie.media.forEach(function (element) {
+              var old = temp[element.translation_id];
+
+              if (old) {
+                if (old.max_quality > element.max_quality) return;
+                if (old.id > element.id) return;
+              } else {
+                translations.push(element.translation_id);
+              }
+
+              temp[element.translation_id] = element;
+            });
+            translations.forEach(function (translation_id) {
+              var element = temp[translation_id];
               filtred.push({
                 title: element.translation.title,
                 quality: element.max_quality + 'p' + (element.source_quality ? ' - ' + element.source_quality.toUpperCase() : ''),
@@ -721,8 +738,13 @@
         object = _object;
         select_id = kinopoisk_id;
         select_title = object.search || object.movie.title;
-        getFirstTranlate(kinopoisk_id, function (voice) {
-          getFilm(kinopoisk_id, voice);
+
+        if (!object.clarification && object.movie.imdb_id && select_id != object.movie.imdb_id) {
+          select_id += ',' + object.movie.imdb_id;
+        }
+
+        getFirstTranlate(select_id, function (voice) {
+          getFilm(select_id, voice);
         });
       };
 
@@ -809,7 +831,9 @@
           extractData(str);
           if (extract.voice.length) call(getChoiceVoice().token);else component.emptyForQuery(select_title);
         }, function (a, c) {
-          if (a.status == 404 && a.responseText && a.responseText.indexOf('Видео не найдено') !== -1) component.emptyForQuery(select_title);else component.empty(network.errorDecode(a, c));
+          if (a.status == 404 && a.responseText && a.responseText.indexOf('Видео не найдено') !== -1 || a.status == 0 && a.statusText !== 'timeout') {
+            component.emptyForQuery(select_title);
+          } else component.empty(network.errorDecode(a, c));
         }, false, {
           dataType: 'text'
         });
@@ -1387,7 +1411,11 @@
 
         if (!object.clarification && (object.movie.imdb_id || +object.movie.kinopoisk_id)) {
           query_search('+' + (object.movie.imdb_id || +object.movie.kinopoisk_id), [], function (data) {
-            if (data && data.length) display(data);else query_title_search();
+            if (data && data.length) display(data);else if (object.movie.imdb_id && +object.movie.kinopoisk_id) {
+              query_search('+' + +object.movie.kinopoisk_id, [], function (data) {
+                if (data && data.length) display(data);else query_title_search();
+              });
+            } else query_title_search();
           });
         } else query_title_search();
       };
@@ -2571,35 +2599,44 @@
         season: 0,
         voice: 0
       };
+
+      function collaps_api_search(api, callback, error) {
+        network.clear();
+        network.timeout(10000);
+        network.silent(embed + api, function (str) {
+          if (callback) callback(str || '');
+        }, function (a, c) {
+          if (a.status == 404 && a.responseText && a.responseText.indexOf('видео недоступно') !== -1 || a.status == 0 && a.statusText !== 'timeout') {
+            if (callback) callback('');
+          } else if (error) error(network.errorDecode(a, c));
+        }, false, {
+          dataType: 'text'
+        });
+      }
       /**
        * Поиск
        * @param {Object} _object 
        */
 
+
       this.search = function (_object, kinopoisk_id) {
         object = _object;
         select_title = object.search || object.movie.title;
-        var url = embed;
-
-        if (+kinopoisk_id) {
-          url += 'kp/' + kinopoisk_id;
-        } else {
-          url += 'imdb/' + kinopoisk_id;
-        }
-
-        network.clear();
-        network.timeout(10000);
-        network.silent(url, function (str) {
+        var error = component.empty.bind(component);
+        var api = +kinopoisk_id ? 'kp/' + kinopoisk_id : 'imdb/' + kinopoisk_id;
+        collaps_api_search(api, function (str) {
           if (str) {
             parse(str);
+            component.loading(false);
+          } else if (!object.clarification && object.movie.imdb_id && kinopoisk_id != object.movie.imdb_id) {
+            collaps_api_search('imdb/' + object.movie.imdb_id, function (str) {
+              if (str) {
+                parse(str);
+                component.loading(false);
+              } else component.emptyForQuery(select_title);
+            }, error);
           } else component.emptyForQuery(select_title);
-
-          component.loading(false);
-        }, function (a, c) {
-          if (a.status == 404 && a.responseText && a.responseText.indexOf('видео недоступно') !== -1) component.emptyForQuery(select_title);else component.empty(network.errorDecode(a, c));
-        }, false, {
-          dataType: 'text'
-        });
+        }, error);
       };
 
       this.extendChoice = function (saved) {
@@ -2853,11 +2890,22 @@
         voice: 0,
         voice_name: ''
       };
+
+      function cdn_api_search(api, callback, error) {
+        network.clear();
+        network.timeout(10000);
+        network["native"](embed + api, function (json) {
+          if (callback) callback(json);
+        }, function (a, c) {
+          if (error) error(network.errorDecode(a, c));
+        });
+      }
       /**
        * Начать поиск
        * @param {Object} _object 
        * @param {String} kinopoisk_id
        */
+
 
       this.search = function (_object, kinopoisk_id, data) {
         var _this = this;
@@ -2896,23 +2944,26 @@
               }
             }
 
+            if (!object.clarification && +object.movie.kinopoisk_id) {
+              var kp_id = +object.movie.kinopoisk_id;
+
+              var _tmp = items.filter(function (elem) {
+                return elem.kinopoisk_id == kp_id;
+              });
+
+              if (_tmp.length) {
+                items = _tmp;
+                is_sure = true;
+                is_imdb = true;
+              }
+            }
+
             var cards = items;
 
             if (cards.length) {
               if (orig) {
-                var _tmp = cards.filter(function (elem) {
-                  return component.containsTitle(elem.orig_title || elem.en_title || elem.ru_title, orig);
-                });
-
-                if (_tmp.length) {
-                  cards = _tmp;
-                  is_sure = true;
-                }
-              }
-
-              if (select_title) {
                 var _tmp2 = cards.filter(function (elem) {
-                  return component.containsTitle(elem.title || elem.ru_title || elem.en_title || elem.orig_title, select_title);
+                  return component.containsTitle(elem.orig_title || elem.en_title || elem.ru_title, orig);
                 });
 
                 if (_tmp2.length) {
@@ -2921,15 +2972,26 @@
                 }
               }
 
+              if (select_title) {
+                var _tmp3 = cards.filter(function (elem) {
+                  return component.containsTitle(elem.title || elem.ru_title || elem.en_title || elem.orig_title, select_title);
+                });
+
+                if (_tmp3.length) {
+                  cards = _tmp3;
+                  is_sure = true;
+                }
+              }
+
               if (cards.length > 1 && search_year) {
-                var _tmp3 = cards.filter(function (c) {
+                var _tmp4 = cards.filter(function (c) {
                   return c.tmp_year == search_year;
                 });
 
-                if (!_tmp3.length) _tmp3 = cards.filter(function (c) {
+                if (!_tmp4.length) _tmp4 = cards.filter(function (c) {
                   return c.tmp_year && c.tmp_year > search_year - 2 && c.tmp_year < search_year + 2;
                 });
-                if (_tmp3.length) cards = _tmp3;
+                if (_tmp4.length) cards = _tmp4;
               }
             }
 
@@ -2966,25 +3028,31 @@
           } else component.emptyForQuery(select_title);
         };
 
-        var url = embed;
-        url = Lampa.Utils.addUrlComponent(url, 'token=' + token);
-        var url_by_title = Lampa.Utils.addUrlComponent(url, 'search=' + encodeURIComponent(select_title));
-        if (!object.clarification && object.movie.imdb_id) url = Lampa.Utils.addUrlComponent(url, 'imdb_id=' + encodeURIComponent(object.movie.imdb_id));else if (!object.clarification && +object.movie.kinopoisk_id) url = Lampa.Utils.addUrlComponent(url, 'kinopoisk_id=' + encodeURIComponent(+object.movie.kinopoisk_id));else url = url_by_title;
-        network.clear();
-        network.timeout(10000);
-        network["native"](url, function (json) {
-          if (json.data && Object.keys(json.data).length) display(json.data);else if (url !== url_by_title) {
-            network.clear();
-            network.timeout(10000);
-            network["native"](url_by_title, function (json) {
-              if (json.data && Object.keys(json.data).length) display(json.data);else display({});
-            }, function (a, c) {
-              component.empty(network.errorDecode(a, c));
-            });
-          } else display({});
-        }, function (a, c) {
-          component.empty(network.errorDecode(a, c));
-        });
+        var cdn_search_by_title = function cdn_search_by_title(callback, error) {
+          var params = Lampa.Utils.addUrlComponent('', 'token=' + token);
+          params = Lampa.Utils.addUrlComponent(params, 'search=' + encodeURIComponent(select_title));
+          cdn_api_search(params, callback, error);
+        };
+
+        var cdn_search_by_id = function cdn_search_by_id(callback, error) {
+          if (!object.clarification && (object.movie.imdb_id || +object.movie.kinopoisk_id)) {
+            var params = Lampa.Utils.addUrlComponent('', 'token=' + token);
+            var imdb_params = object.movie.imdb_id ? Lampa.Utils.addUrlComponent(params, 'imdb_id=' + encodeURIComponent(object.movie.imdb_id)) : '';
+            var kp_params = +object.movie.kinopoisk_id ? Lampa.Utils.addUrlComponent(params, 'kinopoisk_id=' + encodeURIComponent(+object.movie.kinopoisk_id)) : '';
+            cdn_api_search(imdb_params || kp_params, function (json) {
+              if (json.data && Object.keys(json.data).length) callback(json);else if (imdb_params && kp_params) {
+                cdn_api_search(kp_params, callback, error);
+              } else callback({});
+            }, error);
+          } else callback({});
+        };
+
+        var error = component.empty.bind(component);
+        cdn_search_by_id(function (json) {
+          if (json.data && Object.keys(json.data).length) display(json.data);else cdn_search_by_title(function (json) {
+            if (json.data && Object.keys(json.data).length) display(json.data);else display({});
+          }, error);
+        }, error);
       };
 
       this.find = function (url) {
@@ -5078,6 +5146,34 @@
         return false;
       };
 
+      this.vcdn_api_search = function (api, data, callback, error) {
+        var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true;
+        var prox = this.proxy('videocdn');
+        var url = prox + (prefer_http || prox ? 'http:' : 'https:') + '//videocdn.tv/api/';
+        network.clear();
+        network.timeout(1000 * 20);
+        network.silent(url + api, function (json) {
+          if (json.data && json.data.length) data = data.concat(json.data);
+          if (callback) callback(data);
+        }, function (a, c) {
+          if (a.status == 404 && a.responseJSON && a.responseJSON.result === false || a.status == 0 && a.statusText !== 'timeout') {
+            if (callback) callback(data);
+          } else if (error) error(network.errorDecode(a, c));
+        });
+      };
+
+      this.kp_api_search = function (api, callback, error) {
+        KP.clear();
+        KP.getFromCache(api, function (json, cached) {
+          var items = [];
+          if (json.items && json.items.length) items = json.items;else if (json.films && json.films.length) items = json.films;
+          if (!cached && items.length) KP.setCache(api, json);
+          if (callback) callback(items);
+        }, function (a, c) {
+          if (error) error(network.errorDecode(a, c));
+        });
+      };
+
       this.find = function () {
         var _this2 = this;
 
@@ -5109,23 +5205,26 @@
               }
             }
 
+            if (!object.clarification && +object.movie.kinopoisk_id) {
+              var kp_id = +object.movie.kinopoisk_id;
+
+              var _tmp = items.filter(function (elem) {
+                return (elem.kp_id || elem.kinopoisk_id || elem.kinopoiskId || elem.filmId) == kp_id;
+              });
+
+              if (_tmp.length) {
+                items = _tmp;
+                is_sure = true;
+                is_imdb = true;
+              }
+            }
+
             var cards = items;
 
             if (cards.length) {
               if (orig) {
-                var _tmp = cards.filter(function (elem) {
-                  return _this2.containsTitle(elem.orig_title || elem.nameOriginal || elem.en_title || elem.nameEn || elem.ru_title || elem.nameRu, orig);
-                });
-
-                if (_tmp.length) {
-                  cards = _tmp;
-                  is_sure = true;
-                }
-              }
-
-              if (query) {
                 var _tmp2 = cards.filter(function (elem) {
-                  return _this2.containsTitle(elem.title || elem.ru_title || elem.nameRu || elem.en_title || elem.nameEn || elem.orig_title || elem.nameOriginal, query);
+                  return _this2.containsTitle(elem.orig_title || elem.nameOriginal || elem.en_title || elem.nameEn || elem.ru_title || elem.nameRu, orig);
                 });
 
                 if (_tmp2.length) {
@@ -5134,15 +5233,26 @@
                 }
               }
 
+              if (query) {
+                var _tmp3 = cards.filter(function (elem) {
+                  return _this2.containsTitle(elem.title || elem.ru_title || elem.nameRu || elem.en_title || elem.nameEn || elem.orig_title || elem.nameOriginal, query);
+                });
+
+                if (_tmp3.length) {
+                  cards = _tmp3;
+                  is_sure = true;
+                }
+              }
+
               if (cards.length > 1 && search_year) {
-                var _tmp3 = cards.filter(function (c) {
+                var _tmp4 = cards.filter(function (c) {
                   return c.tmp_year == search_year;
                 });
 
-                if (!_tmp3.length) _tmp3 = cards.filter(function (c) {
+                if (!_tmp4.length) _tmp4 = cards.filter(function (c) {
                   return c.tmp_year && c.tmp_year > search_year - 2 && c.tmp_year < search_year + 2;
                 });
-                if (_tmp3.length) cards = _tmp3;
+                if (_tmp4.length) cards = _tmp4;
               }
             }
 
@@ -5176,90 +5286,89 @@
           } else _this2.emptyForQuery(query);
         };
 
-        var vcdn_search = function vcdn_search() {
-          var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true;
-
-          var prox = _this2.proxy('videocdn');
-
-          var url = prox + (prefer_http || prox ? 'http:' : 'https:') + '//videocdn.tv/api/';
+        var vcdn_search_by_title = function vcdn_search_by_title(callback, error) {
           var params = Lampa.Utils.addUrlComponent('', 'api_token=3i40G5TSECmLF77oAqnEgbx61ZWaOYaE');
-          var params_by_title = params;
-          params_by_title = Lampa.Utils.addUrlComponent(params_by_title, 'query=' + encodeURIComponent(query));
-          params_by_title = Lampa.Utils.addUrlComponent(params_by_title, 'field=title');
-          if (!object.clarification && object.movie.imdb_id) params = Lampa.Utils.addUrlComponent(params, 'imdb_id=' + encodeURIComponent(object.movie.imdb_id));else if (!object.clarification && +object.movie.kinopoisk_id) params = Lampa.Utils.addUrlComponent(params, 'kinopoisk_id=' + encodeURIComponent(+object.movie.kinopoisk_id));else params = params_by_title;
+          params = Lampa.Utils.addUrlComponent(params, 'query=' + encodeURIComponent(query));
+          params = Lampa.Utils.addUrlComponent(params, 'field=title');
 
-          var vcdn_api_search = function vcdn_api_search(api, data, callback) {
-            network.clear();
-            network.timeout(1000 * 15);
-            network.silent(url + api, function (json) {
-              if (json.data && json.data.length) data = data.concat(json.data);
-              if (callback) callback(data);
-            }, function (a, c) {
-              if (a.status == 404 && a.responseJSON && a.responseJSON.result === false || a.status == 0 && a.statusText !== 'timeout') {
-                if (callback) callback(data);
-              } else _this2.empty(network.errorDecode(a, c));
-            });
-          };
+          _this2.vcdn_api_search('movies' + params, [], function (data) {
+            _this2.vcdn_api_search('animes' + params, data, function (data) {
+              _this2.vcdn_api_search('tv-series' + params, data, function (data) {
+                _this2.vcdn_api_search('anime-tv-series' + params, data, function (data) {
+                  _this2.vcdn_api_search('show-tv-series' + params, data, callback, error);
+                }, error);
+              }, error);
+            }, error);
+          }, error);
+        };
 
-          var vcdn_title_search = function vcdn_title_search() {
-            vcdn_api_search('movies' + params_by_title, [], function (data) {
-              vcdn_api_search('animes' + params_by_title, data, function (data) {
-                vcdn_api_search('tv-series' + params_by_title, data, function (data) {
-                  vcdn_api_search('anime-tv-series' + params_by_title, data, function (data) {
-                    vcdn_api_search('show-tv-series' + params_by_title, data, function (data) {
-                      if (data && data.length) display(data);else display([]);
-                    });
-                  });
-                });
-              });
-            });
-          };
+        var vcdn_search_by_id = function vcdn_search_by_id(callback, error) {
+          if (!object.clarification && (object.movie.imdb_id || +object.movie.kinopoisk_id)) {
+            var params = Lampa.Utils.addUrlComponent('', 'api_token=3i40G5TSECmLF77oAqnEgbx61ZWaOYaE');
+            var imdb_params = object.movie.imdb_id ? Lampa.Utils.addUrlComponent(params, 'imdb_id=' + encodeURIComponent(object.movie.imdb_id)) : '';
+            var kp_params = +object.movie.kinopoisk_id ? Lampa.Utils.addUrlComponent(params, 'kinopoisk_id=' + encodeURIComponent(+object.movie.kinopoisk_id)) : '';
 
-          if (params === params_by_title) {
-            vcdn_title_search();
-          } else {
-            vcdn_api_search('short' + params, [], function (data) {
-              if (data && data.length) display(data);else vcdn_title_search();
-            });
-          }
+            _this2.vcdn_api_search('short' + (imdb_params || kp_params), [], function (data) {
+              if (data && data.length) callback(data);else if (imdb_params && kp_params) {
+                _this2.vcdn_api_search('short' + kp_params, [], callback, error);
+              } else callback([]);
+            }, error);
+          } else callback([]);
+        };
+
+        var vcdn_search = function vcdn_search() {
+          var error = _this2.empty.bind(_this2);
+
+          vcdn_search_by_id(function (data) {
+            if (data && data.length) display(data);else vcdn_search_by_title(function (data) {
+              if (data && data.length) display(data);else display([]);
+            }, error);
+          }, error);
+        };
+
+        var kp_search_by_title = function kp_search_by_title(callback, error) {
+          var url = 'api/v2.1/films/search-by-keyword?keyword=' + encodeURIComponent(_this2.cleanTitle(query));
+
+          _this2.kp_api_search(url, callback, error);
+        };
+
+        var kp_search_by_id = function kp_search_by_id(callback, error) {
+          if (!object.clarification && object.movie.imdb_id) {
+            var url = 'api/v2.2/films?imdbId=' + encodeURIComponent(object.movie.imdb_id);
+
+            _this2.kp_api_search(url, callback, error);
+          } else callback([]);
         };
 
         var kp_search = function kp_search() {
-          var url;
-          var url_by_title = 'api/v2.1/films/search-by-keyword?keyword=' + encodeURIComponent(_this2.cleanTitle(query));
-          if (!object.clarification && object.movie.imdb_id) url = 'api/v2.2/films?imdbId=' + encodeURIComponent(object.movie.imdb_id);else url = url_by_title;
-          KP.clear();
-          KP.getFromCache(url, function (json, cached) {
-            var items = [];
-            if (json.items && json.items.length) items = json.items;else if (json.films && json.films.length) items = json.films;
+          kp_search_by_id(function (data) {
+            if (data && data.length) display(data);else kp_search_by_title(function (data) {
+              if (data && data.length) display(data);else vcdn_search();
+            }, vcdn_search);
+          }, vcdn_search);
+        };
 
-            if (items.length) {
-              if (!cached) KP.setCache(url, json);
-              display(items);
-            } else if (url !== url_by_title) {
-              KP.clear();
-              KP.getFromCache(url_by_title, function (json, cached) {
-                var items = [];
-                if (json.items && json.items.length) items = json.items;else if (json.films && json.films.length) items = json.films;
+        var vcdn_search_imdb = function vcdn_search_imdb() {
+          var error = function error() {
+            _this2.extendChoice();
 
-                if (items.length) {
-                  if (!cached) KP.setCache(url_by_title, json);
-                  display(items);
-                } else vcdn_search();
-              }, function (a, c) {
-                vcdn_search();
-              });
-            } else vcdn_search();
-          }, function (a, c) {
-            vcdn_search();
-          });
+            sources[balanser].search(object, object.movie.imdb_id);
+          };
+
+          vcdn_search_by_id(function (data) {
+            if (data && data.length) display(data);else error();
+          }, error);
+        };
+
+        var kp_search_imdb = function kp_search_imdb() {
+          kp_search_by_id(function (data) {
+            if (data && data.length) display(data);else vcdn_search_imdb();
+          }, vcdn_search_imdb);
         };
 
         var letgo = function letgo() {
           if (!object.clarification && object.movie.imdb_id && ['rezka', 'collaps'].indexOf(balanser) >= 0) {
-            _this2.extendChoice();
-
-            sources[balanser].search(object, object.movie.imdb_id);
+            if (Lampa.Storage.field('online_mod_skip_kp_search') === true) vcdn_search_imdb();else kp_search_imdb();
           } else if (['rezka2', 'kinobase', 'filmix', 'cdnmovies', 'anilibria'].indexOf(balanser) >= 0) {
             _this2.extendChoice();
 
@@ -6213,7 +6322,7 @@
       Lampa.Template.add('online_mod_folder', "<div class=\"online selector\">\n        <div class=\"online__body\">\n            <div style=\"position: absolute;left: 0;top: -0.3em;width: 2.4em;height: 2.4em\">\n                <svg style=\"height: 2.4em; width:  2.4em;\" viewBox=\"0 0 128 112\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n                    <rect y=\"20\" width=\"128\" height=\"92\" rx=\"13\" fill=\"white\"/>\n                    <path d=\"M29.9963 8H98.0037C96.0446 3.3021 91.4079 0 86 0H42C36.5921 0 31.9555 3.3021 29.9963 8Z\" fill=\"white\" fill-opacity=\"0.23\"/>\n                    <rect x=\"11\" y=\"8\" width=\"106\" height=\"76\" rx=\"13\" fill=\"white\" fill-opacity=\"0.51\"/>\n                </svg>\n            </div>\n            <div class=\"online__title\" style=\"padding-left: 2.1em;\">{title}</div>\n            <div class=\"online__quality\" style=\"padding-left: 3.4em;\">{quality}{info}</div>\n        </div>\n    </div>");
     }
 
-    var button = "<div class=\"full-start__button selector view--online_mod\" data-subtitle=\"online_mod 17.07.2023\">\n    <svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:svgjs=\"http://svgjs.com/svgjs\" version=\"1.1\" width=\"512\" height=\"512\" x=\"0\" y=\"0\" viewBox=\"0 0 244 260\" style=\"enable-background:new 0 0 512 512\" xml:space=\"preserve\" class=\"\">\n    <g xmlns=\"http://www.w3.org/2000/svg\">\n        <path d=\"M242,88v170H10V88h41l-38,38h37.1l38-38h38.4l-38,38h38.4l38-38h38.3l-38,38H204L242,88L242,88z M228.9,2l8,37.7l0,0 L191.2,10L228.9,2z M160.6,56l-45.8-29.7l38-8.1l45.8,29.7L160.6,56z M84.5,72.1L38.8,42.4l38-8.1l45.8,29.7L84.5,72.1z M10,88 L2,50.2L47.8,80L10,88z\" fill=\"currentColor\"/>\n    </g></svg>\n\n    <span>#{online_mod_title}</span>\n    </div>"; // нужна заглушка, а то при страте лампы говорит пусто
+    var button = "<div class=\"full-start__button selector view--online_mod\" data-subtitle=\"online_mod 30.07.2023\">\n    <svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:svgjs=\"http://svgjs.com/svgjs\" version=\"1.1\" width=\"512\" height=\"512\" x=\"0\" y=\"0\" viewBox=\"0 0 244 260\" style=\"enable-background:new 0 0 512 512\" xml:space=\"preserve\" class=\"\">\n    <g xmlns=\"http://www.w3.org/2000/svg\">\n        <path d=\"M242,88v170H10V88h41l-38,38h37.1l38-38h38.4l-38,38h38.4l38-38h38.3l-38,38H204L242,88L242,88z M228.9,2l8,37.7l0,0 L191.2,10L228.9,2z M160.6,56l-45.8-29.7l38-8.1l45.8,29.7L160.6,56z M84.5,72.1L38.8,42.4l38-8.1l45.8,29.7L84.5,72.1z M10,88 L2,50.2L47.8,80L10,88z\" fill=\"currentColor\"/>\n    </g></svg>\n\n    <span>#{online_mod_title}</span>\n    </div>"; // нужна заглушка, а то при страте лампы говорит пусто
 
     Lampa.Component.add('online_mod', component); //то же самое
 
