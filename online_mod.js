@@ -1,4 +1,4 @@
-//30.07.2023 - Improve search by imdb_id and kinopoisk_id
+//31.07.2023 - Improve search by imdb_id and kinopoisk_id
 
 (function () {
     'use strict';
@@ -3523,32 +3523,51 @@
         voice: 0,
         voice_name: ''
       };
+      var secret = '';
+      var secret_url = '';
+      var secret_timestamp = null;
 
-      function decodeSecretToken() {
-        var result = Utils.decodeSecret([]);
+      function decodeSecretToken(callback) {
+        var timestamp = new Date().getTime();
+        var cache_timestamp = timestamp - 1000 * 60 * 10;
 
-        if (!result.startsWith('.com/s/')) {
-          return '';
+        if (secret && secret_timestamp && secret_timestamp > cache_timestamp) {
+          if (callback) callback();
+          return;
         }
 
-        return result;
+        secret_url = Utils.decodeSecret([80, 68, 77, 68, 9, 22, 27, 7, 12, 22, 4, 15, 26, 2, 14, 0, 30, 6, 11, 4, 22, 81, 93, 90, 27]);
+        var url = Utils.decodeSecret([80, 68, 77, 68, 64, 3, 27, 31, 86, 79, 81, 23, 64, 92, 22, 64, 85, 89, 72, 31, 81, 85, 64, 81, 82, 89, 89, 81, 72, 23, 64, 75, 77]);
+
+        if (!url.startsWith('http')) {
+          if (callback) callback();
+          return;
+        }
+
+        network.clear();
+        network.timeout(10000);
+        network.silent(url, function (str) {
+          if (str && str.startsWith('/s/')) {
+            secret = '.com' + str;
+            secret_timestamp = timestamp;
+          }
+
+          if (callback) callback();
+        }, function (a, c) {
+          if (callback) callback();
+        }, false, {
+          dataType: 'text'
+        });
       }
 
-      var secret = decodeSecretToken();
-      var token = secret ? '' : Lampa.Storage.get('filmix_token', '');
-
-      if (secret) {
-        window.filmix = {
-          max_qualitie: 2160,
-          is_max_qualitie: true
-        };
-      } else if (!window.filmix) {
+      if (!window.filmix) {
         window.filmix = {
           max_qualitie: 720,
           is_max_qualitie: false
         };
       }
 
+      var token = Lampa.Storage.get('filmix_token', '');
       var dev_token = '?user_dev_apk=2.0.1&user_dev_id=1d07ba88e4b45d30&user_dev_name=Xiaomi&user_dev_os=12&user_dev_token=' + (token || 'aaaabbbbccccddddeeeeffffaaaabbbb') + '&user_dev_vendor=Xiaomi';
       /**
        * Начать поиск
@@ -3573,80 +3592,82 @@
 
         var url = embed + 'search' + dev_token;
         url = Lampa.Utils.addUrlComponent(url, 'story=' + encodeURIComponent(clean_title));
-        network.clear();
-        network.timeout(10000);
-        network.silent(url, function (json) {
-          var is_sure = false;
-          json.forEach(function (c) {
-            if (!c.year && c.alt_name) c.year = parseInt(c.alt_name.split('-').pop());
-          });
-          var cards = json;
+        decodeSecretToken(function () {
+          network.clear();
+          network.timeout(10000);
+          network.silent(url, function (json) {
+            var is_sure = false;
+            json.forEach(function (c) {
+              if (!c.year && c.alt_name) c.year = parseInt(c.alt_name.split('-').pop());
+            });
+            var cards = json;
 
-          if (cards.length) {
-            if (orig) {
-              var tmp = cards.filter(function (c) {
-                return component.containsTitle(c.original_title, orig);
-              });
-
-              if (tmp.length) {
-                cards = tmp;
-                is_sure = true;
-              }
-            }
-
-            if (select_title) {
-              var _tmp = cards.filter(function (c) {
-                return component.containsTitle(c.title, select_title);
-              });
-
-              if (_tmp.length) {
-                cards = _tmp;
-                is_sure = true;
-              }
-            }
-
-            if (cards.length > 1 && search_year) {
-              var _tmp2 = cards.filter(function (c) {
-                return c.year == search_year;
-              });
-
-              if (!_tmp2.length) _tmp2 = cards.filter(function (c) {
-                return c.year && c.year > search_year - 2 && c.year < search_year + 2;
-              });
-              if (_tmp2.length) cards = _tmp2;
-            }
-          }
-
-          if (cards.length == 1 && is_sure) {
-            if (search_year && cards[0].year) {
-              is_sure = cards[0].year > search_year - 2 && cards[0].year < search_year + 2;
-            }
-
-            if (is_sure) {
-              is_sure = false;
-
+            if (cards.length) {
               if (orig) {
-                is_sure |= component.equalTitle(cards[0].original_title, orig);
+                var tmp = cards.filter(function (c) {
+                  return component.containsTitle(c.original_title, orig);
+                });
+
+                if (tmp.length) {
+                  cards = tmp;
+                  is_sure = true;
+                }
               }
 
               if (select_title) {
-                is_sure |= component.equalTitle(cards[0].title, select_title);
+                var _tmp = cards.filter(function (c) {
+                  return component.containsTitle(c.title, select_title);
+                });
+
+                if (_tmp.length) {
+                  cards = _tmp;
+                  is_sure = true;
+                }
+              }
+
+              if (cards.length > 1 && search_year) {
+                var _tmp2 = cards.filter(function (c) {
+                  return c.year == search_year;
+                });
+
+                if (!_tmp2.length) _tmp2 = cards.filter(function (c) {
+                  return c.year && c.year > search_year - 2 && c.year < search_year + 2;
+                });
+                if (_tmp2.length) cards = _tmp2;
               }
             }
-          }
 
-          if (cards.length == 1 && is_sure) _this.find(cards[0].id);else if (json.length) {
-            _this.wait_similars = true;
-            json.forEach(function (c) {
-              c.is_similars = true;
-              c.seasons_count = c.last_episode && c.last_episode.season;
-              c.episodes_count = c.last_episode && c.last_episode.episode;
-            });
-            component.similars(json);
-            component.loading(false);
-          } else component.emptyForQuery(select_title);
-        }, function (a, c) {
-          component.empty(network.errorDecode(a, c));
+            if (cards.length == 1 && is_sure) {
+              if (search_year && cards[0].year) {
+                is_sure = cards[0].year > search_year - 2 && cards[0].year < search_year + 2;
+              }
+
+              if (is_sure) {
+                is_sure = false;
+
+                if (orig) {
+                  is_sure |= component.equalTitle(cards[0].original_title, orig);
+                }
+
+                if (select_title) {
+                  is_sure |= component.equalTitle(cards[0].title, select_title);
+                }
+              }
+            }
+
+            if (cards.length == 1 && is_sure) _this.find(cards[0].id);else if (json.length) {
+              _this.wait_similars = true;
+              json.forEach(function (c) {
+                c.is_similars = true;
+                c.seasons_count = c.last_episode && c.last_episode.season;
+                c.episodes_count = c.last_episode && c.last_episode.episode;
+              });
+              component.similars(json);
+              component.loading(false);
+            } else component.emptyForQuery(select_title);
+          }, function (a, c) {
+            component.empty(network.errorDecode(a, c));
+          });
         });
       };
 
@@ -3747,6 +3768,7 @@
 
       function extractData(data) {
         extract = {};
+        var filmix_max_qualitie = secret ? 2160 : window.filmix.max_qualitie;
         var pl_links = data.player_links || {};
 
         if (pl_links.playlist && Object.keys(pl_links.playlist).length > 0) {
@@ -3767,7 +3789,7 @@
                 var file_episod = episode_voice[ID];
                 ++epis_num;
                 var quality_eps = file_episod.qualities.filter(function (qualitys) {
-                  return !isNaN(qualitys) && qualitys <= window.filmix.max_qualitie;
+                  return !isNaN(qualitys) && qualitys <= filmix_max_qualitie;
                 });
                 quality_eps.sort(function (a, b) {
                   return b - a;
@@ -3779,9 +3801,9 @@
 
                   if (secret) {
                     stream_url = stream_url.replace(/\.com\/s\/[^\/]*\//, secret);
-                  }
+                    stream_url = stream_url.replace(/^https?:\/\//, secret_url);
+                  } else if (prefer_http) stream_url = stream_url.replace('https://', 'http://');
 
-                  if (prefer_http) stream_url = stream_url.replace('https://', 'http://');
                   var seas_id = parseInt(season);
                   var epis_id = parseInt(ID);
 
@@ -3826,15 +3848,14 @@
           for (var _ID in pl_links.movie) {
             var _file_episod = pl_links.movie[_ID];
             ++_transl_id;
-            var _max_quality = window.filmix.max_qualitie;
+            var _max_quality = filmix_max_qualitie;
 
             var _stream_url = _file_episod.link || '';
 
             if (secret) {
               _stream_url = _stream_url.replace(/\.com\/s\/[^\/]*\//, secret);
-            }
-
-            if (prefer_http) _stream_url = _stream_url.replace('https://', 'http://');
+              _stream_url = _stream_url.replace(/^https?:\/\//, secret_url);
+            } else if (prefer_http) _stream_url = _stream_url.replace('https://', 'http://');
 
             var _quality_eps = _stream_url.match(/\[([\d,]*)\]\.mp4/i);
 
@@ -3842,7 +3863,7 @@
               _quality_eps = _quality_eps[1].split(',').map(function (quality) {
                 return parseInt(quality);
               }).filter(function (quality) {
-                return !isNaN(quality) && quality <= window.filmix.max_qualitie;
+                return !isNaN(quality) && quality <= filmix_max_qualitie;
               });
 
               _quality_eps.sort(function (a, b) {
@@ -4110,7 +4131,7 @@
       var network = new Lampa.Reguest();
       var extract = {};
       var results = [];
-      var backend = 'http://back.freebie.tom.ru/lampa/hdvburl?v=1909';
+      var backend = 'http://back.freebie.tom.ru/lampa/hdvburl?v=1924';
       var object = _object;
       var select_title = '';
       var select_id = '';
@@ -6322,7 +6343,7 @@
       Lampa.Template.add('online_mod_folder', "<div class=\"online selector\">\n        <div class=\"online__body\">\n            <div style=\"position: absolute;left: 0;top: -0.3em;width: 2.4em;height: 2.4em\">\n                <svg style=\"height: 2.4em; width:  2.4em;\" viewBox=\"0 0 128 112\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n                    <rect y=\"20\" width=\"128\" height=\"92\" rx=\"13\" fill=\"white\"/>\n                    <path d=\"M29.9963 8H98.0037C96.0446 3.3021 91.4079 0 86 0H42C36.5921 0 31.9555 3.3021 29.9963 8Z\" fill=\"white\" fill-opacity=\"0.23\"/>\n                    <rect x=\"11\" y=\"8\" width=\"106\" height=\"76\" rx=\"13\" fill=\"white\" fill-opacity=\"0.51\"/>\n                </svg>\n            </div>\n            <div class=\"online__title\" style=\"padding-left: 2.1em;\">{title}</div>\n            <div class=\"online__quality\" style=\"padding-left: 3.4em;\">{quality}{info}</div>\n        </div>\n    </div>");
     }
 
-    var button = "<div class=\"full-start__button selector view--online_mod\" data-subtitle=\"online_mod 30.07.2023\">\n    <svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:svgjs=\"http://svgjs.com/svgjs\" version=\"1.1\" width=\"512\" height=\"512\" x=\"0\" y=\"0\" viewBox=\"0 0 244 260\" style=\"enable-background:new 0 0 512 512\" xml:space=\"preserve\" class=\"\">\n    <g xmlns=\"http://www.w3.org/2000/svg\">\n        <path d=\"M242,88v170H10V88h41l-38,38h37.1l38-38h38.4l-38,38h38.4l38-38h38.3l-38,38H204L242,88L242,88z M228.9,2l8,37.7l0,0 L191.2,10L228.9,2z M160.6,56l-45.8-29.7l38-8.1l45.8,29.7L160.6,56z M84.5,72.1L38.8,42.4l38-8.1l45.8,29.7L84.5,72.1z M10,88 L2,50.2L47.8,80L10,88z\" fill=\"currentColor\"/>\n    </g></svg>\n\n    <span>#{online_mod_title}</span>\n    </div>"; // нужна заглушка, а то при страте лампы говорит пусто
+    var button = "<div class=\"full-start__button selector view--online_mod\" data-subtitle=\"online_mod 31.07.2023\">\n    <svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:svgjs=\"http://svgjs.com/svgjs\" version=\"1.1\" width=\"512\" height=\"512\" x=\"0\" y=\"0\" viewBox=\"0 0 244 260\" style=\"enable-background:new 0 0 512 512\" xml:space=\"preserve\" class=\"\">\n    <g xmlns=\"http://www.w3.org/2000/svg\">\n        <path d=\"M242,88v170H10V88h41l-38,38h37.1l38-38h38.4l-38,38h38.4l38-38h38.3l-38,38H204L242,88L242,88z M228.9,2l8,37.7l0,0 L191.2,10L228.9,2z M160.6,56l-45.8-29.7l38-8.1l45.8,29.7L160.6,56z M84.5,72.1L38.8,42.4l38-8.1l45.8,29.7L84.5,72.1z M10,88 L2,50.2L47.8,80L10,88z\" fill=\"currentColor\"/>\n    </g></svg>\n\n    <span>#{online_mod_title}</span>\n    </div>"; // нужна заглушка, а то при страте лампы говорит пусто
 
     Lampa.Component.add('online_mod', component); //то же самое
 
