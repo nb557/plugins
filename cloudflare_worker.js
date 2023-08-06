@@ -27,7 +27,16 @@ export default {
         request.headers.set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36");
       }
       if (apiUrl.hostname.endsWith(".svetacdn.in")) {
+        request.headers.set("Origin", "https://videocdn.tv");
         request.headers.set("Referer", "https://videocdn.tv/");
+        request.headers.delete("Sec-Fetch-Dest");
+        request.headers.delete("Sec-Fetch-Mode");
+        request.headers.delete("Sec-Fetch-Site");
+        request.headers.delete("Sec-Fetch-User");
+      }
+      if (["kodikapi.com", "kodik.biz", "kodik.info"].indexOf(apiUrl.hostname) !== -1) {
+        request.headers.set("Origin", "https://animego.org");
+        request.headers.set("Referer", "https://animego.org/");
         request.headers.delete("Sec-Fetch-Dest");
         request.headers.delete("Sec-Fetch-Mode");
         request.headers.delete("Sec-Fetch-Site");

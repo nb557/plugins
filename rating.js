@@ -80,7 +80,7 @@
 				if (cards.length) {
 					if (orig) {
 						var _tmp = cards.filter(function (elem) {
-							return equalTitle(elem.orig_title || elem.nameOriginal || elem.en_title || elem.nameEn || elem.ru_title || elem.nameRu, orig);
+							return containsTitle(elem.orig_title || elem.nameOriginal, orig) || containsTitle(elem.en_title || elem.nameEn, orig) || containsTitle(elem.title || elem.ru_title || elem.nameRu, orig);
 						});
 						if (_tmp.length) {
 							cards = _tmp;
@@ -89,7 +89,7 @@
 					}
 					if (card.title) {
 						var _tmp2 = cards.filter(function (elem) {
-							return equalTitle(elem.title || elem.ru_title || elem.nameRu || elem.en_title || elem.nameEn || elem.orig_title || elem.nameOriginal, card.title);
+							return containsTitle(elem.title || elem.ru_title || elem.nameRu, card.title) || containsTitle(elem.en_title || elem.nameEn, card.title) || containsTitle(elem.orig_title || elem.nameOriginal, card.title);
 						});
 						if (_tmp2.length) {
 							cards = _tmp2;
@@ -106,8 +106,19 @@
 						if (_tmp3.length) cards = _tmp3;
 					}
 				}
-				if (cards.length == 1 && is_sure && !is_imdb && search_year && cards[0].tmp_year) {
-					is_sure = cards[0].tmp_year > search_year - 2 && cards[0].tmp_year < search_year + 2;
+				if (cards.length == 1 && is_sure && !is_imdb) {
+					if (search_year && cards[0].tmp_year) {
+						is_sure = cards[0].tmp_year > search_year - 2 && cards[0].tmp_year < search_year + 2;
+					}
+					if (is_sure) {
+						is_sure = false;
+						if (orig) {
+							is_sure |= equalTitle(cards[0].orig_title || cards[0].nameOriginal, orig) || equalTitle(cards[0].en_title || cards[0].nameEn, orig) || equalTitle(cards[0].title || cards[0].ru_title || cards[0].nameRu, orig);
+						}
+						if (card.title) {
+							is_sure |= equalTitle(cards[0].title || cards[0].ru_title || cards[0].nameRu, card.title) || equalTitle(cards[0].en_title || cards[0].nameEn, card.title) || equalTitle(cards[0].orig_title || cards[0].nameOriginal, card.title);
+						}
+					}
 				}
 				if (cards.length == 1 && is_sure) {
 					var id = cards[0].kp_id || cards[0].kinopoisk_id || cards[0].kinopoiskId || cards[0].filmId;
@@ -178,6 +189,15 @@
 
 		function equalTitle(t1, t2) {
 			return typeof t1 === 'string' && typeof t2 === 'string' && t1.toLowerCase().replace(/—/g, '-').replace(/[\s.,:;!?]+/g, ' ').trim() === t2.toLowerCase().replace(/—/g, '-').replace(/[\s.,:;!?]+/g, ' ').trim();
+		}
+
+		function containsTitle(str, title) {
+				if (typeof str === 'string' && typeof title === 'string') {
+						var s = str.toLowerCase().replace(/—/g, '-').replace(/[\s.,:;!?]+/g, ' ').trim();
+						var t = title.toLowerCase().replace(/—/g, '-').replace(/[\s.,:;!?]+/g, ' ').trim();
+						return s.indexOf(t) !== -1;
+				}
+				return false;
 		}
 
 		function showError(error) {
