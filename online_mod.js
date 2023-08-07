@@ -820,6 +820,10 @@
           extract.voice.forEach(function (voice) {
             if (voice.id === choice.voice_id) res = voice;
           });
+        } else if (choice.voice_name) {
+          extract.voice.forEach(function (voice) {
+            if (voice.name === choice.voice_name) res = voice;
+          });
         }
 
         return res;
