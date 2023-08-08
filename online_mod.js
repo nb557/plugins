@@ -1,4 +1,4 @@
-//08.08.2023 - Fix director cut for rezka
+//08.08.2023 - Fix playlist parsing
 
 (function () {
     'use strict';
@@ -3266,7 +3266,7 @@
 
 
       function getStreamM3U(element, call, error, file) {
-        var hls_file = file.replace(/\/\d*([^\/]*\.m3u8)$/, '/hls$1');
+        var hls_file = file.replace(/\/\d\d\d+([^\/]*\.m3u8)$/, '/hls$1');
         network.clear();
         network.timeout(5000);
         network["native"](hls_file, function (str) {
@@ -6050,17 +6050,24 @@
                       pl.push({
                         label: label,
                         voice: voice,
-                        links: voice_item.substring(voice_end + 1).split(' or ')
+                        links: voice_item.substring(voice_end + 1).split(' or ').filter(function (link) {
+                          return link;
+                        })
                       });
                     }
                   });
                 } else {
                   pl.push({
                     label: label,
-                    links: item.substring(label_end + 1).split(' or ')
+                    links: item.substring(label_end + 1).split(' or ').filter(function (link) {
+                      return link;
+                    })
                   });
                 }
               }
+            });
+            pl = pl.filter(function (item) {
+              return item.links.length;
             });
           }
         } catch (e) {}
@@ -6075,6 +6082,8 @@
           var width = 0;
           var height = 0;
           str.split('\n').forEach(function (line) {
+            line = line.trim();
+
             if (line.charAt(0) == '#') {
               var resolution = line.match(/\bRESOLUTION=(\d+)x(\d+)\b/);
 
@@ -6082,7 +6091,7 @@
                 width = parseInt(resolution[1]);
                 height = parseInt(resolution[2]);
               }
-            } else if (line.trim().length) {
+            } else if (line.length) {
               pl.push({
                 width: width,
                 height: height,
