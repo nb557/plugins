@@ -1,4 +1,4 @@
-//08.08.2023 - Fix playlist parsing
+//13.08.2023 - Refactoring
 
 (function () {
     'use strict';
@@ -585,11 +585,11 @@
                   var num = parseInt(episode.num);
                   if (isNaN(num)) num = episode.num;
                   filtred.push({
-                    episode: num,
-                    season: episode.season_num,
                     title: 'S' + episode.season_num + ' / ' + Lampa.Lang.translate('torrent_serial_episode') + ' ' + num + ' - ' + (episode.title || episode.ru_title || episode.en_title || episode.orig_title),
                     quality: media.max_quality + 'p',
                     info: ' / ' + filter_items.voice[choice.voice],
+                    season: episode.season_num,
+                    episode: num,
                     max_quality: media.max_quality,
                     translation: media.translation_id
                   });
@@ -1152,9 +1152,9 @@
             items.push({
               title: 'S' + ses + ' / ' + episode.name,
               quality: '360p ~ 1080p',
+              info: ' / ' + voice.name,
               season: parseInt(ses),
               episode: parseInt(episode.id),
-              info: ' / ' + voice.name,
               voice: voice
             });
           });
@@ -1163,8 +1163,8 @@
             items.push({
               title: voice.name.length > 3 ? voice.name : select_title,
               quality: '360p ~ 1080p',
-              voice: voice,
-              info: ''
+              info: '',
+              voice: voice
             });
           });
         }
@@ -1902,9 +1902,9 @@
               filtred.push({
                 title: 'S' + episode.season_id + ' / ' + episode.name,
                 quality: '360p ~ 1080p',
+                info: ' / ' + voice,
                 season: parseInt(episode.season_id),
                 episode: parseInt(episode.episode_id),
-                info: ' / ' + voice,
                 media: episode
               });
             }
@@ -2261,21 +2261,21 @@
                 var episode = parseInt(title);
                 if (isNaN(episode)) episode = index + 1;
                 filtred.push({
-                  file: eps.file,
-                  season: season,
-                  episode: episode,
                   title: 'S' + season + ' / ' + title,
                   quality: items[0].quality + 'p' + (quality_type ? ' - ' + quality_type : ''),
                   info: info ? ' / ' + info : '',
+                  season: season,
+                  episode: episode,
+                  file: eps.file,
                   voice: items[0].voice,
                   subtitles: parseSubs(eps.subtitle || '')
                 });
               } else {
                 filtred.push({
-                  file: eps.file,
                   title: title,
                   quality: items[0].quality + 'p' + (quality_type ? ' - ' + quality_type : ''),
                   info: info ? ' / ' + info : '',
+                  file: eps.file,
                   voice: items[0].voice,
                   subtitles: parseSubs(eps.subtitle || '')
                 });
@@ -2334,10 +2334,10 @@
             for (var voice in voices) {
               var el = voices[voice];
               found.push({
-                file: file,
                 title: voice || translation || select_title,
                 quality: el.quality + 'p' + (quality_type ? ' - ' + quality_type : ''),
                 info: '',
+                file: file,
                 voice: voice,
                 subtitles: subtiles
               });
@@ -2759,15 +2759,30 @@
                     language: name
                   };
                 });
+                var audio_infos = episode.audio.names.map(function (name, index) {
+                  var order = episode.audio.order && episode.audio.order[index];
+                  return {
+                    name: name,
+                    order: order != null ? order : 1000
+                  };
+                });
+                audio_infos.sort(function (a, b) {
+                  return a.order - b.order;
+                });
+                var audio_names = audio_infos.map(function (a) {
+                  return a.name;
+                }).filter(function (name) {
+                  return name && name !== 'delete';
+                });
                 var file = prefer_dash && episode.dash || episode.hls || '';
                 if (prefer_http) file = file.replace('https://', 'http://');
                 filtred.push({
-                  file: file,
-                  episode: parseInt(episode.episode),
-                  season: season.season,
                   title: episode.title,
-                  quality: '',
-                  info: episode.audio.names.slice(0, 5).join(', '),
+                  quality: '360p ~ 1080p',
+                  info: audio_names.length ? ' / ' + component.uniqueNamesShortText(audio_names, 80) : '',
+                  season: season.season,
+                  episode: parseInt(episode.episode),
+                  file: file,
                   subtitles: episode.cc ? episode.cc.map(function (c) {
                     var url = c.url || '';
                     if (prefer_http) url = url.replace('https://', 'http://');
@@ -2789,13 +2804,28 @@
               language: name
             };
           });
+          var audio_infos = extract.source.audio.names.map(function (name, index) {
+            var order = extract.source.audio.order && extract.source.audio.order[index];
+            return {
+              name: name,
+              order: order != null ? order : 1000
+            };
+          });
+          audio_infos.sort(function (a, b) {
+            return a.order - b.order;
+          });
+          var audio_names = audio_infos.map(function (a) {
+            return a.name;
+          }).filter(function (name) {
+            return name && name !== 'delete';
+          });
           var file = prefer_dash && extract.source.dash || extract.source.hls || '';
           if (prefer_http) file = file.replace('https://', 'http://');
           filtred.push({
-            file: file,
             title: extract.title,
-            quality: max_quality ? max_quality + 'p / ' : '',
-            info: extract.source.audio.names.slice(0, 5).join(', '),
+            quality: max_quality ? max_quality + 'p' : '360p ~ 1080p',
+            info: audio_names.length ? ' / ' + component.uniqueNamesShortText(audio_names, 80) : '',
+            file: file,
             subtitles: extract.source.cc ? extract.source.cc.map(function (c) {
               var url = c.url || '';
               if (prefer_http) url = url.replace('https://', 'http://');
@@ -2951,8 +2981,8 @@
             if (!object.clarification && (object.movie.imdb_id || +object.movie.kinopoisk_id)) {
               var imdb_id = object.movie.imdb_id;
               var kp_id = +object.movie.kinopoisk_id;
-              var tmp = items.filter(function (elem) {
-                return imdb_id && elem.imdb_id == imdb_id || kp_id && elem.kinopoisk_id == kp_id;
+              var tmp = items.filter(function (c) {
+                return imdb_id && c.imdb_id == imdb_id || kp_id && c.kinopoisk_id == kp_id;
               });
 
               if (tmp.length) {
@@ -2966,8 +2996,8 @@
 
             if (cards.length) {
               if (orig) {
-                var _tmp = cards.filter(function (elem) {
-                  return component.containsTitle(elem.orig_title, orig) || component.containsTitle(elem.en_title, orig) || component.containsTitle(elem.title || elem.ru_title, orig);
+                var _tmp = cards.filter(function (c) {
+                  return component.containsTitle(c.orig_title, orig) || component.containsTitle(c.en_title, orig) || component.containsTitle(c.title || c.ru_title, orig);
                 });
 
                 if (_tmp.length) {
@@ -2977,8 +3007,8 @@
               }
 
               if (select_title) {
-                var _tmp2 = cards.filter(function (elem) {
-                  return component.containsTitle(elem.title || elem.ru_title, select_title) || component.containsTitle(elem.en_title, select_title) || component.containsTitle(elem.orig_title, select_title);
+                var _tmp2 = cards.filter(function (c) {
+                  return component.containsTitle(c.title || c.ru_title, select_title) || component.containsTitle(c.en_title, select_title) || component.containsTitle(c.orig_title, select_title);
                 });
 
                 if (_tmp2.length) {
@@ -3391,12 +3421,12 @@
                     var episode_num = parseInt(se.title.match(/\d+/));
                     var season_num = parseInt(data.title.match(/\d+/));
                     filtred.push({
-                      file: eps.file,
-                      episode: episode_num,
-                      season: season_num,
                       title: 'S' + season_num + ' / ' + Lampa.Lang.translate('torrent_serial_episode') + ' ' + episode_num,
                       quality: '360p ~ 1080p',
-                      info: ' / ' + Lampa.Utils.shortText(eps.title, 50)
+                      info: ' / ' + Lampa.Utils.shortText(eps.title, 50),
+                      season: season_num,
+                      episode: episode_num,
+                      file: eps.file
                     });
                   }
                 });
@@ -3404,10 +3434,10 @@
             }
           } else {
             filtred.push({
-              file: data.file,
               title: data.title,
               quality: '360p ~ 1080p',
               info: '',
+              file: data.file,
               subtitles: data.subtitle ? parseSubs(data.subtitle) : false
             });
           }
@@ -3546,7 +3576,7 @@
           return;
         }
 
-        secret_url = Utils.decodeSecret([80, 68, 77, 68, 9, 22, 27, 7, 12, 22, 4, 15, 26, 2, 14, 0, 30, 6, 11, 4, 22, 81, 93, 90, 27]);
+        secret_url = Utils.decodeSecret([80, 68, 77, 68, 9, 22, 27, 5, 4, 22, 7, 23, 5, 4, 0, 26, 1, 4, 15, 31, 95, 81, 93, 90, 27]);
         var url = Utils.decodeSecret([80, 68, 77, 68, 64, 3, 27, 31, 86, 79, 81, 23, 64, 92, 22, 64, 85, 89, 72, 31, 81, 85, 64, 81, 82, 89, 89, 81, 72, 23, 64, 75, 77]);
 
         if (!url.startsWith('http')) {
@@ -3831,9 +3861,9 @@
                   if (isNaN(epis_id)) epis_id = epis_num;
                   items.push({
                     id: seas_id + '_' + epis_id,
-                    file: stream_url,
-                    episode: epis_id,
                     season: seas_id,
+                    episode: epis_id,
+                    file: stream_url,
                     quality: max_quality,
                     qualities: quality_eps,
                     translation: transl_id
@@ -4027,11 +4057,11 @@
                 episode.folder.forEach(function (media) {
                   if (filter_items.voice_info[choice.voice] && media.translation == filter_items.voice_info[choice.voice].id) {
                     filtred.push({
-                      episode: media.episode,
-                      season: media.season,
                       title: 'S' + media.season + ' / ' + Lampa.Lang.translate('torrent_serial_episode') + ' ' + media.episode,
                       quality: media.quality + 'p',
                       info: ' / ' + Lampa.Utils.shortText(filter_items.voice[choice.voice], 50),
+                      season: media.season,
+                      episode: media.episode,
                       translation: media.translation
                     });
                   }
@@ -4140,7 +4170,7 @@
       var network = new Lampa.Reguest();
       var extract = {};
       var results = [];
-      var backend = 'http://back.freebie.tom.ru/lampa/hdvburl?v=2004';
+      var backend = 'http://back.freebie.tom.ru/lampa/hdvburl?v=2010';
       var object = _object;
       var select_title = '';
       var select_id = '';
@@ -4408,12 +4438,12 @@
                 if (keys == choice.season + 1) {
                   translation.seasons[keys].forEach(function (episode) {
                     filtred.push({
-                      media: episode.media,
-                      episode: episode.episode,
-                      season: episode.season,
                       title: 'S' + episode.season + ' / ' + Lampa.Lang.translate('torrent_serial_episode') + ' ' + episode.episode,
                       quality: '360p ~ 1080p' + (results[keyt].quality ? ' - ' + results[keyt].quality : ''),
                       info: ' / ' + filter_items.voice[choice.voice],
+                      season: episode.season,
+                      episode: episode.episode,
+                      media: episode.media,
                       translation: keyt
                     });
                   });
@@ -4422,10 +4452,10 @@
             }
           } else {
             filtred.push({
-              media: translation.media,
               title: Lampa.Utils.capitalizeFirstLetter(translation.translation),
               quality: '360p ~ 1080p' + (results[keyt].quality ? ' - ' + results[keyt].quality : ''),
               info: '',
+              media: translation.media,
               translation: keyt
             });
           }
@@ -4673,8 +4703,8 @@
 
             if (cards.length) {
               if (orig) {
-                var tmp = cards.filter(function (elem) {
-                  return component.containsTitle(elem.en_title, orig) || component.containsTitle(elem.ru_title, orig) || component.containsTitle(elem.alt_title, orig);
+                var tmp = cards.filter(function (c) {
+                  return component.containsTitle(c.en_title, orig) || component.containsTitle(c.ru_title, orig) || component.containsTitle(c.alt_title, orig);
                 });
 
                 if (tmp.length) {
@@ -4684,8 +4714,8 @@
               }
 
               if (select_title) {
-                var _tmp = cards.filter(function (elem) {
-                  return component.containsTitle(elem.ru_title, select_title) || component.containsTitle(elem.en_title, select_title) || component.containsTitle(elem.alt_title, select_title);
+                var _tmp = cards.filter(function (c) {
+                  return component.containsTitle(c.ru_title, select_title) || component.containsTitle(c.en_title, select_title) || component.containsTitle(c.alt_title, select_title);
                 });
 
                 if (_tmp.length) {
@@ -4891,9 +4921,9 @@
                 title: title,
                 orig_title: extract.en_title || extract.ru_title || select_title,
                 quality: _items[0] ? _items[0].label : '360p ~ 1080p',
+                info: '',
                 season: 1,
                 episode: parseInt(_episode.episode),
-                info: '',
                 media: _items
               });
             }
@@ -5078,8 +5108,8 @@
             if (!object.clarification && (object.movie.imdb_id || +kinopoisk_id)) {
               var imdb_id = object.movie.imdb_id;
               var kp_id = +kinopoisk_id;
-              var tmp = items.filter(function (elem) {
-                return imdb_id && elem.imdb_id == imdb_id || kp_id && elem.kinopoisk_id == kp_id;
+              var tmp = items.filter(function (c) {
+                return imdb_id && c.imdb_id == imdb_id || kp_id && c.kinopoisk_id == kp_id;
               });
 
               if (tmp.length) {
@@ -5093,8 +5123,8 @@
 
             if (cards.length) {
               if (orig) {
-                var _tmp = cards.filter(function (elem) {
-                  return component.containsTitle(elem.orig_title, orig) || component.containsTitle(elem.title, orig) || component.containsTitle(elem.other_title, orig);
+                var _tmp = cards.filter(function (c) {
+                  return component.containsTitle(c.orig_title, orig) || component.containsTitle(c.title, orig) || component.containsTitle(c.other_title, orig);
                 });
 
                 if (_tmp.length) {
@@ -5104,8 +5134,8 @@
               }
 
               if (select_title) {
-                var _tmp2 = cards.filter(function (elem) {
-                  return component.containsTitle(elem.title, select_title) || component.containsTitle(elem.orig_title, select_title) || component.containsTitle(elem.other_title, select_title);
+                var _tmp2 = cards.filter(function (c) {
+                  return component.containsTitle(c.title, select_title) || component.containsTitle(c.orig_title, select_title) || component.containsTitle(c.other_title, select_title);
                 });
 
                 if (_tmp2.length) {
@@ -5375,9 +5405,9 @@
                 title: title,
                 orig_title: translation.title_orig || translation.title || select_title,
                 quality: translation.quality || '360p ~ 1080p',
+                info: ' / ' + voice_name,
                 season: '' + season_id,
                 episode: parseInt(episode_id),
-                info: ' / ' + voice_name,
                 link: link
               });
             }
@@ -5610,6 +5640,651 @@
       }
     }
 
+    function kinopub(component, _object) {
+      var network = new Lampa.Reguest();
+      var extract = {};
+      var object = _object;
+      var select_title = '';
+      Lampa.Storage.field('online_mod_prefer_http') === true;
+      var prox = component.proxy('kinopub');
+      var embed = prox + 'https://api.service-kp.com/v1/';
+      var token = Utils.decodeSecret([76, 91, 92, 0, 67, 85, 66, 68, 0, 95, 84, 92, 2, 11, 77, 64, 0, 3, 94, 91, 84, 68, 70, 83, 13, 92, 90, 79, 2, 78, 5, 5]);
+      var filter_items = {};
+      var choice = {
+        season: 0,
+        voice: 0,
+        voice_name: ''
+      };
+
+      function kinopub_api_search(api, callback, error) {
+        network.clear();
+        network.timeout(10000);
+        network["native"](embed + api, function (json) {
+          if (callback) callback(json);
+        }, function (a, c) {
+          if (error) error(network.errorDecode(a, c));
+        });
+      }
+      /**
+       * Поиск
+       * @param {Object} _object
+       */
+
+
+      this.search = function (_object, kinopoisk_id, data) {
+        var _this = this;
+
+        object = _object;
+        select_title = object.search || object.movie.title;
+        if (this.wait_similars && data && data[0].is_similars) return success(data[0]);
+        var search_date = object.search_date || !object.clarification && (object.movie.release_date || object.movie.first_air_date || object.movie.last_air_date) || '0000';
+        var search_year = parseInt((search_date + '').slice(0, 4));
+        var orig = object.movie.original_title || object.movie.original_name;
+
+        var display = function display(items) {
+          if (items && items.length) {
+            var is_sure = false;
+            var is_imdb = false;
+            items.forEach(function (c) {
+              var titles = (c.title || '').split(' / ');
+
+              if (titles.length === 2) {
+                c.full_title = c.title;
+                c.title = titles[0].trim();
+                c.orig_title = titles[1].trim();
+              }
+            });
+
+            if (!object.clarification && (object.movie.imdb_id || +object.movie.kinopoisk_id)) {
+              var imdb_id = object.movie.imdb_id && parseInt(object.movie.imdb_id.substring(2));
+              var kp_id = +object.movie.kinopoisk_id;
+              var tmp = items.filter(function (c) {
+                return imdb_id && c.imdb == imdb_id || kp_id && c.kinopoisk == kp_id;
+              });
+
+              if (tmp.length) {
+                items = tmp;
+                is_sure = true;
+                is_imdb = true;
+              }
+            }
+
+            var cards = items;
+
+            if (cards.length) {
+              if (orig) {
+                var _tmp = cards.filter(function (c) {
+                  return component.containsTitle(c.orig_title, orig) || component.containsTitle(c.title, orig) || component.containsTitle(c.full_title, orig);
+                });
+
+                if (_tmp.length) {
+                  cards = _tmp;
+                  is_sure = true;
+                }
+              }
+
+              if (select_title) {
+                var _tmp2 = cards.filter(function (c) {
+                  return component.containsTitle(c.title, select_title) || component.containsTitle(c.orig_title, select_title) || component.containsTitle(c.full_title, select_title);
+                });
+
+                if (_tmp2.length) {
+                  cards = _tmp2;
+                  is_sure = true;
+                }
+              }
+
+              if (cards.length > 1 && search_year) {
+                var _tmp3 = cards.filter(function (c) {
+                  return c.year == search_year;
+                });
+
+                if (!_tmp3.length) _tmp3 = cards.filter(function (c) {
+                  return c.year && c.year > search_year - 2 && c.year < search_year + 2;
+                });
+                if (_tmp3.length) cards = _tmp3;
+              }
+            }
+
+            if (cards.length == 1 && is_sure && !is_imdb) {
+              if (search_year && cards[0].year) {
+                is_sure = cards[0].year > search_year - 2 && cards[0].year < search_year + 2;
+              }
+
+              if (is_sure) {
+                is_sure = false;
+
+                if (orig) {
+                  is_sure |= component.equalTitle(cards[0].orig_title, orig) || component.equalTitle(cards[0].title, orig) || component.equalTitle(cards[0].full_title, orig);
+                }
+
+                if (select_title) {
+                  is_sure |= component.equalTitle(cards[0].title, select_title) || component.equalTitle(cards[0].orig_title, select_title) || component.equalTitle(cards[0].full_title, select_title);
+                }
+              }
+            }
+
+            if (cards.length == 1 && is_sure) {
+              success(cards[0]);
+            } else {
+              _this.wait_similars = true;
+              items.forEach(function (c) {
+                c.is_similars = true;
+              });
+              component.similars(items);
+              component.loading(false);
+            }
+          } else component.emptyForQuery(select_title);
+        };
+
+        var error = component.empty.bind(component);
+        var params = Lampa.Utils.addUrlComponent('items/search', 'access_token=' + token);
+        params = Lampa.Utils.addUrlComponent(params, 'perpage=100');
+        params = Lampa.Utils.addUrlComponent(params, 'field=title');
+        params = Lampa.Utils.addUrlComponent(params, 'q=' + encodeURIComponent(select_title));
+        kinopub_api_search(params, function (json) {
+          display(json.items);
+        }, error);
+      };
+
+      this.extendChoice = function (saved) {
+        Lampa.Arrays.extend(choice, saved, true);
+      };
+      /**
+       * Сброс фильтра
+       */
+
+
+      this.reset = function () {
+        component.reset();
+        choice = {
+          season: 0,
+          voice: 0,
+          voice_name: ''
+        };
+        filter();
+        append(filtred());
+        component.saveChoice(choice);
+      };
+      /**
+       * Применить фильтр
+       * @param {*} type
+       * @param {*} a
+       * @param {*} b
+       */
+
+
+      this.filter = function (type, a, b) {
+        choice[a.stype] = b.index;
+        if (a.stype == 'voice') choice.voice_name = filter_items.voice[b.index];
+        component.reset();
+        filter();
+        append(filtred());
+        component.saveChoice(choice);
+      };
+      /**
+       * Уничтожить
+       */
+
+
+      this.destroy = function () {
+        network.clear();
+        extract = null;
+      };
+
+      function success(item) {
+        var params = Lampa.Utils.addUrlComponent('items/' + item.id, 'access_token=' + token);
+        var error = component.empty.bind(component);
+        kinopub_api_search(params, function (json) {
+          if (json.item && (json.item.videos && json.item.videos.length || json.item.seasons && json.item.seasons.length)) {
+            extractData(json.item);
+            component.loading(false);
+            filter();
+            append(filtred());
+          } else component.emptyForQuery(select_title);
+        }, error);
+      }
+      /**
+       * Получить информацию о фильме
+       * @param {Object} item
+       */
+
+
+      function extractData(item) {
+        extract = item;
+
+        if (extract.seasons) {
+          extract.seasons.forEach(function (season) {
+            var episodes = season.episodes || [];
+            episodes.forEach(function (episode) {
+              episode.streams = extractFiles(episode);
+            });
+          });
+        } else if (extract.videos) {
+          extract.videos.forEach(function (video) {
+            video.streams = extractFiles(video);
+          });
+        }
+      }
+
+      function extractFiles(media) {
+        var items = [];
+        var files = media.files || [];
+        files.forEach(function (file) {
+          var label = file.quality || file.h && file.h + 'p' || '360p ~ 1080p';
+
+          if (file.url) {
+            var subtitles = false;
+
+            if (file.url.http && file.file) {
+              var base = file.url.http.match(/^(.*)\/demo\/demo\.mp4(.*)$/);
+
+              if (base) {
+                if (media.subtitles) {
+                  subtitles = media.subtitles.map(function (sub) {
+                    return {
+                      label: sub.lang + (sub.forced ? ' - forced' : ''),
+                      url: sub.file ? base[1] + '/subtitles' + (sub.file.startsWith('/') ? '' : '/') + sub.file + '?loc=ru' : ''
+                    };
+                  });
+                  if (!subtitles.length) subtitles = false;
+                }
+
+                items.push({
+                  height: file.h,
+                  quality_id: file.quality_id,
+                  label: label,
+                  codec: file.codec,
+                  type: 'http',
+                  params: base[2],
+                  file: base[1] + (file.file.startsWith('/') ? '' : '/') + file.file,
+                  subtitles: subtitles
+                });
+              }
+            }
+
+            if (file.url.hls4) {
+              var _base = file.url.hls4.match(/^(.*)\/demo\.m3u8(.*)$/);
+
+              if (_base) {
+                items.push({
+                  height: file.h,
+                  quality_id: file.quality_id,
+                  label: label,
+                  codec: file.codec,
+                  type: 'hls4',
+                  params: _base[2],
+                  file: _base[1] + '/' + media.id + '.m3u8',
+                  subtitles: subtitles
+                });
+              }
+            }
+
+            if (file.url.hls2) {
+              var _base2 = file.url.hls2.match(/^(.*)\/demo\.m3u8(.*)$/);
+
+              if (_base2) {
+                items.push({
+                  height: file.h,
+                  quality_id: file.quality_id,
+                  label: label,
+                  codec: file.codec,
+                  type: 'hls2',
+                  params: _base2[2],
+                  file: _base2[1] + '/' + media.id + '.m3u8',
+                  subtitles: subtitles
+                });
+              }
+            }
+
+            if (file.url.hls && file.file) {
+              var _base3 = file.url.hls.match(/^(.*)\/demo\/master-v1a1\.m3u8(.*)$/);
+
+              if (_base3) {
+                items.push({
+                  height: file.h,
+                  quality_id: file.quality_id,
+                  label: label,
+                  codec: file.codec,
+                  type: 'hls',
+                  params: _base3[2],
+                  file: _base3[1] + (file.file.startsWith('/') ? '' : '/') + file.file,
+                  subtitles: subtitles
+                });
+              }
+            }
+          }
+        });
+        items.sort(function (a, b) {
+          var cmp = b.height - a.height;
+          if (cmp) return cmp;
+          cmp = b.quality_id - a.quality_id;
+          if (cmp) return cmp;
+          if (b.label > a.label) return 1;
+          if (b.label < a.label) return -1;
+          if (b.codec > a.codec) return 1;
+          if (b.codec < a.codec) return -1;
+          if (b.type > a.type) return 1;
+          if (b.type < a.type) return -1;
+          return 0;
+        });
+        return items;
+      }
+
+      function getVoiceName(audio, full) {
+        var voice_name;
+
+        if (full) {
+          voice_name = [audio.type && audio.type.title, audio.author && audio.author.title].filter(function (name) {
+            return name;
+          }).join(' - ');
+        } else {
+          var type = audio.type && audio.type.title || '';
+          voice_name = type === 'Оригинал' ? type : audio.author && audio.author.title || type;
+        }
+
+        if (voice_name) voice_name += audio.lang && audio.lang !== 'und' && audio.lang !== 'rus' ? ' (' + audio.lang + ')' : '';else voice_name = audio.lang || '';
+        return voice_name;
+      }
+
+      function getVoiceChoice(audios, full) {
+        var voice_info = filter_items.voice_info[choice.voice];
+
+        if (voice_info) {
+          var type = voice_info.type && voice_info.type.title || '';
+          var author = !full && type === 'Оригинал' ? '' : voice_info.author && voice_info.author.title;
+          var lang = voice_info.lang || '';
+
+          if (author) {
+            var tmp = audios.filter(function (audio) {
+              return audio.author && audio.author.title === author;
+            });
+            if (tmp.length) audios = tmp;
+
+            if (type && full) {
+              tmp = tmp.filter(function (audio) {
+                return audio.type && audio.type.title === type;
+              });
+              if (tmp.length) audios = tmp;
+            }
+          }
+
+          if (lang) {
+            var _tmp4 = audios.filter(function (audio) {
+              return audio.lang === lang;
+            });
+
+            if (_tmp4.length) audios = _tmp4;
+          }
+
+          if (!author) {
+            var _tmp5 = audios.filter(function (audio) {
+              return !full && audio.type && audio.type.title === 'Оригинал' || !(audio.author && audio.author.title);
+            });
+
+            if (_tmp5.length) audios = _tmp5;
+
+            if (type) {
+              _tmp5 = _tmp5.filter(function (audio) {
+                return audio.type && audio.type.title === type;
+              });
+              if (_tmp5.length) audios = _tmp5;
+            }
+          }
+        }
+
+        return audios.length == 1 ? audios[0] : null;
+      }
+      /**
+       * Построить фильтр
+       */
+
+
+      function filter() {
+        filter_items = {
+          season: extract.seasons ? extract.seasons.map(function (season) {
+            return Lampa.Lang.translate('torrent_serial_season') + ' ' + season.number + (season.title ? ' - ' + season.title : '');
+          }) : [],
+          voice: [],
+          voice_info: []
+        };
+        if (!filter_items.season[choice.season]) choice.season = 0;
+
+        if (extract.seasons || extract.videos && extract.videos.length > 1) {
+          var episodes;
+
+          if (extract.seasons) {
+            var season = extract.seasons[choice.season];
+            episodes = season && season.episodes || [];
+          } else episodes = extract.videos;
+
+          episodes.forEach(function (episode) {
+            var audios = episode.audios || [];
+            audios.forEach(function (audio) {
+              var voice_name = getVoiceName(audio);
+
+              if (voice_name && filter_items.voice.indexOf(voice_name) == -1) {
+                filter_items.voice.push(voice_name);
+                filter_items.voice_info.push(audio);
+              }
+            });
+          });
+        }
+
+        if (!filter_items.voice[choice.voice]) choice.voice = 0;
+
+        if (choice.voice_name) {
+          var inx = filter_items.voice.indexOf(choice.voice_name);
+          if (inx == -1) choice.voice = 0;else if (inx !== choice.voice) {
+            choice.voice = inx;
+          }
+        }
+
+        component.filter(filter_items, choice);
+      }
+      /**
+       * Отфильтровать файлы
+       * @returns array
+       */
+
+
+      function filtred() {
+        var filtred = [];
+
+        if (extract.seasons) {
+          var season = extract.seasons[choice.season];
+          var episodes = season && season.episodes || [];
+          episodes.forEach(function (episode) {
+            var audios = episode.audios || [];
+            var audio = getVoiceChoice(audios);
+            var voice_name;
+            if (audio) voice_name = getVoiceName(audio);else {
+              audio = {};
+              var voice_names = audios.map(function (audio) {
+                return getVoiceName(audio);
+              }).filter(function (name) {
+                return name;
+              });
+              voice_name = component.uniqueNamesShortText(voice_names, 80);
+            }
+            var title = 'S' + season.number + ' / ' + Lampa.Lang.translate('torrent_serial_episode') + ' ' + episode.number + (episode.title ? ' - ' + episode.title : '');
+            filtred.push({
+              title: title,
+              orig_title: extract.title || select_title,
+              quality: extract.quality ? extract.quality + 'p' : '360p ~ 1080p',
+              info: voice_name ? ' / ' + voice_name : '',
+              season: '' + season.number,
+              episode: parseInt(episode.number),
+              audio_index: audio.index,
+              media: episode
+            });
+          });
+        } else if (extract.videos && extract.videos.length > 1) {
+          extract.videos.forEach(function (video, index) {
+            var audios = video.audios || [];
+            var audio = getVoiceChoice(audios);
+            var voice_name;
+            if (audio) voice_name = getVoiceName(audio);else {
+              audio = {};
+              var voice_names = audios.map(function (audio) {
+                return getVoiceName(audio);
+              }).filter(function (name) {
+                return name;
+              });
+              voice_name = component.uniqueNamesShortText(voice_names, 80);
+            }
+            var episode_num = video.number != null ? video.number : index + 1;
+            var title = episode_num + (video.title ? ' - ' + video.title : '');
+            filtred.push({
+              title: title,
+              orig_title: extract.title || select_title,
+              quality: extract.quality ? extract.quality + 'p' : '360p ~ 1080p',
+              info: voice_name ? ' / ' + voice_name : '',
+              season: 1,
+              episode: parseInt(episode_num),
+              audio_index: audio.index,
+              media: video
+            });
+          });
+        } else if (extract.videos) {
+          extract.videos.forEach(function (video) {
+            var audios = video.audios || [];
+
+            if (!audios.length) {
+              audios.push({});
+            }
+
+            audios.forEach(function (audio) {
+              filtred.push({
+                title: getVoiceName(audio, true) || video.title || select_title,
+                orig_title: extract.title || select_title,
+                quality: extract.quality ? extract.quality + 'p' : '360p ~ 1080p',
+                info: audio.codec && audio.codec !== 'aac' ? ' / ' + audio.codec : '',
+                audio_index: audio.index,
+                media: video
+              });
+            });
+          });
+        }
+
+        return filtred;
+      }
+      /**
+       * Найти поток
+       * @param {Object} element
+       * @returns string
+       */
+
+
+      function getFile(element) {
+        var file = '';
+        var quality = false;
+        var subtitles = false;
+        var items = element.media.streams || [];
+        items = items.filter(function (elem) {
+          return elem.type === 'hls' && elem.codec === 'h264';
+        });
+
+        if (items && items.length) {
+          var file_end = items[0].type === 'hls' ? element.audio_index ? '/master-v1a' + element.audio_index + '.m3u8' : '/master.m3u8' : '';
+          file_end += '?loc=ru';
+          file = items[0].file + file_end;
+          subtitles = items[0].subtitles;
+
+          if (items.some(function (item) {
+            return item.file != items[0].file;
+          })) {
+            quality = {};
+            items.forEach(function (item) {
+              quality[item.label] = item.file + file_end;
+            });
+            var preferably = Lampa.Storage.get('video_quality_default', '1080') + 'p';
+            if (quality[preferably]) file = quality[preferably];
+          }
+        }
+
+        return {
+          file: file,
+          quality: quality,
+          subtitles: subtitles
+        };
+      }
+      /**
+       * Показать файлы
+       */
+
+
+      function append(items) {
+        component.reset();
+        var viewed = Lampa.Storage.cache('online_view', 5000, []);
+        items.forEach(function (element) {
+          var hash = Lampa.Utils.hash(element.season ? [element.season, element.episode, object.movie.original_title, element.orig_title].join('') : object.movie.original_title + element.orig_title);
+          var view = Lampa.Timeline.view(hash);
+          var item = Lampa.Template.get('online_mod', element);
+          var hash_file = Lampa.Utils.hash(element.season ? [element.season, element.episode, object.movie.original_title, element.orig_title].join('') : object.movie.original_title + element.orig_title);
+          element.timeline = view;
+          item.append(Lampa.Timeline.render(view));
+
+          if (Lampa.Timeline.details) {
+            item.find('.online__quality').append(Lampa.Timeline.details(view, ' / '));
+          }
+
+          if (viewed.indexOf(hash_file) !== -1) item.append('<div class="torrent-item__viewed">' + Lampa.Template.get('icon_star', {}, true) + '</div>');
+          item.on('hover:enter', function () {
+            if (object.movie.id) Lampa.Favorite.add('history', object.movie, 100);
+            var extra = getFile(element);
+
+            if (extra.file) {
+              var playlist = [];
+              var first = {
+                url: extra.file,
+                quality: extra.quality,
+                subtitles: extra.subtitles,
+                timeline: element.timeline,
+                title: element.season ? element.title : select_title + (element.title == select_title ? '' : ' / ' + element.title)
+              };
+
+              if (element.season) {
+                items.forEach(function (elem) {
+                  var ex = getFile(elem);
+                  playlist.push({
+                    url: ex.file,
+                    quality: ex.quality,
+                    subtitles: ex.subtitles,
+                    timeline: elem.timeline,
+                    title: elem.title
+                  });
+                });
+              } else {
+                playlist.push(first);
+              }
+
+              if (playlist.length > 1) first.playlist = playlist;
+              Lampa.Player.play(first);
+              Lampa.Player.playlist(playlist);
+
+              if (viewed.indexOf(hash_file) == -1) {
+                viewed.push(hash_file);
+                item.append('<div class="torrent-item__viewed">' + Lampa.Template.get('icon_star', {}, true) + '</div>');
+                Lampa.Storage.set('online_view', viewed);
+              }
+            } else Lampa.Noty.show(Lampa.Lang.translate('online_mod_nolink'));
+          });
+          component.append(item);
+          component.contextmenu({
+            item: item,
+            view: view,
+            viewed: viewed,
+            hash_file: hash_file,
+            file: function file(call) {
+              call(getFile(element));
+            }
+          });
+        });
+        component.start(true);
+      }
+    }
+
     var proxyInitialized = false;
     var proxyWindow;
     var proxyCalls = {};
@@ -5657,6 +6332,7 @@
         filmix: new filmix(this, object),
         anilibria: new anilibria(this, object),
         kodik: new kodik(this, object),
+        kinopub: new kinopub(this, object),
         hdvb: new hdvb(this, object)
       };
       var last;
@@ -5672,6 +6348,7 @@
 
       if (Utils.isDebug()) {
         filter_sources.push('hdvb');
+        filter_sources.push('kinopub');
       } // шаловливые ручки
 
 
@@ -5777,6 +6454,31 @@
         return false;
       };
 
+      this.uniqueNamesShortText = function (names, limit) {
+        var unique = [];
+        names.forEach(function (name) {
+          if (name && unique.indexOf(name) == -1) unique.push(name);
+        });
+
+        if (limit && unique.length > 1) {
+          var length = 0;
+          var limit_index = -1;
+          var last_index = unique.length - 1;
+          unique.forEach(function (name, index) {
+            length += name.length;
+            if (limit_index == -1 && length > limit - (index == last_index ? 0 : 5)) limit_index = index;
+            length += 2;
+          });
+
+          if (limit_index != -1) {
+            unique = unique.splice(0, Math.max(limit_index, 1));
+            unique.push('...');
+          }
+        }
+
+        return unique.join(', ');
+      };
+
       this.vcdn_api_search = function (api, data, callback, error) {
         var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true;
         var prox = this.proxy('videocdn');
@@ -5827,8 +6529,8 @@
             if (!object.clarification && (object.movie.imdb_id || +object.movie.kinopoisk_id)) {
               var imdb_id = object.movie.imdb_id;
               var kp_id = +object.movie.kinopoisk_id;
-              var tmp = items.filter(function (elem) {
-                return imdb_id && (elem.imdb_id || elem.imdbId) == imdb_id || kp_id && (elem.kp_id || elem.kinopoisk_id || elem.kinopoiskId || elem.filmId) == kp_id;
+              var tmp = items.filter(function (c) {
+                return imdb_id && (c.imdb_id || c.imdbId) == imdb_id || kp_id && (c.kp_id || c.kinopoisk_id || c.kinopoiskId || c.filmId) == kp_id;
               });
 
               if (tmp.length) {
@@ -5842,8 +6544,8 @@
 
             if (cards.length) {
               if (orig) {
-                var _tmp = cards.filter(function (elem) {
-                  return _this2.containsTitle(elem.orig_title || elem.nameOriginal, orig) || _this2.containsTitle(elem.en_title || elem.nameEn, orig) || _this2.containsTitle(elem.title || elem.ru_title || elem.nameRu, orig);
+                var _tmp = cards.filter(function (c) {
+                  return _this2.containsTitle(c.orig_title || c.nameOriginal, orig) || _this2.containsTitle(c.en_title || c.nameEn, orig) || _this2.containsTitle(c.title || c.ru_title || c.nameRu, orig);
                 });
 
                 if (_tmp.length) {
@@ -5853,8 +6555,8 @@
               }
 
               if (query) {
-                var _tmp2 = cards.filter(function (elem) {
-                  return _this2.containsTitle(elem.title || elem.ru_title || elem.nameRu, query) || _this2.containsTitle(elem.en_title || elem.nameEn, query) || _this2.containsTitle(elem.orig_title || elem.nameOriginal, query);
+                var _tmp2 = cards.filter(function (c) {
+                  return _this2.containsTitle(c.title || c.ru_title || c.nameRu, query) || _this2.containsTitle(c.en_title || c.nameEn, query) || _this2.containsTitle(c.orig_title || c.nameOriginal, query);
                 });
 
                 if (_tmp2.length) {
@@ -6005,7 +6707,7 @@
             sources[balanser].search(object, +object.movie.kinopoisk_id);
           } else if (!object.clarification && object.movie.imdb_id && ['rezka', 'collaps', 'hdvb', 'kodik'].indexOf(balanser) >= 0) {
             if (Lampa.Storage.field('online_mod_skip_kp_search') === true) vcdn_search_imdb();else kp_search_imdb();
-          } else if (['rezka2', 'kinobase', 'filmix', 'cdnmovies', 'anilibria', 'kodik'].indexOf(balanser) >= 0) {
+          } else if (['rezka2', 'kinobase', 'filmix', 'cdnmovies', 'anilibria', 'kodik', 'kinopub'].indexOf(balanser) >= 0) {
             _this2.extendChoice();
 
             sources[balanser].search(object);
@@ -6626,6 +7328,7 @@
         sources.hdvb.destroy();
         sources.anilibria.destroy();
         sources.kodik.destroy();
+        sources.kinopub.destroy();
         window.removeEventListener('resize', minus);
       };
     }
@@ -6965,7 +7668,7 @@
       Lampa.Template.add('online_mod_folder', "<div class=\"online selector\">\n        <div class=\"online__body\">\n            <div style=\"position: absolute;left: 0;top: -0.3em;width: 2.4em;height: 2.4em\">\n                <svg style=\"height: 2.4em; width:  2.4em;\" viewBox=\"0 0 128 112\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n                    <rect y=\"20\" width=\"128\" height=\"92\" rx=\"13\" fill=\"white\"/>\n                    <path d=\"M29.9963 8H98.0037C96.0446 3.3021 91.4079 0 86 0H42C36.5921 0 31.9555 3.3021 29.9963 8Z\" fill=\"white\" fill-opacity=\"0.23\"/>\n                    <rect x=\"11\" y=\"8\" width=\"106\" height=\"76\" rx=\"13\" fill=\"white\" fill-opacity=\"0.51\"/>\n                </svg>\n            </div>\n            <div class=\"online__title\" style=\"padding-left: 2.1em;\">{title}</div>\n            <div class=\"online__quality\" style=\"padding-left: 3.4em;\">{quality}{info}</div>\n        </div>\n    </div>");
     }
 
-    var button = "<div class=\"full-start__button selector view--online_mod\" data-subtitle=\"online_mod 08.08.2023\">\n    <svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:svgjs=\"http://svgjs.com/svgjs\" version=\"1.1\" width=\"512\" height=\"512\" x=\"0\" y=\"0\" viewBox=\"0 0 244 260\" style=\"enable-background:new 0 0 512 512\" xml:space=\"preserve\" class=\"\">\n    <g xmlns=\"http://www.w3.org/2000/svg\">\n        <path d=\"M242,88v170H10V88h41l-38,38h37.1l38-38h38.4l-38,38h38.4l38-38h38.3l-38,38H204L242,88L242,88z M228.9,2l8,37.7l0,0 L191.2,10L228.9,2z M160.6,56l-45.8-29.7l38-8.1l45.8,29.7L160.6,56z M84.5,72.1L38.8,42.4l38-8.1l45.8,29.7L84.5,72.1z M10,88 L2,50.2L47.8,80L10,88z\" fill=\"currentColor\"/>\n    </g></svg>\n\n    <span>#{online_mod_title}</span>\n    </div>"; // нужна заглушка, а то при страте лампы говорит пусто
+    var button = "<div class=\"full-start__button selector view--online_mod\" data-subtitle=\"online_mod 13.08.2023\">\n    <svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:svgjs=\"http://svgjs.com/svgjs\" version=\"1.1\" width=\"512\" height=\"512\" x=\"0\" y=\"0\" viewBox=\"0 0 244 260\" style=\"enable-background:new 0 0 512 512\" xml:space=\"preserve\" class=\"\">\n    <g xmlns=\"http://www.w3.org/2000/svg\">\n        <path d=\"M242,88v170H10V88h41l-38,38h37.1l38-38h38.4l-38,38h38.4l38-38h38.3l-38,38H204L242,88L242,88z M228.9,2l8,37.7l0,0 L191.2,10L228.9,2z M160.6,56l-45.8-29.7l38-8.1l45.8,29.7L160.6,56z M84.5,72.1L38.8,42.4l38-8.1l45.8,29.7L84.5,72.1z M10,88 L2,50.2L47.8,80L10,88z\" fill=\"currentColor\"/>\n    </g></svg>\n\n    <span>#{online_mod_title}</span>\n    </div>"; // нужна заглушка, а то при страте лампы говорит пусто
 
     Lampa.Component.add('online_mod', component); //то же самое
 
