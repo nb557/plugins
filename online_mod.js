@@ -619,7 +619,7 @@
             translations.forEach(function (translation_id) {
               var element = temp[translation_id];
               filtred.push({
-                title: element.translation.title,
+                title: element.translation.title || select_title,
                 quality: element.max_quality + 'p' + (element.source_quality ? ' - ' + element.source_quality.toUpperCase() : ''),
                 info: '',
                 max_quality: element.max_quality,
@@ -1164,7 +1164,7 @@
         } else {
           extract.voice.forEach(function (voice) {
             items.push({
-              title: voice.name.length > 3 ? voice.name : select_title,
+              title: voice.name || select_title,
               quality: '360p ~ 1080p',
               info: '',
               voice: voice
@@ -1916,7 +1916,7 @@
         } else {
           extract.voice.forEach(function (voice) {
             filtred.push({
-              title: voice.name,
+              title: voice.name || select_title,
               quality: '360p ~ 1080p',
               info: '',
               media: voice
@@ -2276,7 +2276,7 @@
                 });
               } else {
                 filtred.push({
-                  title: title,
+                  title: title || select_title,
                   quality: items[0].quality + 'p' + (quality_type ? ' - ' + quality_type : ''),
                   info: info ? ' / ' + info : '',
                   file: eps.file,
@@ -2824,7 +2824,7 @@
           var file = prefer_dash && extract.source.dash || extract.source.hls || '';
           if (prefer_http) file = file.replace('https://', 'http://');
           filtred.push({
-            title: extract.title,
+            title: extract.title || select_title,
             quality: max_quality ? max_quality + 'p' : '360p ~ 1080p',
             info: audio_names.length ? ' / ' + component.uniqueNamesShortText(audio_names, 80) : '',
             file: file,
@@ -3454,7 +3454,7 @@
             }
           } else {
             filtred.push({
-              title: data.title || data.comment || '',
+              title: data.title || data.comment || select_title,
               quality: '360p ~ 1080p',
               info: '',
               file: data.file,
@@ -4036,7 +4036,7 @@
         } else if (extract.movies) {
           extract.movies.forEach(function (media) {
             filtred.push({
-              title: media.translation,
+              title: media.translation || select_title,
               quality: media.quality + 'p',
               info: '',
               media: media
@@ -4393,7 +4393,7 @@
           } else {
             var max_quality = data.media.items[0] || {};
             filtred.push({
-              title: data.title || data.comment || '',
+              title: data.title || data.comment || select_title,
               quality: max_quality.label || '360p ~ 1080p',
               info: '',
               media: data.media
@@ -4771,7 +4771,7 @@
           } else {
             var max_quality = data.media.items[0] || {};
             filtred.push({
-              title: data.title || data.comment || '',
+              title: data.title || data.comment || select_title,
               quality: max_quality.label || '360p ~ 1080p',
               info: '',
               media: data.media
@@ -6806,7 +6806,7 @@
             }
           } else {
             filtred.push({
-              title: Lampa.Utils.capitalizeFirstLetter(translation.translation),
+              title: Lampa.Utils.capitalizeFirstLetter(translation.translation) || select_title,
               quality: '360p ~ 1080p' + (results[keyt].quality ? ' - ' + results[keyt].quality : ''),
               info: '',
               media: translation.media,
