@@ -23,24 +23,38 @@ export default {
       // that this request is not cross-site.
       request = new Request(api, request);
       request.headers.set("Origin", apiUrl.origin);
+      request.headers.set("Referer", apiUrl.origin + '/');
+      if (true) {
+        request.headers.delete("Sec-Fetch-Dest");
+        request.headers.delete("Sec-Fetch-Mode");
+        request.headers.delete("Sec-Fetch-Site");
+        request.headers.delete("Sec-Fetch-User");
+        request.headers.delete("Sec-CH-UA");
+        request.headers.delete("Sec-CH-UA-Mobile");
+        request.headers.delete("Sec-CH-UA-Platform");
+        request.headers.delete("Host");
+      }
+      if (true) {
+        request.headers.delete("X-Forwarded-Proto");
+        //request.headers.delete("X-Real-IP");
+        request.headers.delete("cf-connecting-ip");
+        request.headers.delete("cf-ipcountry");
+        request.headers.delete("cf-ray");
+        request.headers.delete("cf-visitor");
+      }
       if (apiUrl.hostname === "hdrezka.ag") {
         request.headers.set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36");
       }
       if (apiUrl.hostname.endsWith(".svetacdn.in")) {
         request.headers.set("Origin", "https://videocdn.tv");
         request.headers.set("Referer", "https://videocdn.tv/");
-        request.headers.delete("Sec-Fetch-Dest");
-        request.headers.delete("Sec-Fetch-Mode");
-        request.headers.delete("Sec-Fetch-Site");
-        request.headers.delete("Sec-Fetch-User");
       }
       if (["kodikapi.com", "kodik.biz", "kodik.info"].indexOf(apiUrl.hostname) !== -1) {
-        request.headers.set("Origin", "https://animego.org");
-        request.headers.set("Referer", "https://animego.org/");
-        request.headers.delete("Sec-Fetch-Dest");
-        request.headers.delete("Sec-Fetch-Mode");
-        request.headers.delete("Sec-Fetch-Site");
-        request.headers.delete("Sec-Fetch-User");
+        request.headers.delete("Origin");
+        request.headers.delete("Referer");
+      }
+      if (apiUrl.hostname === "kinoplay.site") {
+        request.headers.set("Cookie", "invite=a246a3f46c82fe439a45c3dbbbb24ad5");
       }
       let response = await fetch(request);
 
