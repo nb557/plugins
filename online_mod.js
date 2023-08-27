@@ -1,4 +1,4 @@
-//27.08.2023 - Fix rezka voice choice
+//28.08.2023 - Hack filmix abuse block
 
 (function () {
     'use strict';
@@ -3638,11 +3638,10 @@
         };
       }
 
-      var dev_id = debug ? '' : '1d07ba88e4b45d30';
-      var token = debug ? '' : Lampa.Storage.get('filmix_token', '');
-      var token2 = debug ? Utils.decodeSecret([15, 1, 12, 6, 86, 1, 80, 86, 7, 93, 81, 95, 2, 6, 91, 80, 83, 12, 14, 83, 93, 87, 2, 14, 1, 86, 6, 10, 5, 92, 86, 11]) : token;
+      var dev_id = '1d07ba88e4b45d30';
+      var token = Lampa.Storage.get('filmix_token', '');
       var dev_token = '?user_dev_apk=2.0.1&user_dev_id=' + dev_id + '&user_dev_name=Xiaomi&user_dev_os=12&user_dev_token=' + (token || 'aaaabbbbccccddddeeeeffffaaaabbbb') + '&user_dev_vendor=Xiaomi';
-      var dev_token2 = '?user_dev_apk=2.0.1&user_dev_id=' + dev_id + '&user_dev_name=Xiaomi&user_dev_os=12&user_dev_token=' + (token2 || 'aaaabbbbccccddddeeeeffffaaaabbbb') + '&user_dev_vendor=Xiaomi';
+      var abuse_token = '?user_dev_apk=2.0.1&user_dev_id=&user_dev_name=Xiaomi&user_dev_os=12&user_dev_token=7152e8df3eaf65bdc86cdc175f225eb8&user_dev_vendor=Xiaomi';
       /**
        * Начать поиск
        * @param {Object} _object 
@@ -3654,7 +3653,7 @@
 
         object = _object;
         select_title = object.search || object.movie.title;
-        if (this.wait_similars && data && data[0].is_similars) return this.find(data[0].id);
+        if (this.wait_similars && data && data[0].is_similars) return find(data[0].id);
         var search_date = object.search_date || !object.clarification && (object.movie.release_date || object.movie.first_air_date || object.movie.last_air_date) || '0000';
         var search_year = parseInt((search_date + '').slice(0, 4));
         var orig = object.movie.original_title || object.movie.original_name;
@@ -3729,7 +3728,7 @@
               }
             }
 
-            if (cards.length == 1 && is_sure) _this.find(cards[0].id);else if (json.length) {
+            if (cards.length == 1 && is_sure) find(cards[0].id);else if (json.length) {
               _this.wait_similars = true;
               json.forEach(function (c) {
                 c.is_similars = true;
@@ -3745,7 +3744,7 @@
         });
       };
 
-      this.find = function (filmix_id) {
+      function find(filmix_id, abuse) {
         var url = embed;
 
         if (!debug && !window.filmix.is_max_qualitie && token) {
@@ -3765,13 +3764,15 @@
         function end_search(filmix_id) {
           network.clear();
           network.timeout(10000);
-          network.silent(url + 'post/' + filmix_id + (secret ? dev_token2 : dev_token), function (found) {
-            if (found && Object.keys(found).length) success(found);else component.emptyForQuery(select_title);
+          network.silent(url + 'post/' + filmix_id + (abuse ? abuse_token : dev_token), function (found) {
+            if (found && Object.keys(found).length) {
+              if (!abuse && checkAbuse(found)) find(filmix_id, true);else success(found);
+            } else component.emptyForQuery(select_title);
           }, function (a, c) {
             component.empty(network.errorDecode(a, c));
           });
         }
-      };
+      }
 
       this.extendChoice = function (saved) {
         Lampa.Arrays.extend(choice, saved, true);
@@ -3829,6 +3830,34 @@
         filter();
         append(filtred());
       }
+
+      function checkAbuse(data) {
+        var pl_links = data.player_links || {};
+
+        if (pl_links.movie && Object.keys(pl_links.movie).length > 0) {
+
+          for (var ID in pl_links.movie) {
+            var file = pl_links.movie[ID];
+            var stream_url = file.link || '';
+            if (prefer_http) stream_url = stream_url.replace('https://', 'http://');
+
+            if (file.translation === 'Заблокировано правообладателем!' && stream_url.indexOf('/abuse_') !== -1) {
+              var found = stream_url.match(/^(https?:\/\/).*(\.com\/s\/[^\/]*\/)/);
+
+              if (found) {
+                if (!(secret_timestamp && secret && secret_url)) {
+                  secret_url = found[1];
+                  secret = found[2];
+                }
+
+                return true;
+              }
+            }
+          }
+        }
+
+        return false;
+      }
       /**
        * Получить информацию о фильме
        * @param {Arrays} data
@@ -3837,7 +3866,7 @@
 
       function extractData(data) {
         extract = {};
-        var filmix_max_qualitie = secret ? 2160 : window.filmix.max_qualitie;
+        var filmix_max_qualitie = debug ? 2160 : window.filmix.max_qualitie;
         var pl_links = data.player_links || {};
 
         if (pl_links.playlist && Object.keys(pl_links.playlist).length > 0) {
@@ -8427,7 +8456,7 @@
       Lampa.Template.add('online_mod_folder', "<div class=\"online selector\">\n        <div class=\"online__body\">\n            <div style=\"position: absolute;left: 0;top: -0.3em;width: 2.4em;height: 2.4em\">\n                <svg style=\"height: 2.4em; width:  2.4em;\" viewBox=\"0 0 128 112\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n                    <rect y=\"20\" width=\"128\" height=\"92\" rx=\"13\" fill=\"white\"/>\n                    <path d=\"M29.9963 8H98.0037C96.0446 3.3021 91.4079 0 86 0H42C36.5921 0 31.9555 3.3021 29.9963 8Z\" fill=\"white\" fill-opacity=\"0.23\"/>\n                    <rect x=\"11\" y=\"8\" width=\"106\" height=\"76\" rx=\"13\" fill=\"white\" fill-opacity=\"0.51\"/>\n                </svg>\n            </div>\n            <div class=\"online__title\" style=\"padding-left: 2.1em;\">{title}</div>\n            <div class=\"online__quality\" style=\"padding-left: 3.4em;\">{quality}{info}</div>\n        </div>\n    </div>");
     }
 
-    var button = "<div class=\"full-start__button selector view--online_mod\" data-subtitle=\"online_mod 27.08.2023\">\n    <svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:svgjs=\"http://svgjs.com/svgjs\" version=\"1.1\" width=\"512\" height=\"512\" x=\"0\" y=\"0\" viewBox=\"0 0 244 260\" style=\"enable-background:new 0 0 512 512\" xml:space=\"preserve\" class=\"\">\n    <g xmlns=\"http://www.w3.org/2000/svg\">\n        <path d=\"M242,88v170H10V88h41l-38,38h37.1l38-38h38.4l-38,38h38.4l38-38h38.3l-38,38H204L242,88L242,88z M228.9,2l8,37.7l0,0 L191.2,10L228.9,2z M160.6,56l-45.8-29.7l38-8.1l45.8,29.7L160.6,56z M84.5,72.1L38.8,42.4l38-8.1l45.8,29.7L84.5,72.1z M10,88 L2,50.2L47.8,80L10,88z\" fill=\"currentColor\"/>\n    </g></svg>\n\n    <span>#{online_mod_title}</span>\n    </div>"; // нужна заглушка, а то при страте лампы говорит пусто
+    var button = "<div class=\"full-start__button selector view--online_mod\" data-subtitle=\"online_mod 28.08.2023\">\n    <svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:svgjs=\"http://svgjs.com/svgjs\" version=\"1.1\" width=\"512\" height=\"512\" x=\"0\" y=\"0\" viewBox=\"0 0 244 260\" style=\"enable-background:new 0 0 512 512\" xml:space=\"preserve\" class=\"\">\n    <g xmlns=\"http://www.w3.org/2000/svg\">\n        <path d=\"M242,88v170H10V88h41l-38,38h37.1l38-38h38.4l-38,38h38.4l38-38h38.3l-38,38H204L242,88L242,88z M228.9,2l8,37.7l0,0 L191.2,10L228.9,2z M160.6,56l-45.8-29.7l38-8.1l45.8,29.7L160.6,56z M84.5,72.1L38.8,42.4l38-8.1l45.8,29.7L84.5,72.1z M10,88 L2,50.2L47.8,80L10,88z\" fill=\"currentColor\"/>\n    </g></svg>\n\n    <span>#{online_mod_title}</span>\n    </div>"; // нужна заглушка, а то при страте лампы говорит пусто
 
     Lampa.Component.add('online_mod', component); //то же самое
 
