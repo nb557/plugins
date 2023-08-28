@@ -1,4 +1,4 @@
-//28.08.2023 - Hack filmix abuse block
+//28.08.2023 - Fix rezka2 voice name (language)
 
 (function () {
     'use strict';
@@ -619,7 +619,7 @@
             translations.forEach(function (translation_id) {
               var element = temp[translation_id];
               filtred.push({
-                title: element.translation.title || select_title,
+                title: element.translation.title || element.translation.short_title || element.translation.shorter_title || select_title,
                 quality: element.max_quality + 'p' + (element.source_quality ? ' - ' + element.source_quality.toUpperCase() : ''),
                 info: '',
                 max_quality: element.max_quality,
@@ -1567,8 +1567,13 @@
         if (voices) {
           var select = $(voices[1]);
           $('.b-translator__item', select).each(function () {
+            var title = ($(this).attr('title') || $(this).text() || '').trim();
+            $('img', this).each(function () {
+              var lang = ($(this).attr('title') || $(this).attr('alt') || '').trim();
+              if (lang && title.indexOf(lang) == -1) title += ' (' + lang + ')';
+            });
             extract.voice.push({
-              name: $(this).attr('title') || $(this).text(),
+              name: title,
               id: $(this).attr('data-translator_id'),
               is_camrip: $(this).attr('data-camrip'),
               is_ads: $(this).attr('data-ads'),
