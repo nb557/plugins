@@ -5932,7 +5932,7 @@
       var select_title = '';
       Lampa.Storage.field('online_mod_prefer_http') === true;
       var prox = component.proxy('kinopub');
-      var embed = prox + 'https://api.service-kp.com/v1/';
+      var embed = prox + 'http://c882b669-27f1-4fba-b872-8f55bb8d1661.service-kp.com/v1/';
       var token = Utils.decodeSecret([76, 91, 92, 0, 67, 85, 66, 68, 0, 95, 84, 92, 2, 11, 77, 64, 0, 3, 94, 91, 84, 68, 70, 83, 13, 92, 90, 79, 2, 78, 5, 5]);
       var filter_items = {};
       var choice = {
