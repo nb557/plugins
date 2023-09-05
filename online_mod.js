@@ -2977,22 +2977,26 @@
         var old_search = function old_search(empty, error) {
           var api = (+kinopoisk_id ? '?kp=' : '?imdb=') + kinopoisk_id;
           cdn_api_search(old_embed + api, function (str) {
-            if (str) parse(str);else if (!object.clarification && object.movie.imdb_id && kinopoisk_id != object.movie.imdb_id) {
-              cdn_api_search(old_embed + '?imdb=' + object.movie.imdb_id, function (str) {
-                if (str) parse(str);else empty();
-              }, error);
-            } else empty();
+            parse(str || '', function () {
+              if (!object.clarification && object.movie.imdb_id && kinopoisk_id != object.movie.imdb_id) {
+                cdn_api_search(old_embed + '?imdb=' + object.movie.imdb_id, function (str) {
+                  parse(str || '', empty);
+                }, error);
+              } else empty();
+            });
           }, error);
         };
 
         var new_search = function new_search(empty, error) {
           var api = (+kinopoisk_id ? 'kinopoisk/' : 'imdb/') + kinopoisk_id + '/iframe';
           cdn_api_search(new_embed + api, function (str) {
-            if (str) parse(str);else if (!object.clarification && object.movie.imdb_id && kinopoisk_id != object.movie.imdb_id) {
-              cdn_api_search(new_embed + 'imdb/' + object.movie.imdb_id + '/iframe', function (str) {
-                if (str) parse(str);else empty();
-              }, error);
-            } else empty();
+            parse(str || '', function () {
+              if (!object.clarification && object.movie.imdb_id && kinopoisk_id != object.movie.imdb_id) {
+                cdn_api_search(new_embed + 'imdb/' + object.movie.imdb_id + '/iframe', function (str) {
+                  parse(str || '', empty);
+                }, error);
+              } else empty();
+            });
           }, error);
         };
 
@@ -3054,8 +3058,7 @@
         extract = null;
       };
 
-      function parse(str) {
-        component.loading(false);
+      function parse(str, empty) {
         str = str.replace(/\n/g, '');
         var find = str.match("Playerjs\\({.*?\\bfile:\\s*'([^']*)'");
         var video = find && decode(find[1]);
@@ -3066,10 +3069,11 @@
         } catch (e) {}
 
         if (json) {
+          component.loading(false);
           extract = json;
           filter();
           append(filtred());
-        } else component.emptyForQuery(select_title);
+        } else empty();
       }
 
       function decode(data) {
