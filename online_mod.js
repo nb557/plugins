@@ -2942,7 +2942,7 @@
       var prefer_mp4 = Lampa.Storage.field('online_mod_prefer_mp4') === true;
       var prox = component.proxy('cdnmovies');
       var old_embed = prox + (prefer_http || prox ? 'http:' : 'https:') + '//1f29036bcf55d.sarnage.cc/';
-      var embed = prox + 'https://cdnmovies-stream.online/';
+      var new_embed = prox + 'https://cdnmovies-stream.online/';
       var filter_items = {};
       var choice = {
         season: 0,
@@ -2950,27 +2950,10 @@
         voice_name: ''
       };
 
-      function cdn_old_api_search(api, callback) {
-        if (!api) {
-          if (callback) callback('');
-          return;
-        }
-
-        network.clear();
-        network.timeout(10000);
-        network["native"](old_embed + api, function (str) {
-          if (callback) callback(str || '');
-        }, function (a, c) {
-          if (callback) callback('');
-        }, false, {
-          dataType: 'text'
-        });
-      }
-
       function cdn_api_search(api, callback, error) {
         network.clear();
         network.timeout(10000);
-        network["native"](embed + api, function (str) {
+        network["native"](api, function (str) {
           if (callback) callback(str || '');
         }, function (a, c) {
           if (a.status == 404 && a.responseText && (a.responseText.indexOf('<title>Not Found</title>') !== -1 || a.responseText.indexOf('Не найдено!') !== -1) || a.status == 0 && a.statusText !== 'timeout') {
@@ -2990,20 +2973,40 @@
       this.search = function (_object, kinopoisk_id) {
         object = _object;
         select_title = object.search || object.movie.title;
+
+        var old_search = function old_search(empty, error) {
+          var api = (+kinopoisk_id ? '?kp=' : '?imdb=') + kinopoisk_id;
+          cdn_api_search(old_embed + api, function (str) {
+            if (str) parse(str);else if (!object.clarification && object.movie.imdb_id && kinopoisk_id != object.movie.imdb_id) {
+              cdn_api_search(old_embed + '?imdb=' + object.movie.imdb_id, function (str) {
+                if (str) parse(str);else empty();
+              }, error);
+            } else empty();
+          }, error);
+        };
+
+        var new_search = function new_search(empty, error) {
+          var api = (+kinopoisk_id ? 'kinopoisk/' : 'imdb/') + kinopoisk_id + '/iframe';
+          cdn_api_search(new_embed + api, function (str) {
+            if (str) parse(str);else if (!object.clarification && object.movie.imdb_id && kinopoisk_id != object.movie.imdb_id) {
+              cdn_api_search(new_embed + 'imdb/' + object.movie.imdb_id + '/iframe', function (str) {
+                if (str) parse(str);else empty();
+              }, error);
+            } else empty();
+          }, error);
+        };
+
+        var empty = function empty() {
+          component.emptyForQuery(select_title);
+        };
+
         var error = component.empty.bind(component);
-        var old_api = +kinopoisk_id ? 'kinopoisk/' + kinopoisk_id : '';
-        var api = (+kinopoisk_id ? 'kinopoisk/' : 'imdb/') + kinopoisk_id + '/iframe';
-        cdn_old_api_search(old_api, function (str) {
-          if (str) parse(str);else {
-            cdn_api_search(api, function (str) {
-              if (str) parse(str);else if (!object.clarification && object.movie.imdb_id && kinopoisk_id != object.movie.imdb_id) {
-                cdn_api_search('imdb/' + object.movie.imdb_id + '/iframe', function (str) {
-                  if (str) parse(str);else component.emptyForQuery(select_title);
-                }, error);
-              } else component.emptyForQuery(select_title);
-            }, error);
-          }
-        });
+
+        var new_search_run = function new_search_run() {
+          new_search(empty, error);
+        };
+
+        old_search(new_search_run, new_search_run);
       };
 
       this.extendChoice = function (saved) {
