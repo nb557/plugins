@@ -1,4 +1,4 @@
-//02.09.2023 - Debug
+//06.09.2023 - Fix cdnmovies
 
 (function () {
     'use strict';
@@ -2657,7 +2657,7 @@
         object = _object;
         select_title = object.search || object.movie.title;
         var error = component.empty.bind(component);
-        var api = +kinopoisk_id ? 'kp/' + kinopoisk_id : 'imdb/' + kinopoisk_id;
+        var api = (+kinopoisk_id ? 'kp/' : 'imdb/') + kinopoisk_id;
         collaps_api_search(api, function (str) {
           if (str) parse(str);else if (!object.clarification && object.movie.imdb_id && kinopoisk_id != object.movie.imdb_id) {
             collaps_api_search('imdb/' + object.movie.imdb_id, function (str) {
@@ -2941,8 +2941,8 @@
       var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true;
       var prefer_mp4 = Lampa.Storage.field('online_mod_prefer_mp4') === true;
       var prox = component.proxy('cdnmovies');
-      var embed = prox + 'https://cdnmovies.net/api/short';
-      var token = '02d56099082ad5ad586d7fe4e2493dd9';
+      var old_embed = prox + (prefer_http || prox ? 'http:' : 'https:') + '//1f29036bcf55d.sarnage.cc/';
+      var embed = prox + 'https://cdnmovies-stream.online/';
       var filter_items = {};
       var choice = {
         season: 0,
@@ -2950,13 +2950,34 @@
         voice_name: ''
       };
 
+      function cdn_old_api_search(api, callback) {
+        if (!api) {
+          if (callback) callback('');
+          return;
+        }
+
+        network.clear();
+        network.timeout(10000);
+        network["native"](old_embed + api, function (str) {
+          if (callback) callback(str || '');
+        }, function (a, c) {
+          if (callback) callback('');
+        }, false, {
+          dataType: 'text'
+        });
+      }
+
       function cdn_api_search(api, callback, error) {
         network.clear();
         network.timeout(10000);
-        network["native"](embed + api, function (json) {
-          if (callback) callback(json);
+        network["native"](embed + api, function (str) {
+          if (callback) callback(str || '');
         }, function (a, c) {
-          if (error) error(network.errorDecode(a, c));
+          if (a.status == 404 && a.responseText && (a.responseText.indexOf('<title>Not Found</title>') !== -1 || a.responseText.indexOf('Не найдено!') !== -1) || a.status == 0 && a.statusText !== 'timeout') {
+            if (callback) callback('');
+          } else if (error) error(network.errorDecode(a, c));
+        }, false, {
+          dataType: 'text'
         });
       }
       /**
@@ -2966,151 +2987,22 @@
        */
 
 
-      this.search = function (_object, kinopoisk_id, data) {
-        var _this = this;
-
+      this.search = function (_object, kinopoisk_id) {
         object = _object;
         select_title = object.search || object.movie.title;
-        if (this.wait_similars && data && data[0].is_similars) return this.find(data[0].iframe_src);
-        var search_date = object.search_date || !object.clarification && (object.movie.release_date || object.movie.first_air_date || object.movie.last_air_date) || '0000';
-        var search_year = parseInt((search_date + '').slice(0, 4));
-        var orig = object.movie.original_title || object.movie.original_name;
-
-        var display = function display(data) {
-          if (data && Object.keys(data).length) {
-            var is_sure = false;
-            var is_imdb = false;
-            var items = [];
-
-            for (var id in data) {
-              items.push(data[id]);
-            }
-
-            items.forEach(function (c) {
-              var year = c.start_date || c.year || '0000';
-              c.tmp_year = parseInt((year + '').slice(0, 4));
-            });
-
-            if (!object.clarification && (object.movie.imdb_id || +object.movie.kinopoisk_id)) {
-              var imdb_id = object.movie.imdb_id;
-              var kp_id = +object.movie.kinopoisk_id;
-              var tmp = items.filter(function (c) {
-                return imdb_id && c.imdb_id == imdb_id || kp_id && c.kinopoisk_id == kp_id;
-              });
-
-              if (tmp.length) {
-                items = tmp;
-                is_sure = true;
-                is_imdb = true;
-              }
-            }
-
-            var cards = items;
-
-            if (cards.length) {
-              if (orig) {
-                var _tmp = cards.filter(function (c) {
-                  return component.containsTitle(c.orig_title, orig) || component.containsTitle(c.en_title, orig) || component.containsTitle(c.title || c.ru_title, orig);
-                });
-
-                if (_tmp.length) {
-                  cards = _tmp;
-                  is_sure = true;
-                }
-              }
-
-              if (select_title) {
-                var _tmp2 = cards.filter(function (c) {
-                  return component.containsTitle(c.title || c.ru_title, select_title) || component.containsTitle(c.en_title, select_title) || component.containsTitle(c.orig_title, select_title);
-                });
-
-                if (_tmp2.length) {
-                  cards = _tmp2;
-                  is_sure = true;
-                }
-              }
-
-              if (cards.length > 1 && search_year) {
-                var _tmp3 = cards.filter(function (c) {
-                  return c.tmp_year == search_year;
-                });
-
-                if (!_tmp3.length) _tmp3 = cards.filter(function (c) {
-                  return c.tmp_year && c.tmp_year > search_year - 2 && c.tmp_year < search_year + 2;
-                });
-                if (_tmp3.length) cards = _tmp3;
-              }
-            }
-
-            if (cards.length == 1 && is_sure && !is_imdb) {
-              if (search_year && cards[0].tmp_year) {
-                is_sure = cards[0].tmp_year > search_year - 2 && cards[0].tmp_year < search_year + 2;
-              }
-
-              if (is_sure) {
-                is_sure = false;
-
-                if (orig) {
-                  is_sure |= component.equalTitle(cards[0].orig_title, orig) || component.equalTitle(cards[0].en_title, orig) || component.equalTitle(cards[0].title || cards[0].ru_title, orig);
-                }
-
-                if (select_title) {
-                  is_sure |= component.equalTitle(cards[0].title || cards[0].ru_title, select_title) || component.equalTitle(cards[0].en_title, select_title) || component.equalTitle(cards[0].orig_title, select_title);
-                }
-              }
-            }
-
-            if (cards.length == 1 && is_sure) {
-              _this.find(cards[0].iframe_src);
-            } else {
-              _this.wait_similars = true;
-              items.forEach(function (c) {
-                c.is_similars = true;
-                c.seasons_count = c.last_season;
-                c.episodes_count = c.last_episode;
-              });
-              component.similars(items);
-              component.loading(false);
-            }
-          } else component.emptyForQuery(select_title);
-        };
-
-        var cdn_search_by_title = function cdn_search_by_title(callback, error) {
-          var params = Lampa.Utils.addUrlComponent('', 'token=' + token);
-          params = Lampa.Utils.addUrlComponent(params, 'search=' + encodeURIComponent(select_title));
-          cdn_api_search(params, callback, error);
-        };
-
-        var cdn_search_by_id = function cdn_search_by_id(callback, error) {
-          if (!object.clarification && (object.movie.imdb_id || +object.movie.kinopoisk_id)) {
-            var params = Lampa.Utils.addUrlComponent('', 'token=' + token);
-            var imdb_params = object.movie.imdb_id ? Lampa.Utils.addUrlComponent(params, 'imdb_id=' + encodeURIComponent(object.movie.imdb_id)) : '';
-            var kp_params = +object.movie.kinopoisk_id ? Lampa.Utils.addUrlComponent(params, 'kinopoisk_id=' + encodeURIComponent(+object.movie.kinopoisk_id)) : '';
-            cdn_api_search(imdb_params || kp_params, function (json) {
-              if (json.data && Object.keys(json.data).length) callback(json);else if (imdb_params && kp_params) {
-                cdn_api_search(kp_params, callback, error);
-              } else callback({});
-            }, error);
-          } else callback({});
-        };
-
         var error = component.empty.bind(component);
-        cdn_search_by_id(function (json) {
-          if (json.data && Object.keys(json.data).length) display(json.data);else cdn_search_by_title(function (json) {
-            if (json.data && Object.keys(json.data).length) display(json.data);else display({});
-          }, error);
-        }, error);
-      };
-
-      this.find = function (url) {
-        network.clear();
-        network.timeout(10000);
-        network["native"]((prefer_http ? 'http:' : 'https:') + url, function (json) {
-          parse(json);
-        }, function (a, c) {
-          component.empty(network.errorDecode(a, c));
-        }, false, {
-          dataType: 'text'
+        var old_api = +kinopoisk_id ? 'kinopoisk/' + kinopoisk_id : '';
+        var api = (+kinopoisk_id ? 'kinopoisk/' : 'imdb/') + kinopoisk_id + '/iframe';
+        cdn_old_api_search(old_api, function (str) {
+          if (str) parse(str);else {
+            cdn_api_search(api, function (str) {
+              if (str) parse(str);else if (!object.clarification && object.movie.imdb_id && kinopoisk_id != object.movie.imdb_id) {
+                cdn_api_search('imdb/' + object.movie.imdb_id + '/iframe', function (str) {
+                  if (str) parse(str);else component.emptyForQuery(select_title);
+                }, error);
+              } else component.emptyForQuery(select_title);
+            }, error);
+          }
         });
       };
 
@@ -3162,7 +3054,7 @@
       function parse(str) {
         component.loading(false);
         str = str.replace(/\n/g, '');
-        var find = str.match("Playerjs\\({.*?\\bfile:\\s*'(.*?)'\\s*}\\);");
+        var find = str.match("Playerjs\\({.*?\\bfile:\\s*'([^']*)'");
         var video = find && decode(find[1]);
         var json;
 
@@ -6573,7 +6465,7 @@
     function hdvb(component, _object) {
       var network = new Lampa.Reguest();
       var extract = [];
-      var backend = 'http://back.freebie.tom.ru/lampa/hdvburl?v=2022';
+      var backend = 'http://back.freebie.tom.ru/lampa/hdvburl?v=2102';
       var object = _object;
       var select_title = '';
       var select_id = '';
@@ -7488,13 +7380,13 @@
         };
 
         var letgo = function letgo() {
-          if (!object.clarification && +object.movie.kinopoisk_id && ['rezka', 'collaps', 'videodb', 'zetflix', 'kodik', 'hdvb'].indexOf(balanser) >= 0) {
+          if (!object.clarification && +object.movie.kinopoisk_id && ['rezka', 'collaps', 'cdnmovies', 'videodb', 'zetflix', 'kodik', 'hdvb'].indexOf(balanser) >= 0) {
             _this2.extendChoice();
 
             sources[balanser].search(object, +object.movie.kinopoisk_id);
-          } else if (!object.clarification && object.movie.imdb_id && ['rezka', 'collaps', 'videodb', 'zetflix', 'kodik', 'hdvb'].indexOf(balanser) >= 0) {
+          } else if (!object.clarification && object.movie.imdb_id && ['rezka', 'collaps', 'cdnmovies', 'videodb', 'zetflix', 'kodik', 'hdvb'].indexOf(balanser) >= 0) {
             if (Lampa.Storage.field('online_mod_skip_kp_search') === true) vcdn_search_imdb();else kp_search_imdb();
-          } else if (['rezka2', 'kinobase', 'filmix', 'filmix2', 'cdnmovies', 'anilibria', 'kodik', 'kinopub'].indexOf(balanser) >= 0) {
+          } else if (['rezka2', 'kinobase', 'filmix', 'filmix2', 'anilibria', 'kodik', 'kinopub'].indexOf(balanser) >= 0) {
             _this2.extendChoice();
 
             sources[balanser].search(object);
@@ -7865,38 +7757,28 @@
       this.contextmenu = function (params) {
         contextmenu_all.push(params);
         params.item.on('hover:long', function () {
-          function copylink(extra) {
-            if (extra.quality) {
-              var qual = [];
+          function selectQuality(title, callback) {
+            return function (extra) {
+              if (extra.quality) {
+                var qual = [];
 
-              for (var i in extra.quality) {
-                qual.push({
-                  title: i,
-                  file: extra.quality[i]
-                });
-              }
-
-              Lampa.Select.show({
-                title: 'Ссылки',
-                items: qual,
-                onBack: function onBack() {
-                  Lampa.Controller.toggle(enabled);
-                },
-                onSelect: function onSelect(b) {
-                  Lampa.Utils.copyTextToClipboard(b.file, function () {
-                    Lampa.Noty.show(Lampa.Lang.translate('copy_secuses'));
-                  }, function () {
-                    Lampa.Noty.show(Lampa.Lang.translate('copy_error'));
+                for (var i in extra.quality) {
+                  qual.push({
+                    title: i,
+                    file: extra.quality[i]
                   });
                 }
-              });
-            } else {
-              Lampa.Utils.copyTextToClipboard(extra.file, function () {
-                Lampa.Noty.show(Lampa.Lang.translate('copy_secuses'));
-              }, function () {
-                Lampa.Noty.show(Lampa.Lang.translate('copy_error'));
-              });
-            }
+
+                Lampa.Select.show({
+                  title: title,
+                  items: qual,
+                  onBack: function onBack() {
+                    Lampa.Controller.toggle(enabled);
+                  },
+                  onSelect: callback
+                });
+              } else callback(null, extra);
+            };
           }
 
           var enabled = Lampa.Controller.enabled().name;
@@ -8003,7 +7885,13 @@
               }
 
               if (a.copylink) {
-                params.file(copylink);
+                params.file(selectQuality('Ссылки', function (b, extra) {
+                  Lampa.Utils.copyTextToClipboard(b && b.file || extra && extra.file, function () {
+                    Lampa.Noty.show(Lampa.Lang.translate('copy_secuses'));
+                  }, function () {
+                    Lampa.Noty.show(Lampa.Lang.translate('copy_error'));
+                  });
+                }));
               }
 
               if (a.subscribe) {
@@ -8461,7 +8349,7 @@
       Lampa.Template.add('online_mod_folder', "<div class=\"online selector\">\n        <div class=\"online__body\">\n            <div style=\"position: absolute;left: 0;top: -0.3em;width: 2.4em;height: 2.4em\">\n                <svg style=\"height: 2.4em; width:  2.4em;\" viewBox=\"0 0 128 112\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n                    <rect y=\"20\" width=\"128\" height=\"92\" rx=\"13\" fill=\"white\"/>\n                    <path d=\"M29.9963 8H98.0037C96.0446 3.3021 91.4079 0 86 0H42C36.5921 0 31.9555 3.3021 29.9963 8Z\" fill=\"white\" fill-opacity=\"0.23\"/>\n                    <rect x=\"11\" y=\"8\" width=\"106\" height=\"76\" rx=\"13\" fill=\"white\" fill-opacity=\"0.51\"/>\n                </svg>\n            </div>\n            <div class=\"online__title\" style=\"padding-left: 2.1em;\">{title}</div>\n            <div class=\"online__quality\" style=\"padding-left: 3.4em;\">{quality}{info}</div>\n        </div>\n    </div>");
     }
 
-    var button = "<div class=\"full-start__button selector view--online_mod\" data-subtitle=\"online_mod 02.09.2023\">\n    <svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:svgjs=\"http://svgjs.com/svgjs\" version=\"1.1\" width=\"512\" height=\"512\" x=\"0\" y=\"0\" viewBox=\"0 0 244 260\" style=\"enable-background:new 0 0 512 512\" xml:space=\"preserve\" class=\"\">\n    <g xmlns=\"http://www.w3.org/2000/svg\">\n        <path d=\"M242,88v170H10V88h41l-38,38h37.1l38-38h38.4l-38,38h38.4l38-38h38.3l-38,38H204L242,88L242,88z M228.9,2l8,37.7l0,0 L191.2,10L228.9,2z M160.6,56l-45.8-29.7l38-8.1l45.8,29.7L160.6,56z M84.5,72.1L38.8,42.4l38-8.1l45.8,29.7L84.5,72.1z M10,88 L2,50.2L47.8,80L10,88z\" fill=\"currentColor\"/>\n    </g></svg>\n\n    <span>#{online_mod_title}</span>\n    </div>"; // нужна заглушка, а то при страте лампы говорит пусто
+    var button = "<div class=\"full-start__button selector view--online_mod\" data-subtitle=\"online_mod 06.09.2023\">\n    <svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:svgjs=\"http://svgjs.com/svgjs\" version=\"1.1\" width=\"512\" height=\"512\" x=\"0\" y=\"0\" viewBox=\"0 0 244 260\" style=\"enable-background:new 0 0 512 512\" xml:space=\"preserve\" class=\"\">\n    <g xmlns=\"http://www.w3.org/2000/svg\">\n        <path d=\"M242,88v170H10V88h41l-38,38h37.1l38-38h38.4l-38,38h38.4l38-38h38.3l-38,38H204L242,88L242,88z M228.9,2l8,37.7l0,0 L191.2,10L228.9,2z M160.6,56l-45.8-29.7l38-8.1l45.8,29.7L160.6,56z M84.5,72.1L38.8,42.4l38-8.1l45.8,29.7L84.5,72.1z M10,88 L2,50.2L47.8,80L10,88z\" fill=\"currentColor\"/>\n    </g></svg>\n\n    <span>#{online_mod_title}</span>\n    </div>"; // нужна заглушка, а то при страте лампы говорит пусто
 
     Lampa.Component.add('online_mod', component); //то же самое
 
