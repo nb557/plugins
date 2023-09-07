@@ -3506,6 +3506,7 @@
       };
       var secret = '';
       var secret_url = '';
+      var secret_part = '';
       var secret_timestamp = null;
 
       function decodeSecretToken(callback) {
@@ -3514,6 +3515,7 @@
           return;
         }
 
+        if (secret_part) secret = '.com/s/' + secret_part + Lampa.Utils.uid(3) + '/';
         var timestamp = new Date().getTime();
         var cache_timestamp = timestamp - 1000 * 60 * 10;
 
@@ -3534,7 +3536,8 @@
         network.timeout(10000);
         network.silent(url, function (str) {
           if (str) {
-            secret = '.com/s/' + str + '/';
+            secret_part = str;
+            secret = '.com/s/' + secret_part + Lampa.Utils.uid(3) + '/';
             secret_url = '';
             secret_timestamp = timestamp;
           }
@@ -3760,7 +3763,7 @@
               var found = stream_url.match(/(\.com\/s\/[^\/]*\/)/);
 
               if (found) {
-                if (!secret_timestamp) {
+                if (!secret_part) {
                   secret = found[1];
                   secret_url = '';
                 }
