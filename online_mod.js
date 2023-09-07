@@ -2943,6 +2943,7 @@
       var prox = component.proxy('cdnmovies');
       var old_embed = prox + (prefer_http || prox ? 'http:' : 'https:') + '//1f29036bcf55d.sarnage.cc/';
       var new_embed = prox + 'https://cdnmovies-stream.online/';
+      var prefer_old = false;
       var filter_items = {};
       var choice = {
         season: 0,
@@ -3006,11 +3007,19 @@
 
         var error = component.empty.bind(component);
 
-        var new_search_run = function new_search_run() {
-          new_search(empty, error);
-        };
+        if (prefer_old) {
+          var new_search_run = function new_search_run() {
+            new_search(empty, error);
+          };
 
-        old_search(new_search_run, new_search_run);
+          old_search(new_search_run, new_search_run);
+        } else {
+          var old_search_run = function old_search_run() {
+            old_search(empty, error);
+          };
+
+          new_search(old_search_run, old_search_run);
+        }
       };
 
       this.extendChoice = function (saved) {
@@ -3056,6 +3065,7 @@
       this.destroy = function () {
         network.clear();
         extract = null;
+        prefer_old = null;
       };
 
       function parse(str, empty) {
@@ -3213,6 +3223,7 @@
 
 
       function getStreamM3U(element, call, error, file) {
+        file = file.replace(/\.mp4:hls:manifest/, '');
         var hls_file = file.replace(/\/\d\d\d+([^\/]*\.m3u8)$/, '/hls$1');
         network.clear();
         network.timeout(5000);
@@ -3546,7 +3557,7 @@
       var dev_id = '1d07ba88e4b45d30';
       var token = Lampa.Storage.get('filmix_token', '');
       var dev_token = '?user_dev_apk=2.0.1&user_dev_id=' + dev_id + '&user_dev_name=Xiaomi&user_dev_os=12&user_dev_token=' + (token || 'aaaabbbbccccddddeeeeffffaaaabbbb') + '&user_dev_vendor=Xiaomi';
-      var abuse_token = '?user_dev_apk=2.0.1&user_dev_id=&user_dev_name=Xiaomi&user_dev_os=12&user_dev_token=7152e8df3eaf65bdc86cdc175f225eb8&user_dev_vendor=Xiaomi';
+      var abuse_token = '?user_dev_apk=2.0.1&user_dev_id=' + '&user_dev_name=Xiaomi&user_dev_os=12&user_dev_token=' + atob('YmMxNzBkZTNiMmNhZmIwOTI4M2I5MzYwMTFmMDU0ZWQ=') + '&user_dev_vendor=Xiaomi';
       /**
        * Начать поиск
        * @param {Object} _object 
