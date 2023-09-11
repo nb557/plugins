@@ -1,4 +1,4 @@
-//07.09.2023 - Fix cdnmovies
+//11.09.2023 - Debug
 
 (function () {
     'use strict';
@@ -503,9 +503,9 @@
       function filter() {
         filter_items = {
           season: [],
+          season_num: [],
           voice: [],
-          voice_info: [],
-          season_num: []
+          voice_info: []
         };
         results.slice(0, 1).forEach(function (movie) {
           if (movie.episodes) {
@@ -2206,8 +2206,7 @@
       function filter() {
         filter_items = {
           season: [],
-          voice: [],
-          quality: []
+          voice: []
         };
 
         if (is_playlist) {
@@ -2741,8 +2740,7 @@
       function filter() {
         filter_items = {
           season: [],
-          voice: [],
-          quality: []
+          voice: []
         };
 
         if (extract.playlist && extract.playlist.seasons) {
@@ -3293,8 +3291,7 @@
       function filter() {
         filter_items = {
           season: [],
-          voice: [],
-          quality: []
+          voice: []
         };
         extract.forEach(function (s) {
           if (s.folder) filter_items.season.push(s.title || s.comment || '');
@@ -4288,8 +4285,7 @@
       function filter() {
         filter_items = {
           season: [],
-          voice: [],
-          quality: []
+          voice: []
         };
         extract.forEach(function (s) {
           if (s.folder) filter_items.season.push(s.title || s.comment || '');
@@ -4671,8 +4667,7 @@
       function filter() {
         filter_items = {
           season: [],
-          voice: [],
-          quality: []
+          voice: []
         };
 
         if (object.movie.number_of_seasons) {
@@ -6483,10 +6478,478 @@
       }
     }
 
+    function bazon(component, _object) {
+      var network = new Lampa.Reguest();
+      var extract = [];
+      var object = _object;
+      var select_title = '';
+      var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true;
+      var prox = component.proxy('bazon');
+      var token = Utils.decodeSecret([12, 86, 15, 85, 87, 93, 80, 5, 7, 10, 7, 88, 87, 87, 93, 3, 6, 13, 14, 9, 90, 13, 4, 14, 13, 9, 1, 11, 5, 91, 5, 7]);
+      var embed = (prefer_http ? 'http:' : 'https:') + '//bazon.cc/api/search?token=' + token;
+      var filter_items = {};
+      var choice = {
+        season: 0,
+        voice: 0,
+        voice_name: ''
+      };
+      var lib = atob('KGZ1bmN0aW9uKCl7J3VzZSBzdHJpY3QnO3ZhciBrPXZvaWQgMCxhYT10aGlzO2Z1bmN0aW9uIHIoYyxkKXt2YXIgYT1jLnNwbGl0KCIuIiksYj1hYTshKGFbMF1pbiBiKSYmYi5leGVjU2NyaXB0JiZiLmV4ZWNTY3JpcHQoInZhciAiK2FbMF0pO2Zvcih2YXIgZTthLmxlbmd0aCYmKGU9YS5zaGlmdCgpKTspIWEubGVuZ3RoJiZkIT09az9iW2VdPWQ6Yj1iW2VdP2JbZV06YltlXT17fTt9dmFyIHQ9InVuZGVmaW5lZCIhPT10eXBlb2YgVWludDhBcnJheSYmInVuZGVmaW5lZCIhPT10eXBlb2YgVWludDE2QXJyYXkmJiJ1bmRlZmluZWQiIT09dHlwZW9mIFVpbnQzMkFycmF5JiYidW5kZWZpbmVkIiE9PXR5cGVvZiBEYXRhVmlldztmdW5jdGlvbiB1KGMpe3ZhciBkPWMubGVuZ3RoLGE9MCxiPU51bWJlci5QT1NJVElWRV9JTkZJTklUWSxlLGYsZyxoLGwsbixtLHAscyx4O2ZvcihwPTA7cDxkOysrcCljW3BdPmEmJihhPWNbcF0pLGNbcF08YiYmKGI9Y1twXSk7ZT0xPDxhO2Y9bmV3KHQ/VWludDMyQXJyYXk6QXJyYXkpKGUpO2c9MTtoPTA7Zm9yKGw9MjtnPD1hOyl7Zm9yKHA9MDtwPGQ7KytwKWlmKGNbcF09PT1nKXtuPTA7bT1oO2ZvcihzPTA7czxnOysrcyluPW48PDF8bSYxLG0+Pj0xO3g9Zzw8MTZ8cDtmb3Iocz1uO3M8ZTtzKz1sKWZbc109eDsrK2g7fSsrZztoPDw9MTtsPDw9MTt9cmV0dXJuW2YsYSxiXTt9ZnVuY3Rpb24gdyhjLGQpe3RoaXMuZz1bXTt0aGlzLmg9MzI3Njg7dGhpcy5jPXRoaXMuZj10aGlzLmQ9dGhpcy5rPTA7dGhpcy5pbnB1dD10P25ldyBVaW50OEFycmF5KGMpOmM7dGhpcy5sPSExO3RoaXMuaT15O3RoaXMucD0hMTtpZihkfHwhKGQ9e30pKWQuaW5kZXgmJih0aGlzLmQ9ZC5pbmRleCksZC5idWZmZXJTaXplJiYodGhpcy5oPWQuYnVmZmVyU2l6ZSksZC5idWZmZXJUeXBlJiYodGhpcy5pPWQuYnVmZmVyVHlwZSksZC5yZXNpemUmJih0aGlzLnA9ZC5yZXNpemUpO3N3aXRjaCh0aGlzLmkpe2Nhc2UgQTp0aGlzLmE9MzI3Njg7dGhpcy5iPW5ldyh0P1VpbnQ4QXJyYXk6QXJyYXkpKDMyNzY4K3RoaXMuaCsyNTgpO2JyZWFrO2Nhc2UgeTp0aGlzLmE9MDt0aGlzLmI9bmV3KHQ/VWludDhBcnJheTpBcnJheSkodGhpcy5oKTt0aGlzLmU9dGhpcy51O3RoaXMubT10aGlzLnI7dGhpcy5qPXRoaXMuczticmVhaztkZWZhdWx0OnRocm93IEVycm9yKCJpbnZhbGlkIGluZmxhdGUgbW9kZSIpO319dmFyIEE9MCx5PTE7dy5wcm90b3R5cGUudD1mdW5jdGlvbigpe2Zvcig7IXRoaXMubDspe3ZhciBjPUIodGhpcywzKTtjJjEmJih0aGlzLmw9ITApO2M+Pj49MTtzd2l0Y2goYyl7Y2FzZSAwOnZhciBkPXRoaXMuaW5wdXQsYT10aGlzLmQsYj10aGlzLmIsZT10aGlzLmEsZj1kLmxlbmd0aCxnPWssaD1rLGw9Yi5sZW5ndGgsbj1rO3RoaXMuYz10aGlzLmY9MDtpZihhKzE+PWYpdGhyb3cgRXJyb3IoImludmFsaWQgdW5jb21wcmVzc2VkIGJsb2NrIGhlYWRlcjpMRU4iKTtnPWRbYSsrXXxkW2ErK108PDg7aWYoYSsxPj1mKXRocm93IEVycm9yKCJpbnZhbGlkIHVuY29tcHJlc3NlZCBibG9jayBoZWFkZXI6TkxFTiIpO2g9ZFthKytdfGRbYSsrXTw8ODtpZihnPT09fmgpdGhyb3cgRXJyb3IoImludmFsaWQgdW5jb21wcmVzc2VkIGJsb2NrIGhlYWRlcjpsZW5ndGggdmVyaWZ5Iik7aWYoYStnPmQubGVuZ3RoKXRocm93IEVycm9yKCJpbnB1dCBidWZmZXIgaXMgYnJva2VuIik7c3dpdGNoKHRoaXMuaSl7Y2FzZSBBOmZvcig7ZStnPmIubGVuZ3RoOyl7bj1sLWU7Zy09bjtpZih0KWIuc2V0KGQuc3ViYXJyYXkoYSxhK24pLGUpLGUrPW4sYSs9bjtlbHNlIGZvcig7bi0tOyliW2UrK109ZFthKytdO3RoaXMuYT1lO2I9dGhpcy5lKCk7ZT10aGlzLmE7fWJyZWFrO2Nhc2UgeTpmb3IoO2UrZz5iLmxlbmd0aDspYj10aGlzLmUoe286Mn0pO2JyZWFrO2RlZmF1bHQ6dGhyb3cgRXJyb3IoImludmFsaWQgaW5mbGF0ZSBtb2RlIik7fWlmKHQpYi5zZXQoZC5zdWJhcnJheShhLGErZyksZSksZSs9ZyxhKz1nO2Vsc2UgZm9yKDtnLS07KWJbZSsrXT1kW2ErK107dGhpcy5kPWE7dGhpcy5hPWU7dGhpcy5iPWI7YnJlYWs7Y2FzZSAxOnRoaXMuaihiYSxjYSk7YnJlYWs7Y2FzZSAyOmZvcih2YXIgbT1CKHRoaXMsNSkrMjU3LHA9Qih0aGlzLDUpKzEscz1CKHRoaXMsNCkrNCx4PW5ldyh0P1VpbnQ4QXJyYXk6QXJyYXkpKEMubGVuZ3RoKSxRPWssUj1rLFM9ayx2PWssTT1rLEY9ayx6PWsscT1rLFQ9ayxxPTA7cTxzOysrcSl4W0NbcV1dPUIodGhpcywzKTtpZighdCl7cT1zO2ZvcihzPXgubGVuZ3RoO3E8czsrK3EpeFtDW3FdXT0wO31RPXUoeCk7dj1uZXcodD9VaW50OEFycmF5OkFycmF5KShtK3ApO3E9MDtmb3IoVD1tK3A7cTxUOylzd2l0Y2goTT1EKHRoaXMsUSksTSl7Y2FzZSAxNjpmb3Ioej0zK0IodGhpcywyKTt6LS07KXZbcSsrXT1GO2JyZWFrO2Nhc2UgMTc6Zm9yKHo9MytCKHRoaXMsMyk7ei0tOyl2W3ErK109MDtGPTA7YnJlYWs7Y2FzZSAxODpmb3Ioej0xMStCKHRoaXMsNyk7ei0tOyl2W3ErK109MDtGPTA7YnJlYWs7ZGVmYXVsdDpGPXZbcSsrXT1NO31SPXQ/dSh2LnN1YmFycmF5KDAsbSkpOnUodi5zbGljZSgwLG0pKTtTPXQ/dSh2LnN1YmFycmF5KG0pKTp1KHYuc2xpY2UobSkpO3RoaXMuaihSLFMpO2JyZWFrO2RlZmF1bHQ6dGhyb3cgRXJyb3IoInVua25vd24gQlRZUEU6IitjKTt9fXJldHVybiB0aGlzLm0oKTt9O3ZhciBFPVsxNiwxNywxOCwwLDgsNyw5LDYsMTAsNSwxMSw0LDEyLDMsMTMsMiwxNCwxLDE1XSxDPXQ/bmV3IFVpbnQxNkFycmF5KEUpOkUsRz1bMyw0LDUsNiw3LDgsOSwxMCwxMSwxMywxNSwxNywxOSwyMywyNywzMSwzNSw0Myw1MSw1OSw2Nyw4Myw5OSwxMTUsMTMxLDE2MywxOTUsMjI3LDI1OCwyNTgsMjU4XSxIPXQ/bmV3IFVpbnQxNkFycmF5KEcpOkcsST1bMCwwLDAsMCwwLDAsMCwwLDEsMSwxLDEsMiwyLDIsMiwzLDMsMywzLDQsNCw0LDQsNSw1LDUsNSwwLDAsMF0sSj10P25ldyBVaW50OEFycmF5KEkpOkksSz1bMSwyLDMsNCw1LDcsOSwxMywxNywyNSwzMyw0OSw2NSw5NywxMjksMTkzLDI1NywzODUsNTEzLDc2OSwxMDI1LDE1MzcsMjA0OSwzMDczLDQwOTcsNjE0NSw4MTkzLDEyMjg5LDE2Mzg1LDI0NTc3XSxMPXQ/bmV3IFVpbnQxNkFycmF5KEspOkssTj1bMCwwLDAsMCwxLDEsMiwyLDMsMyw0LDQsNSw1LDYsNiw3LDcsOCw4LDksOSwxMCwxMCwxMSwxMSwxMiwxMiwxMywxM10sTz10P25ldyBVaW50OEFycmF5KE4pOk4sUD1uZXcodD9VaW50OEFycmF5OkFycmF5KSgyODgpLFUsZGE7VT0wO2ZvcihkYT1QLmxlbmd0aDtVPGRhOysrVSlQW1VdPTE0Mz49VT84OjI1NT49VT85OjI3OT49VT83Ojg7dmFyIGJhPXUoUCksVj1uZXcodD9VaW50OEFycmF5OkFycmF5KSgzMCksVyxlYTtXPTA7Zm9yKGVhPVYubGVuZ3RoO1c8ZWE7KytXKVZbV109NTt2YXIgY2E9dShWKTtmdW5jdGlvbiBCKGMsZCl7Zm9yKHZhciBhPWMuZixiPWMuYyxlPWMuaW5wdXQsZj1jLmQsZz1lLmxlbmd0aCxoO2I8ZDspe2lmKGY+PWcpdGhyb3cgRXJyb3IoImlucHV0IGJ1ZmZlciBpcyBicm9rZW4iKTthfD1lW2YrK108PGI7Yis9ODt9aD1hJigxPDxkKS0xO2MuZj1hPj4+ZDtjLmM9Yi1kO2MuZD1mO3JldHVybiBoO31mdW5jdGlvbiBEKGMsZCl7Zm9yKHZhciBhPWMuZixiPWMuYyxlPWMuaW5wdXQsZj1jLmQsZz1lLmxlbmd0aCxoPWRbMF0sbD1kWzFdLG4sbTtiPGwmJiEoZj49Zyk7KWF8PWVbZisrXTw8YixiKz04O249aFthJigxPDxsKS0xXTttPW4+Pj4xNjtpZihtPmIpdGhyb3cgRXJyb3IoImludmFsaWQgY29kZSBsZW5ndGg6IittKTtjLmY9YT4+bTtjLmM9Yi1tO2MuZD1mO3JldHVybiBuJjY1NTM1O313LnByb3RvdHlwZS5qPWZ1bmN0aW9uKGMsZCl7dmFyIGE9dGhpcy5iLGI9dGhpcy5hO3RoaXMubj1jO2Zvcih2YXIgZT1hLmxlbmd0aC0yNTgsZixnLGgsbDsyNTYhPT0oZj1EKHRoaXMsYykpOylpZigyNTY+ZiliPj1lJiYodGhpcy5hPWIsYT10aGlzLmUoKSxiPXRoaXMuYSksYVtiKytdPWY7ZWxzZXtnPWYtMjU3O2w9SFtnXTswPEpbZ10mJihsKz1CKHRoaXMsSltnXSkpO2Y9RCh0aGlzLGQpO2g9TFtmXTswPE9bZl0mJihoKz1CKHRoaXMsT1tmXSkpO2I+PWUmJih0aGlzLmE9YixhPXRoaXMuZSgpLGI9dGhpcy5hKTtmb3IoO2wtLTspYVtiXT1hW2IrKy1oXTt9Zm9yKDs4PD10aGlzLmM7KXRoaXMuYy09OCx0aGlzLmQtLTt0aGlzLmE9Yjt9O3cucHJvdG90eXBlLnM9ZnVuY3Rpb24oYyxkKXt2YXIgYT10aGlzLmIsYj10aGlzLmE7dGhpcy5uPWM7Zm9yKHZhciBlPWEubGVuZ3RoLGYsZyxoLGw7MjU2IT09KGY9RCh0aGlzLGMpKTspaWYoMjU2PmYpYj49ZSYmKGE9dGhpcy5lKCksZT1hLmxlbmd0aCksYVtiKytdPWY7ZWxzZXtnPWYtMjU3O2w9SFtnXTswPEpbZ10mJihsKz1CKHRoaXMsSltnXSkpO2Y9RCh0aGlzLGQpO2g9TFtmXTswPE9bZl0mJihoKz1CKHRoaXMsT1tmXSkpO2IrbD5lJiYoYT10aGlzLmUoKSxlPWEubGVuZ3RoKTtmb3IoO2wtLTspYVtiXT1hW2IrKy1oXTt9Zm9yKDs4PD10aGlzLmM7KXRoaXMuYy09OCx0aGlzLmQtLTt0aGlzLmE9Yjt9O3cucHJvdG90eXBlLmU9ZnVuY3Rpb24oKXt2YXIgYz1uZXcodD9VaW50OEFycmF5OkFycmF5KSh0aGlzLmEtMzI3NjgpLGQ9dGhpcy5hLTMyNzY4LGEsYixlPXRoaXMuYjtpZih0KWMuc2V0KGUuc3ViYXJyYXkoMzI3NjgsYy5sZW5ndGgpKTtlbHNle2E9MDtmb3IoYj1jLmxlbmd0aDthPGI7KythKWNbYV09ZVthKzMyNzY4XTt9dGhpcy5nLnB1c2goYyk7dGhpcy5rKz1jLmxlbmd0aDtpZih0KWUuc2V0KGUuc3ViYXJyYXkoZCxkKzMyNzY4KSk7ZWxzZSBmb3IoYT0wOzMyNzY4PmE7KythKWVbYV09ZVtkK2FdO3RoaXMuYT0zMjc2ODtyZXR1cm4gZTt9O3cucHJvdG90eXBlLnU9ZnVuY3Rpb24oYyl7dmFyIGQsYT10aGlzLmlucHV0Lmxlbmd0aC90aGlzLmQrMXwwLGIsZSxmLGc9dGhpcy5pbnB1dCxoPXRoaXMuYjtjJiYoIm51bWJlciI9PT10eXBlb2YgYy5vJiYoYT1jLm8pLCJudW1iZXIiPT09dHlwZW9mIGMucSYmKGErPWMucSkpOzI+YT8oYj0oZy5sZW5ndGgtdGhpcy5kKS90aGlzLm5bMl0sZj0yNTgqKGIvMil8MCxlPWY8aC5sZW5ndGg/aC5sZW5ndGgrZjpoLmxlbmd0aDw8MSk6ZT1oLmxlbmd0aCphO3Q/KGQ9bmV3IFVpbnQ4QXJyYXkoZSksZC5zZXQoaCkpOmQ9aDtyZXR1cm4gdGhpcy5iPWQ7fTt3LnByb3RvdHlwZS5tPWZ1bmN0aW9uKCl7dmFyIGM9MCxkPXRoaXMuYixhPXRoaXMuZyxiLGU9bmV3KHQ/VWludDhBcnJheTpBcnJheSkodGhpcy5rKyh0aGlzLmEtMzI3NjgpKSxmLGcsaCxsO2lmKDA9PT1hLmxlbmd0aClyZXR1cm4gdD90aGlzLmIuc3ViYXJyYXkoMzI3NjgsdGhpcy5hKTp0aGlzLmIuc2xpY2UoMzI3NjgsdGhpcy5hKTtmPTA7Zm9yKGc9YS5sZW5ndGg7ZjxnOysrZil7Yj1hW2ZdO2g9MDtmb3IobD1iLmxlbmd0aDtoPGw7KytoKWVbYysrXT1iW2hdO31mPTMyNzY4O2ZvcihnPXRoaXMuYTtmPGc7KytmKWVbYysrXT1kW2ZdO3RoaXMuZz1bXTtyZXR1cm4gdGhpcy5idWZmZXI9ZTt9O3cucHJvdG90eXBlLnI9ZnVuY3Rpb24oKXt2YXIgYyxkPXRoaXMuYTt0P3RoaXMucD8oYz1uZXcgVWludDhBcnJheShkKSxjLnNldCh0aGlzLmIuc3ViYXJyYXkoMCxkKSkpOmM9dGhpcy5iLnN1YmFycmF5KDAsZCk6KHRoaXMuYi5sZW5ndGg+ZCYmKHRoaXMuYi5sZW5ndGg9ZCksYz10aGlzLmIpO3JldHVybiB0aGlzLmJ1ZmZlcj1jO307cigiWmxpYi5SYXdJbmZsYXRlIix3KTtyKCJabGliLlJhd0luZmxhdGUucHJvdG90eXBlLmRlY29tcHJlc3MiLHcucHJvdG90eXBlLnQpO3ZhciBYPXtBREFQVElWRTp5LEJMT0NLOkF9LFksWiwkLGZhO2lmKE9iamVjdC5rZXlzKVk9T2JqZWN0LmtleXMoWCk7ZWxzZSBmb3IoWiBpbiBZPVtdLCQ9MCxYKVlbJCsrXT1aOyQ9MDtmb3IoZmE9WS5sZW5ndGg7JDxmYTsrKyQpWj1ZWyRdLHIoIlpsaWIuUmF3SW5mbGF0ZS5CdWZmZXJUeXBlLiIrWixYW1pdKTtyZXR1cm4gdGhpczt9KS5jYWxsKHt9KTs=');
+      var decrypt = Utils.decodeSecret([26, 69, 74, 81, 19, 74, 64, 66, 93, 91, 68, 27, 15, 19, 17, 82, 69, 90, 91, 68, 80, 91, 93, 17, 71, 83, 70, 81, 64, 77, 24, 19, 85, 93, 82, 29, 24, 75, 25, 66, 82, 75, 20, 66, 81, 75, 16, 4, 20, 104, 100, 24, 16, 16, 24, 13, 25, 79, 78, 2, 20, 70, 85, 74, 16, 105, 88, 82, 64, 81, 66, 94, 75, 16, 4, 20, 85, 76, 90, 83, 64, 81, 95, 87, 20, 99, 85, 85, 73, 81, 74, 90, 74, 28, 80, 16, 20, 75, 20, 74, 85, 74, 26, 67, 76, 71, 88, 28, 91, 25, 2, 20, 78, 2, 20, 70, 85, 74, 16, 97, 121, 127, 113, 64, 68, 68, 106, 85, 72, 65, 86, 74, 64, 16, 9, 24, 86, 76, 90, 80, 77, 93, 95, 90, 24, 104, 116, 120, 123, 77, 64, 64, 102, 93, 65, 76, 81, 64, 77, 28, 25, 20, 67, 16, 77, 92, 90, 74, 26, 95, 68, 93, 94, 25, 9, 19, 95, 65, 94, 87, 76, 89, 86, 90, 27, 16, 20, 75, 73, 3, 16, 77, 92, 90, 74, 26, 67, 81, 76, 98, 92, 69, 70, 92, 71, 68, 124, 93, 81, 93, 81, 65, 25, 9, 16, 82, 77, 94, 90, 64, 90, 86, 90, 24, 29, 24, 75, 68, 15, 19, 77, 92, 89, 71, 22, 67, 92, 90, 87, 25, 9, 16, 82, 77, 94, 90, 64, 90, 86, 90, 24, 29, 24, 75, 68, 15, 19, 68, 15, 16, 66, 89, 66, 25, 108, 119, 86, 89, 81, 93, 86, 98, 92, 69, 70, 92, 71, 68, 20, 5, 16, 97, 121, 127, 113, 64, 68, 68, 106, 85, 72, 65, 86, 74, 64, 11, 20, 76, 66, 64, 20, 72, 25, 66, 81, 70, 24, 92, 25, 9, 19, 92, 66, 81, 88, 16, 92, 80, 86, 26, 2, 20, 70, 85, 74, 16, 94, 78, 90, 87, 82, 92, 85, 76, 85, 25, 9, 19, 95, 65, 94, 87, 76, 89, 86, 90, 27, 87, 29, 16, 79, 24, 94, 25, 9, 19, 87, 26, 67, 68, 84, 89, 77, 28, 17, 27, 29, 30, 89, 89, 64, 17, 82, 70, 87, 87, 68, 93, 87, 94, 17, 90, 26, 25, 79, 16, 70, 93, 68, 76, 70, 93, 25, 90, 30, 87, 80, 81, 75, 119, 92, 93, 81, 113, 64, 16, 0, 16, 15, 19, 68, 29, 11, 20, 78, 81, 75, 20, 65, 25, 9, 16, 90, 93, 71, 25, 88, 29, 99, 88, 89, 86, 22, 98, 88, 67, 122, 87, 82, 92, 85, 76, 85, 17, 90, 26, 2, 20, 94, 20, 5, 16, 75, 26, 87, 92, 87, 95, 89, 72, 66, 92, 71, 64, 17, 29, 11, 20, 74, 85, 77, 65, 65, 87, 20, 94, 81, 79, 16, 109, 81, 75, 77, 112, 85, 87, 87, 84, 92, 70, 27, 27, 65, 68, 82, 21, 8, 27, 29, 29, 93, 81, 83, 91, 92, 85, 17, 90, 26, 2, 20, 77, 15, 24, 85, 79, 85, 95, 17, 71, 83, 70, 81, 64, 77, 29, 8, 25, 73, 16, 87, 89, 68, 90, 92, 19, 17, 81, 25, 20, 67, 77, 25, 70, 86, 77, 65, 66, 90, 24, 66, 92, 71, 8, 25, 73, 25]);
+      /**
+       * Начать поиск
+       * @param {Object} _object
+       * @param {String} kinopoisk_id
+       */
+
+      this.search = function (_object, kinopoisk_id) {
+        object = _object;
+        select_title = object.search || object.movie.title;
+
+        if (isNaN(kinopoisk_id)) {
+          component.emptyForQuery(select_title);
+          return;
+        }
+
+        var url = Lampa.Utils.addUrlComponent(embed, 'kp=' + kinopoisk_id);
+        network.clear();
+        network.timeout(10000);
+        network.silent(url, function (json) {
+          success(json);
+        }, function (a, c) {
+          component.empty(network.errorDecode(a, c));
+        });
+      };
+
+      this.extendChoice = function (saved) {
+        Lampa.Arrays.extend(choice, saved, true);
+      };
+      /**
+       * Сброс фильтра
+       */
+
+
+      this.reset = function () {
+        component.reset();
+        choice = {
+          season: 0,
+          voice: 0,
+          voice_name: ''
+        };
+        filter();
+        append(filtred());
+        component.saveChoice(choice);
+      };
+      /**
+       * Применить фильтр
+       * @param {*} type
+       * @param {*} a
+       * @param {*} b
+       */
+
+
+      this.filter = function (type, a, b) {
+        choice[a.stype] = b.index;
+        if (a.stype == 'voice') choice.voice_name = filter_items.voice[b.index];
+        component.reset();
+        filter();
+        append(filtred());
+        component.saveChoice(choice);
+      };
+      /**
+       * Уничтожить
+       */
+
+
+      this.destroy = function () {
+        network.clear();
+        extract = null;
+      };
+      /**
+       * Получить потоки
+       * @param {String} str
+       * @returns array
+       */
+
+
+      function extractItems(str) {
+        if (!str) return [];
+
+        try {
+          var items = component.parsePlaylist(str).map(function (item) {
+            var quality = item.label.match(/(\d\d\d+)p/);
+            var link = item.links[0] || '';
+            if (link) link = (prefer_http || prox ? 'http:' : 'https:') + link;
+            return {
+              label: item.label,
+              quality: quality ? parseInt(quality[1]) : NaN,
+              file: link
+            };
+          });
+          items.sort(function (a, b) {
+            if (b.quality > a.quality) return 1;
+            if (b.quality < a.quality) return -1;
+            if (b.label > a.label) return 1;
+            if (b.label < a.label) return -1;
+            return 0;
+          });
+          return items;
+        } catch (e) {}
+
+        return [];
+      }
+
+      function success(json) {
+        component.loading(false);
+
+        if (json && json.results && json.results.length) {
+          extract = json.results;
+          filter();
+          append(filtred());
+        } else component.emptyForQuery(select_title);
+      }
+      /**
+       * Построить фильтр
+       */
+
+
+      function filter() {
+        filter_items = {
+          season: [],
+          season_num: [],
+          voice: [],
+          voice_info: []
+        };
+        extract.forEach(function (v) {
+          if (v.episodes) {
+            for (var s_num in v.episodes) {
+              if (filter_items.season_num.indexOf(s_num) == -1) filter_items.season_num.push(s_num);
+            }
+          }
+        });
+        filter_items.season_num.sort(function (a, b) {
+          return a - b;
+        });
+        filter_items.season_num.forEach(function (s_num) {
+          filter_items.season.push(Lampa.Lang.translate('torrent_serial_season') + ' ' + s_num);
+        });
+        if (!filter_items.season[choice.season]) choice.season = 0;
+
+        if (filter_items.season[choice.season]) {
+          var s_num = filter_items.season_num[choice.season];
+          extract.forEach(function (v, v_id) {
+            if (v.episodes && v.episodes[s_num]) {
+              var voice = v.translation + (v.studio ? ' (' + v.studio + ')' : '');
+              filter_items.voice.push(voice);
+              filter_items.voice_info.push({
+                id: v_id
+              });
+            }
+          });
+        }
+
+        if (!filter_items.voice[choice.voice]) choice.voice = 0;
+
+        if (choice.voice_name) {
+          var inx = filter_items.voice.indexOf(choice.voice_name);
+          if (inx == -1) choice.voice = 0;else if (inx !== choice.voice) {
+            choice.voice = inx;
+          }
+        }
+
+        component.filter(filter_items, choice);
+      }
+      /**
+       * Отфильтровать файлы
+       * @returns array
+       */
+
+
+      function filtred() {
+        var filtred = [];
+
+        if (filter_items.season[choice.season]) {
+          var s_num = filter_items.season_num[choice.season];
+
+          if (filter_items.voice_info[choice.voice]) {
+            var voice = filter_items.voice[choice.voice];
+            var v = extract[filter_items.voice_info[choice.voice].id];
+
+            if (v && v.episodes && v.episodes[s_num]) {
+              var episodes = v.episodes[s_num];
+
+              for (var e_num in episodes) {
+                filtred.push({
+                  title: 'S' + s_num + ' / ' + Lampa.Lang.translate('torrent_serial_episode') + ' ' + e_num,
+                  quality: (episodes[e_num] ? episodes[e_num] + 'p' : v.max_qual ? v.max_qual + 'p' : '360p ~ 1080p') + (v.quality ? ' - ' + v.quality : ''),
+                  info: ' / ' + Lampa.Utils.shortText(voice, 50),
+                  season: s_num,
+                  episode: e_num,
+                  media: v
+                });
+              }
+            }
+          }
+        } else {
+          extract.forEach(function (v) {
+            var voice = v.translation + (v.studio ? ' (' + v.studio + ')' : '');
+            filtred.push({
+              title: voice,
+              quality: (v.max_qual ? v.max_qual + 'p' : '360p ~ 1080p') + (v.quality ? ' - ' + v.quality : ''),
+              info: '',
+              media: v
+            });
+          });
+        }
+
+        return filtred;
+      }
+      /**
+       * Получить поток
+       * @param {*} element
+       */
+
+
+      function getStream(element, call, error) {
+        if (element.media.streams) return getFileStream(element, call, error);
+        if (!element.media.link) return error();
+        var link = element.media.link;
+        if (prefer_http || prox) link = link.replace('https://', 'http://');
+        var url = prox + link;
+        network.clear();
+        network.timeout(10000);
+        network.silent(url, function (str) {
+          str = str.replace(/\n/g, '');
+          var scripts = str.match(/<script>(.*?)<\/script>/g);
+
+          if (scripts) {
+            scripts = scripts.filter(function (s) {
+              return s.indexOf('Playerjs') !== -1 && s.indexOf('gzinflate') !== -1;
+            });
+
+            if (scripts.length) {
+              var streams = {};
+              var configs;
+
+              try {
+                configs = (0, eval)(decrypt + '(' + JSON.stringify(scripts[0].substring(8, scripts[0].length - 9)) + ',' + JSON.stringify(lib) + ');');
+              } catch (e) {}
+
+              if (configs && configs.length) {
+                var file = configs[0].file || '';
+
+                if (file) {
+                  try {
+                    streams = JSON.parse(file);
+                  } catch (e) {
+                    streams = {
+                      file: file
+                    };
+                  }
+                }
+              }
+
+              element.media.streams = streams;
+              return getFileStream(element, call, error);
+            }
+          }
+
+          error();
+        }, error, false, {
+          dataType: 'text'
+        });
+      }
+      /**
+       * Получить поток
+       * @param {*} element
+       */
+
+
+      function getFileStream(element, call, error) {
+        if (element.stream) return call(element);
+        if (!element.media.streams) return error();
+        var streams = element.media.streams;
+        var file = '';
+
+        if (streams.file) {
+          file = streams.file;
+        } else if (streams.length && element.season) {
+          streams.forEach(function (s) {
+            if (s.folder) {
+              var s_num = (s.title || '').match(/ (\d+)$/);
+
+              if (s_num && s_num[1] == element.season) {
+                s.folder.forEach(function (e) {
+                  var e_num = (e.title || '').match(/ (\d+)$/);
+
+                  if (e_num && e_num[1] == element.episode) {
+                    file = e.file;
+                  }
+                });
+              }
+            }
+          });
+        }
+
+        var items = extractItems(file);
+        var link = items[0] && items[0].file || '';
+        if (!link || link.indexOf('/index.m3u8') == -1) return error();
+        var url = prox + link;
+        network.clear();
+        network.timeout(10000);
+        network.silent(url, function (str) {
+          var links = component.parseM3U(str);
+          var link = links[0] && links[0].link || '';
+          if (!link) return error();
+          if (prefer_http) link = link.replace('https://', 'http://');
+          var found = link.match(/(https?:\/\/[^\/]*\/secure\/([^\/]*)\/([^\/]*)\/([^\/]*)\/(([^\/]*)\/)?)([^\/]*\.mp4)\//);
+
+          if (found) {
+            var _file = found[1] + found[7] + '/index.m3u8';
+
+            _file = Lampa.Utils.addUrlComponent(_file, 'hash=' + found[2]);
+            _file = Lampa.Utils.addUrlComponent(_file, 'expires=' + found[3]);
+            _file = Lampa.Utils.addUrlComponent(_file, 'id=' + found[4]);
+            if (found[6]) _file = Lampa.Utils.addUrlComponent(_file, 's=' + found[6]);
+            _file = Lampa.Utils.addUrlComponent(_file, 'name=' + found[7]);
+            var quality = false;
+            var name_template = found[7].replace(items[0].quality + '', '%s');
+
+            if (name_template !== found[7]) {
+              quality = {};
+              items.forEach(function (item) {
+                if (item.quality) {
+                  var name = name_template.replace('%s', item.quality + '');
+
+                  var _file2 = found[1] + name + '/index.m3u8';
+
+                  _file2 = Lampa.Utils.addUrlComponent(_file2, 'hash=' + found[2]);
+                  _file2 = Lampa.Utils.addUrlComponent(_file2, 'expires=' + found[3]);
+                  _file2 = Lampa.Utils.addUrlComponent(_file2, 'id=' + found[4]);
+                  if (found[6]) _file2 = Lampa.Utils.addUrlComponent(_file2, 's=' + found[6]);
+                  _file2 = Lampa.Utils.addUrlComponent(_file2, 'name=' + name);
+                  quality[item.label] = _file2;
+                }
+              });
+              var preferably = Lampa.Storage.get('video_quality_default', '1080') + 'p';
+              if (quality[preferably]) _file = quality[preferably];
+            }
+
+            element.stream = _file;
+            element.qualitys = quality;
+            return call(element);
+          }
+
+          error();
+        }, error, false, {
+          dataType: 'text'
+        });
+      }
+      /**
+       * Показать файлы
+       */
+
+
+      function append(items) {
+        component.reset();
+        var viewed = Lampa.Storage.cache('online_view', 5000, []);
+        var last_episode = component.getLastEpisode(items);
+        items.forEach(function (element) {
+          if (element.season) {
+            element.translate_episode_end = last_episode;
+            element.translate_voice = filter_items.voice[choice.voice];
+          }
+
+          var hash = Lampa.Utils.hash(element.season ? [element.season, element.episode, object.movie.original_title].join('') : object.movie.original_title);
+          var view = Lampa.Timeline.view(hash);
+          var item = Lampa.Template.get('online_mod', element);
+          var hash_file = Lampa.Utils.hash(element.season ? [element.season, element.episode, object.movie.original_title, filter_items.voice[choice.voice]].join('') : object.movie.original_title + element.title);
+          element.timeline = view;
+          item.append(Lampa.Timeline.render(view));
+
+          if (Lampa.Timeline.details) {
+            item.find('.online__quality').append(Lampa.Timeline.details(view, ' / '));
+          }
+
+          if (viewed.indexOf(hash_file) !== -1) item.append('<div class="torrent-item__viewed">' + Lampa.Template.get('icon_star', {}, true) + '</div>');
+          item.on('hover:enter', function () {
+            if (element.loading) return;
+            if (object.movie.id) Lampa.Favorite.add('history', object.movie, 100);
+            element.loading = true;
+            getStream(element, function (element) {
+              element.loading = false;
+              var first = {
+                url: element.stream,
+                quality: element.qualitys,
+                timeline: element.timeline,
+                title: element.season ? element.title : select_title + (element.title == select_title ? '' : ' / ' + element.title)
+              };
+              Lampa.Player.play(first);
+
+              if (element.season && Lampa.Platform.version) {
+                var playlist = [];
+                items.forEach(function (elem) {
+                  if (elem == element) {
+                    playlist.push(first);
+                  } else {
+                    var cell = {
+                      url: function url(call) {
+                        getStream(elem, function (elem) {
+                          cell.url = elem.stream;
+                          cell.quality = elem.qualitys;
+                          call();
+                        }, function () {
+                          cell.url = '';
+                          call();
+                        });
+                      },
+                      timeline: elem.timeline,
+                      title: elem.title
+                    };
+                    playlist.push(cell);
+                  }
+                });
+                Lampa.Player.playlist(playlist);
+              } else {
+                Lampa.Player.playlist([first]);
+              }
+
+              if (viewed.indexOf(hash_file) == -1) {
+                viewed.push(hash_file);
+                item.append('<div class="torrent-item__viewed">' + Lampa.Template.get('icon_star', {}, true) + '</div>');
+                Lampa.Storage.set('online_view', viewed);
+              }
+            }, function () {
+              element.loading = false;
+              Lampa.Noty.show(Lampa.Lang.translate('online_mod_nolink'));
+            });
+          });
+          component.append(item);
+          component.contextmenu({
+            item: item,
+            view: view,
+            viewed: viewed,
+            hash_file: hash_file,
+            element: element,
+            file: function file(call) {
+              getStream(element, function (element) {
+                call({
+                  file: element.stream,
+                  quality: element.qualitys
+                });
+              }, function () {
+                Lampa.Noty.show(Lampa.Lang.translate('online_mod_nolink'));
+              });
+            }
+          });
+        });
+        component.start(true);
+      }
+    }
+
     function hdvb(component, _object) {
       var network = new Lampa.Reguest();
       var extract = [];
-      var backend = 'http://back.freebie.tom.ru/lampa/hdvburl?v=2102';
+      var backend = 'http://back.freebie.tom.ru/lampa/hdvburl?v=2108';
       var object = _object;
       var select_title = '';
       var select_id = '';
@@ -7013,6 +7476,7 @@
           if (name === 'zetflix') return proxy3 || proxy2;
           if (name === 'anilibria') return alt_proxy;
           if (name === 'kodik') return proxy3 || proxy2;
+          if (name === 'bazon') return proxy3 || proxy2;
         }
 
         return '';
@@ -7031,6 +7495,7 @@
         anilibria: new anilibria(this, object),
         kodik: new kodik(this, object),
         kinopub: new kinopub(this, object),
+        bazon: new bazon(this, object),
         filmix2: new filmix(this, object, true),
         hdvb: new hdvb(this, object)
       };
@@ -7047,6 +7512,7 @@
 
       if (Utils.isDebug()) {
         filter_sources.push('kinopub');
+        filter_sources.push('bazon');
         filter_sources.push('filmix2');
         filter_sources.push('hdvb');
       } // шаловливые ручки
@@ -7401,11 +7867,11 @@
         };
 
         var letgo = function letgo() {
-          if (!object.clarification && +object.movie.kinopoisk_id && ['rezka', 'collaps', 'cdnmovies', 'videodb', 'zetflix', 'kodik', 'hdvb'].indexOf(balanser) >= 0) {
+          if (!object.clarification && +object.movie.kinopoisk_id && ['rezka', 'collaps', 'cdnmovies', 'videodb', 'zetflix', 'kodik', 'bazon', 'hdvb'].indexOf(balanser) >= 0) {
             _this2.extendChoice();
 
             sources[balanser].search(object, +object.movie.kinopoisk_id);
-          } else if (!object.clarification && object.movie.imdb_id && ['rezka', 'collaps', 'cdnmovies', 'videodb', 'zetflix', 'kodik', 'hdvb'].indexOf(balanser) >= 0) {
+          } else if (!object.clarification && object.movie.imdb_id && ['rezka', 'collaps', 'cdnmovies', 'videodb', 'zetflix', 'kodik', 'bazon', 'hdvb'].indexOf(balanser) >= 0) {
             if (Lampa.Storage.field('online_mod_skip_kp_search') === true) vcdn_search_imdb();else kp_search_imdb();
           } else if (['rezka2', 'kinobase', 'filmix', 'filmix2', 'anilibria', 'kodik', 'kinopub'].indexOf(balanser) >= 0) {
             _this2.extendChoice();
@@ -8031,6 +8497,7 @@
         sources.anilibria.destroy();
         sources.kodik.destroy();
         sources.kinopub.destroy();
+        sources.bazon.destroy();
         sources.filmix2.destroy();
         sources.hdvb.destroy();
         window.removeEventListener('resize', minus);
@@ -8372,7 +8839,7 @@
       Lampa.Template.add('online_mod_folder', "<div class=\"online selector\">\n        <div class=\"online__body\">\n            <div style=\"position: absolute;left: 0;top: -0.3em;width: 2.4em;height: 2.4em\">\n                <svg style=\"height: 2.4em; width:  2.4em;\" viewBox=\"0 0 128 112\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n                    <rect y=\"20\" width=\"128\" height=\"92\" rx=\"13\" fill=\"white\"/>\n                    <path d=\"M29.9963 8H98.0037C96.0446 3.3021 91.4079 0 86 0H42C36.5921 0 31.9555 3.3021 29.9963 8Z\" fill=\"white\" fill-opacity=\"0.23\"/>\n                    <rect x=\"11\" y=\"8\" width=\"106\" height=\"76\" rx=\"13\" fill=\"white\" fill-opacity=\"0.51\"/>\n                </svg>\n            </div>\n            <div class=\"online__title\" style=\"padding-left: 2.1em;\">{title}</div>\n            <div class=\"online__quality\" style=\"padding-left: 3.4em;\">{quality}{info}</div>\n        </div>\n    </div>");
     }
 
-    var button = "<div class=\"full-start__button selector view--online_mod\" data-subtitle=\"online_mod 07.09.2023\">\n    <svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:svgjs=\"http://svgjs.com/svgjs\" version=\"1.1\" width=\"512\" height=\"512\" x=\"0\" y=\"0\" viewBox=\"0 0 244 260\" style=\"enable-background:new 0 0 512 512\" xml:space=\"preserve\" class=\"\">\n    <g xmlns=\"http://www.w3.org/2000/svg\">\n        <path d=\"M242,88v170H10V88h41l-38,38h37.1l38-38h38.4l-38,38h38.4l38-38h38.3l-38,38H204L242,88L242,88z M228.9,2l8,37.7l0,0 L191.2,10L228.9,2z M160.6,56l-45.8-29.7l38-8.1l45.8,29.7L160.6,56z M84.5,72.1L38.8,42.4l38-8.1l45.8,29.7L84.5,72.1z M10,88 L2,50.2L47.8,80L10,88z\" fill=\"currentColor\"/>\n    </g></svg>\n\n    <span>#{online_mod_title}</span>\n    </div>"; // нужна заглушка, а то при страте лампы говорит пусто
+    var button = "<div class=\"full-start__button selector view--online_mod\" data-subtitle=\"online_mod 11.09.2023\">\n    <svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:svgjs=\"http://svgjs.com/svgjs\" version=\"1.1\" width=\"512\" height=\"512\" x=\"0\" y=\"0\" viewBox=\"0 0 244 260\" style=\"enable-background:new 0 0 512 512\" xml:space=\"preserve\" class=\"\">\n    <g xmlns=\"http://www.w3.org/2000/svg\">\n        <path d=\"M242,88v170H10V88h41l-38,38h37.1l38-38h38.4l-38,38h38.4l38-38h38.3l-38,38H204L242,88L242,88z M228.9,2l8,37.7l0,0 L191.2,10L228.9,2z M160.6,56l-45.8-29.7l38-8.1l45.8,29.7L160.6,56z M84.5,72.1L38.8,42.4l38-8.1l45.8,29.7L84.5,72.1z M10,88 L2,50.2L47.8,80L10,88z\" fill=\"currentColor\"/>\n    </g></svg>\n\n    <span>#{online_mod_title}</span>\n    </div>"; // нужна заглушка, а то при страте лампы говорит пусто
 
     Lampa.Component.add('online_mod', component); //то же самое
 
@@ -8552,6 +9019,7 @@
     Lampa.Storage.set('online_mod_proxy_videocdn', 'false');
     Lampa.Storage.set('online_mod_proxy_collaps', 'false');
     Lampa.Storage.set('online_mod_proxy_cdnmovies', 'false');
+    Lampa.Storage.set('online_mod_proxy_bazon', 'true');
     Lampa.Storage.set('online_mod_proxy_hdvb', 'false');
     Lampa.Storage.set('online_mod_proxy_kp', 'false');
     Lampa.Storage.set('online_mod_alt_iframe_proxy', 'false');
@@ -8567,6 +9035,7 @@
     Lampa.Params.trigger('online_mod_proxy_zetflix', false);
     Lampa.Params.trigger('online_mod_proxy_anilibria', false);
     Lampa.Params.trigger('online_mod_proxy_kodik', false);
+    Lampa.Params.trigger('online_mod_proxy_bazon', false);
     Lampa.Params.trigger('online_mod_proxy_hdvb', false);
     Lampa.Params.trigger('online_mod_proxy_kp', false);
     Lampa.Params.trigger('online_mod_skip_kp_search', false);
