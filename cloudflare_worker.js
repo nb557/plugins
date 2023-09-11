@@ -49,6 +49,10 @@ export default {
         request.headers.set("Origin", "https://videocdn.tv");
         request.headers.set("Referer", "https://videocdn.tv/");
       }
+      if (apiUrl.hostname.endsWith(".bazon.site")) {
+        request.headers.set("Origin", "http://bazon.cc");
+        request.headers.set("Referer", "http://bazon.cc/");
+      }
       if (["kodikapi.com", "kodik.biz", "kodik.info"].indexOf(apiUrl.hostname) !== -1) {
         request.headers.delete("Origin");
         request.headers.delete("Referer");
