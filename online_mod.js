@@ -1,4 +1,4 @@
-//17.09.2023 - Disable iframe-proxy for MSX+Tizen
+//20.09.2023 - Disable iframe-proxy for MSX+Tizen
 
 (function () {
     'use strict';
@@ -6768,10 +6768,10 @@
         if (element.stream) return call(element);
         if (!element.media.streams) return error();
         var streams = element.media.streams;
-        var file = '';
+        var stream = '';
 
         if (streams.file) {
-          file = streams.file;
+          stream = streams.file;
         } else if (streams.length && element.season) {
           streams.forEach(function (s) {
             if (s.folder) {
@@ -6782,7 +6782,7 @@
                   var e_num = (e.title || '').match(/ (\d+)$/);
 
                   if (e_num && e_num[1] == element.episode) {
-                    file = e.file;
+                    stream = e.file;
                   }
                 });
               }
@@ -6790,13 +6790,26 @@
           });
         }
 
-        var items = extractItems(file);
+        var items = extractItems(stream);
         var link = items[0] && items[0].file || '';
         if (!link || link.indexOf('/index.m3u8') == -1) return error();
-        var url = prox + link;
+
+        if (!prefer_http) {
+          var file = prox + link;
+          var quality = {};
+          items.forEach(function (item) {
+            quality[item.label] = prox + item.file;
+          });
+          var preferably = Lampa.Storage.get('video_quality_default', '1080') + 'p';
+          if (quality[preferably]) file = quality[preferably];
+          element.stream = file;
+          element.qualitys = quality;
+          return call(element);
+        }
+
         network.clear();
         network.timeout(10000);
-        network.silent(url, function (str) {
+        network.silent(prox + link, function (str) {
           var links = component.parseM3U(str);
           var link = links[0] && links[0].link || '';
           if (!link) return error();
@@ -6811,11 +6824,11 @@
             _file = Lampa.Utils.addUrlComponent(_file, 'id=' + found[4]);
             if (found[6]) _file = Lampa.Utils.addUrlComponent(_file, 's=' + found[6]);
             _file = Lampa.Utils.addUrlComponent(_file, 'name=' + found[7]);
-            var quality = false;
+            var _quality = false;
             var name_template = found[7].replace(items[0].quality + '', '%s');
 
             if (name_template !== found[7]) {
-              quality = {};
+              _quality = {};
               items.forEach(function (item) {
                 if (item.quality) {
                   var name = name_template.replace('%s', item.quality + '');
@@ -6827,15 +6840,17 @@
                   _file2 = Lampa.Utils.addUrlComponent(_file2, 'id=' + found[4]);
                   if (found[6]) _file2 = Lampa.Utils.addUrlComponent(_file2, 's=' + found[6]);
                   _file2 = Lampa.Utils.addUrlComponent(_file2, 'name=' + name);
-                  quality[item.label] = _file2;
+                  _quality[item.label] = _file2;
                 }
               });
-              var preferably = Lampa.Storage.get('video_quality_default', '1080') + 'p';
-              if (quality[preferably]) _file = quality[preferably];
+
+              var _preferably = Lampa.Storage.get('video_quality_default', '1080') + 'p';
+
+              if (_quality[_preferably]) _file = _quality[_preferably];
             }
 
             element.stream = _file;
-            element.qualitys = quality;
+            element.qualitys = _quality;
             return call(element);
           }
 
@@ -8839,7 +8854,7 @@
       Lampa.Template.add('online_mod_folder', "<div class=\"online selector\">\n        <div class=\"online__body\">\n            <div style=\"position: absolute;left: 0;top: -0.3em;width: 2.4em;height: 2.4em\">\n                <svg style=\"height: 2.4em; width:  2.4em;\" viewBox=\"0 0 128 112\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n                    <rect y=\"20\" width=\"128\" height=\"92\" rx=\"13\" fill=\"white\"/>\n                    <path d=\"M29.9963 8H98.0037C96.0446 3.3021 91.4079 0 86 0H42C36.5921 0 31.9555 3.3021 29.9963 8Z\" fill=\"white\" fill-opacity=\"0.23\"/>\n                    <rect x=\"11\" y=\"8\" width=\"106\" height=\"76\" rx=\"13\" fill=\"white\" fill-opacity=\"0.51\"/>\n                </svg>\n            </div>\n            <div class=\"online__title\" style=\"padding-left: 2.1em;\">{title}</div>\n            <div class=\"online__quality\" style=\"padding-left: 3.4em;\">{quality}{info}</div>\n        </div>\n    </div>");
     }
 
-    var button = "<div class=\"full-start__button selector view--online_mod\" data-subtitle=\"online_mod 17.09.2023\">\n    <svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:svgjs=\"http://svgjs.com/svgjs\" version=\"1.1\" width=\"512\" height=\"512\" x=\"0\" y=\"0\" viewBox=\"0 0 244 260\" style=\"enable-background:new 0 0 512 512\" xml:space=\"preserve\" class=\"\">\n    <g xmlns=\"http://www.w3.org/2000/svg\">\n        <path d=\"M242,88v170H10V88h41l-38,38h37.1l38-38h38.4l-38,38h38.4l38-38h38.3l-38,38H204L242,88L242,88z M228.9,2l8,37.7l0,0 L191.2,10L228.9,2z M160.6,56l-45.8-29.7l38-8.1l45.8,29.7L160.6,56z M84.5,72.1L38.8,42.4l38-8.1l45.8,29.7L84.5,72.1z M10,88 L2,50.2L47.8,80L10,88z\" fill=\"currentColor\"/>\n    </g></svg>\n\n    <span>#{online_mod_title}</span>\n    </div>"; // нужна заглушка, а то при страте лампы говорит пусто
+    var button = "<div class=\"full-start__button selector view--online_mod\" data-subtitle=\"online_mod 20.09.2023\">\n    <svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:svgjs=\"http://svgjs.com/svgjs\" version=\"1.1\" width=\"512\" height=\"512\" x=\"0\" y=\"0\" viewBox=\"0 0 244 260\" style=\"enable-background:new 0 0 512 512\" xml:space=\"preserve\" class=\"\">\n    <g xmlns=\"http://www.w3.org/2000/svg\">\n        <path d=\"M242,88v170H10V88h41l-38,38h37.1l38-38h38.4l-38,38h38.4l38-38h38.3l-38,38H204L242,88L242,88z M228.9,2l8,37.7l0,0 L191.2,10L228.9,2z M160.6,56l-45.8-29.7l38-8.1l45.8,29.7L160.6,56z M84.5,72.1L38.8,42.4l38-8.1l45.8,29.7L84.5,72.1z M10,88 L2,50.2L47.8,80L10,88z\" fill=\"currentColor\"/>\n    </g></svg>\n\n    <span>#{online_mod_title}</span>\n    </div>"; // нужна заглушка, а то при страте лампы говорит пусто
 
     Lampa.Component.add('online_mod', component); //то же самое
 
