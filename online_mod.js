@@ -4882,9 +4882,9 @@
             var is_sure = false;
             var items = links.map(function (l) {
               var article = $(l);
-              var link = $('.card__desc>.card__title>a', article);
+              var link = $('.card__title>a', article);
               var titl = link.text().trim() || '';
-              var orig_span = $('.card__desc>.card__title>.pmovie__original-title', article);
+              var orig_span = $('.card__title>.pmovie__original-title', article);
               var orig_title = orig_span.text().trim() || '';
               var year_link = $('.card__desc span:contains("Год выпуска:")+a', article);
               var year = parseInt(year_link.text().trim() || '');
@@ -5000,7 +5000,7 @@
       };
 
       function getPage(card) {
-        page_title = card.orig_title || card.title || select_title;
+        page_title = card.title || card.orig_title || select_title;
         var url = card.link;
         url = url.indexOf('://') == -1 ? embed + (url.startsWith('/') ? url.substring(1) : url) : prox + url;
         network.clear();
