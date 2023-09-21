@@ -1336,7 +1336,7 @@
                 year: year,
                 title: titl,
                 orig_title: orig_title,
-                link: link.attr('href')
+                link: link.attr('href') || ''
               };
             });
             var cards = items;
@@ -2095,7 +2095,7 @@
               return {
                 year: year,
                 title: titl,
-                link: link.attr('href')
+                link: link.attr('href') || ''
               };
             });
             var cards = items;
@@ -4892,7 +4892,7 @@
                 year: year,
                 title: titl,
                 orig_title: orig_title,
-                link: link.attr('href')
+                link: link.attr('href') || ''
               };
             });
             var cards = items;
