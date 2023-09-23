@@ -6261,7 +6261,7 @@
       var extract = {};
       var object = _object;
       var select_title = '';
-      Lampa.Storage.field('online_mod_prefer_http') === true;
+      var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true;
       var prox = component.proxy('kinopub');
       var embed = prox + 'https://api.srvkp.com/v1/';
       var token = Utils.decodeSecret([76, 91, 92, 0, 67, 85, 66, 68, 0, 95, 84, 92, 2, 11, 77, 64, 0, 3, 94, 91, 84, 68, 70, 83, 13, 92, 90, 79, 2, 78, 5, 5]);
@@ -6496,11 +6496,19 @@
               var base = file.url.http.match(/^(.*)\/demo\/demo\.mp4(.*)$/);
 
               if (base) {
+                var base_url = base[1];
+
+                if (prefer_http) {
+                  base_url = base_url.replace('https://', 'http://');
+                } else {
+                  base_url = base_url.replace('http://', 'https://');
+                }
+
                 if (media.subtitles) {
                   subtitles = media.subtitles.map(function (sub) {
                     return {
                       label: sub.lang + (sub.forced ? ' - forced' : ''),
-                      url: sub.file ? base[1] + '/subtitles' + (sub.file.startsWith('/') ? '' : '/') + sub.file + '?loc=ru' : ''
+                      url: sub.file ? base_url + '/subtitles' + (sub.file.startsWith('/') ? '' : '/') + sub.file + '?loc=ru' : ''
                     };
                   });
                   if (!subtitles.length) subtitles = false;
@@ -6513,7 +6521,7 @@
                   codec: file.codec,
                   type: 'http',
                   params: base[2],
-                  file: base[1] + (file.file.startsWith('/') ? '' : '/') + file.file,
+                  file: base_url + (file.file.startsWith('/') ? '' : '/') + file.file,
                   subtitles: subtitles
                 });
               }
@@ -6523,6 +6531,14 @@
               var _base = file.url.hls4.match(/^(.*)\/demo\.m3u8(.*)$/);
 
               if (_base) {
+                var _base_url = _base[1];
+
+                if (prefer_http) {
+                  _base_url = _base_url.replace('https://', 'http://');
+                } else {
+                  _base_url = _base_url.replace('http://', 'https://');
+                }
+
                 items.push({
                   height: file.h,
                   quality_id: file.quality_id,
@@ -6530,7 +6546,7 @@
                   codec: file.codec,
                   type: 'hls4',
                   params: _base[2],
-                  file: _base[1] + '/' + media.id + '.m3u8',
+                  file: _base_url + '/' + media.id + '.m3u8',
                   subtitles: subtitles
                 });
               }
@@ -6540,6 +6556,14 @@
               var _base2 = file.url.hls2.match(/^(.*)\/demo\.m3u8(.*)$/);
 
               if (_base2) {
+                var _base_url2 = _base2[1];
+
+                if (prefer_http) {
+                  _base_url2 = _base_url2.replace('https://', 'http://');
+                } else {
+                  _base_url2 = _base_url2.replace('http://', 'https://');
+                }
+
                 items.push({
                   height: file.h,
                   quality_id: file.quality_id,
@@ -6547,7 +6571,7 @@
                   codec: file.codec,
                   type: 'hls2',
                   params: _base2[2],
-                  file: _base2[1] + '/' + media.id + '.m3u8',
+                  file: _base_url2 + '/' + media.id + '.m3u8',
                   subtitles: subtitles
                 });
               }
@@ -6557,6 +6581,14 @@
               var _base3 = file.url.hls.match(/^(.*)\/demo\/master-v1a1\.m3u8(.*)$/);
 
               if (_base3) {
+                var _base_url3 = _base3[1];
+
+                if (prefer_http) {
+                  _base_url3 = _base_url3.replace('https://', 'http://');
+                } else {
+                  _base_url3 = _base_url3.replace('http://', 'https://');
+                }
+
                 items.push({
                   height: file.h,
                   quality_id: file.quality_id,
@@ -6564,7 +6596,7 @@
                   codec: file.codec,
                   type: 'hls',
                   params: _base3[2],
-                  file: _base3[1] + (file.file.startsWith('/') ? '' : '/') + file.file,
+                  file: _base_url3 + (file.file.startsWith('/') ? '' : '/') + file.file,
                   subtitles: subtitles
                 });
               }
