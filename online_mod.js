@@ -6828,10 +6828,26 @@
         var file = '';
         var quality = false;
         var subtitles = false;
+        var hls_type = 'hls';
         var items = element.media.streams || [];
         items = items.filter(function (elem) {
-          return elem.type === 'hls' && elem.codec === 'h264';
+          return elem.type === hls_type;
         });
+
+        {
+          var tmp = items.filter(function (elem) {
+            return elem.codec === 'h265';
+          });
+          if (tmp.length) items = tmp;
+        }
+
+        {
+          var _tmp6 = items.filter(function (elem) {
+            return elem.codec === 'h264';
+          });
+
+          if (_tmp6.length) items = _tmp6;
+        }
 
         if (items && items.length) {
           var file_end = items[0].type === 'hls' ? element.audio_index ? '/master-v1a' + element.audio_index + '.m3u8' : '/master.m3u8' : '';
