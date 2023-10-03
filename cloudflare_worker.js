@@ -49,6 +49,10 @@ export default {
         request.headers.set("Origin", "https://videocdn.tv");
         request.headers.set("Referer", "https://videocdn.tv/");
       }
+      if (apiUrl.hostname.endsWith("cdnmovies-stream.online") || apiUrl.hostname.endsWith("cdnmovies-hls-stream.online") || apiUrl.hostname.endsWith(".sarnage.cc")) {
+        request.headers.set("Origin", "https://cdnmovies.net");
+        request.headers.set("Referer", "https://cdnmovies.net/");
+      }
       if (apiUrl.hostname.endsWith(".bazon.site")) {
         request.headers.set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36");
         request.headers.set("Origin", "https://bazon.cc");
