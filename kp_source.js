@@ -140,7 +140,7 @@
         "adult": false,
         "id": SOURCE_NAME + '_' + kinopoisk_id,
         "name": elem.nameRu || elem.nameEn || elem.nameOriginal || '',
-        "original_name": elem.nameOriginal || elem.nameEn || '',
+        "original_name": elem.nameOriginal || elem.nameEn || elem.nameRu || '',
         "overview": elem.description || elem.shortDescription || '',
         "img": elem.posterUrlPreview || elem.posterUrl || '',
         "background_image": elem.coverUrl || elem.posterUrl || elem.posterUrlPreview || '',
