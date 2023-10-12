@@ -3,7 +3,7 @@
 
 	function rating_kp_imdb(card) {
 		var network = new Lampa.Reguest();
-		var clean_title = card.title.replace(/[\s.,:;!?]+/g, ' ').trim();
+		var clean_title = cleanTitle(card.title);
 		var search_date = card.release_date || card.first_air_date || card.last_air_date || '0000';
 		var search_year = parseInt((search_date + '').slice(0, 4));
 		var orig = card.original_title || card.original_name;
@@ -187,17 +187,20 @@
 			}
 		}
 
-		function equalTitle(t1, t2) {
-			return typeof t1 === 'string' && typeof t2 === 'string' && t1.toLowerCase().replace(/—/g, '-').replace(/[\s.,:;!?]+/g, ' ').trim() === t2.toLowerCase().replace(/—/g, '-').replace(/[\s.,:;!?]+/g, ' ').trim();
+		function cleanTitle(str){
+			return str.replace(/[\s.,:;’'`!?]+/g, ' ').trim();
 		}
 
-		function containsTitle(str, title) {
-				if (typeof str === 'string' && typeof title === 'string') {
-						var s = str.toLowerCase().replace(/—/g, '-').replace(/[\s.,:;!?]+/g, ' ').trim();
-						var t = title.toLowerCase().replace(/—/g, '-').replace(/[\s.,:;!?]+/g, ' ').trim();
-						return s.indexOf(t) !== -1;
-				}
-				return false;
+		function normalizeTitle(str){
+			return cleanTitle(str.toLowerCase().replace(/—/g, '-').replace(/ё/g, 'е'));
+		}
+
+		function equalTitle(t1, t2){
+			return typeof t1 === 'string' && typeof t2 === 'string' && normalizeTitle(t1) === normalizeTitle(t2);
+		}
+
+		function containsTitle(str, title){
+			return typeof str === 'string' && typeof title === 'string' && normalizeTitle(str).indexOf(normalizeTitle(title)) !== -1;
 		}
 
 		function showError(error) {

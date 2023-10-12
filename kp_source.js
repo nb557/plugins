@@ -287,7 +287,7 @@
       var url = method;
 
       if (params.query) {
-        var clean_title = params.query && decodeURIComponent(params.query).replace(/[\s.,:;!?]+/g, ' ').trim();
+        var clean_title = params.query && decodeURIComponent(params.query).replace(/[\s.,:;’'`!?]+/g, ' ').trim();
 
         if (!clean_title) {
           onerror();
