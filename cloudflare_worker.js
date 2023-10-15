@@ -62,7 +62,7 @@ export default {
         request.headers.delete("Origin");
         request.headers.delete("Referer");
       }
-      if (apiUrl.hostname === "kinoplay.site") {
+      if (apiUrl.hostname === "kinoplay.site" || apiUrl.hostname === "kinoplay1.site") {
         request.headers.set("Cookie", "invite=a246a3f46c82fe439a45c3dbbbb24ad5");
       }
       let response = await fetch(request);
