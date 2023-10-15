@@ -9402,7 +9402,7 @@
     Lampa.Storage.set('online_mod_proxy_hdvb', 'false');
     Lampa.Storage.set('online_mod_proxy_kp', 'false');
     Lampa.Storage.set('online_mod_alt_iframe_proxy', 'false');
-    Lampa.Params.trigger('online_mod_iframe_proxy', !(isMSX && isTizen));
+    Lampa.Params.trigger('online_mod_iframe_proxy', !isTizen);
     Lampa.Params.trigger('online_mod_proxy_other', false);
     Lampa.Params.trigger('online_mod_proxy_videocdn', false);
     Lampa.Params.trigger('online_mod_proxy_rezka', false);
