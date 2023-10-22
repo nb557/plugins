@@ -9,6 +9,24 @@ export default {
     async function handleRequest(request) {
       const url = new URL(request.url);
       let api = url.href.substring(url.origin.length + 1);
+      let ip;
+
+      if (api === "headers") {
+        let body = "";
+        request.headers.forEach((value, key) => body += key + " = " + value + "\n");
+        return new Response(body);
+      }
+
+      if (api.startsWith("ip")) {
+        let pos = api.indexOf("/");
+        if (pos !== -1) {
+          ip = api.substring(2, pos);
+          api = api.substring(pos + 1);
+        } else {
+          ip = api.substring(2);
+          api = "";
+        }
+      }
 
       if (!api || !/^https?:\/\/[^\/]/.test(api)) {
         return new Response(null, {
@@ -23,7 +41,7 @@ export default {
       // that this request is not cross-site.
       request = new Request(api, request);
       request.headers.set("Origin", apiUrl.origin);
-      request.headers.set("Referer", apiUrl.origin + '/');
+      request.headers.set("Referer", apiUrl.origin + "/");
       if (true) {
         request.headers.delete("Sec-Fetch-Dest");
         request.headers.delete("Sec-Fetch-Mode");
@@ -41,6 +59,9 @@ export default {
         request.headers.delete("cf-ipcountry");
         request.headers.delete("cf-ray");
         request.headers.delete("cf-visitor");
+      }
+      if (ip) {
+        request.headers.set("X-Real-IP", ip);
       }
       if (apiUrl.hostname === "hdrezka.ag") {
         request.headers.set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36");
@@ -77,7 +98,7 @@ export default {
       if (response.status >= 300 && response.status < 400) {
         let target = response.headers.get("Location");
         if (target && target.startsWith("/")) {
-          response.headers.set("Location", url.origin + '/' + apiUrl.origin + target);
+          response.headers.set("Location", url.origin + "/" + apiUrl.origin + target);
         }
       }
 
