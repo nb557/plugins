@@ -7858,7 +7858,7 @@
 
       this.proxy = function (name) {
         var ip = Utils.getMyIp();
-        var proxy1 = 'http://prox.lampa.stream/';
+        var proxy1 = (window.location.protocol === 'https:' ? 'https://' : 'http://') + 'prox.lampa.stream/';
         var proxy2 = 'https://cors.nb557.workers.dev/' + (ip ? 'ip' + ip + '/' : '');
         var proxy3 = Lampa.Storage.field('online_mod_proxy_other_url');
         var alt_proxy = Lampa.Storage.field('online_mod_proxy_other') === true ? proxy3 || proxy2 : proxy1;
