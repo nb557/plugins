@@ -3390,7 +3390,7 @@
       var extract = {};
       var object = _object;
       var debug = _debug;
-      var embed = 'http://filmixapp.cyou/api/v2/';
+      var embed = (window.location.protocol === 'https:' ? 'https://cors.nb557.workers.dev/' : '') + 'http://filmixapp.cyou/api/v2/';
       var select_title = '';
       var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true;
       var filter_items = {};
@@ -9290,7 +9290,7 @@
       }
     }); ///////FILMIX/////////
 
-    var api_url = 'http://filmixapp.cyou/api/v2/';
+    var api_url = (window.location.protocol === 'https:' ? 'https://cors.nb557.workers.dev/' : '') + 'http://filmixapp.cyou/api/v2/';
     var user_dev = '?user_dev_apk=2.0.1&user_dev_id=' + Lampa.Utils.uid(16) + '&user_dev_name=Xiaomi&user_dev_os=12&user_dev_vendor=Xiaomi&user_dev_token=';
     var ping_auth;
     Lampa.Params.select('filmix_token', '', '');
