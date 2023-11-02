@@ -9504,7 +9504,6 @@
     Lampa.Params.select('online_mod_rezka2_password', '', '');
     Lampa.Params.select('online_mod_proxy_other_url', '', '');
     Lampa.Params.select('online_mod_secret_password', '', '');
-    Lampa.Storage.set('online_mod_prefer_http', '');
 
     if (window.location.protocol === 'https:') {
       Lampa.Storage.set('online_mod_prefer_http', 'false');
