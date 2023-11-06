@@ -10566,7 +10566,6 @@
       }
 
       function parse(str, url) {
-        component.loading(false);
         str = str.replace(/\n/g, '');
         var domain = url.match(/^(https?:\/\/[^\/]+\/)/);
         var serial = str.match(/var serial = '(\{.*\})';/);
@@ -10577,27 +10576,72 @@
 
         if (serial) {
           extract.serial = Lampa.Arrays.decodeJson(serial[1], {});
-        } else {
+          component.loading(false);
+          filter();
+          append(filtred());
+        } else if (buttons || id) {
+          var translations;
+
           if (buttons) {
-            extract.translations = buttons.map(function (b) {
+            translations = buttons.map(function (b) {
               var button = $(b);
               return {
                 id: button.attr('data-id-file') || '',
                 title: button.text() || ''
               };
             });
-          } else if (id) {
-            extract.translations = [{
+          } else {
+            translations = [{
               id: id[1] || '',
               title: select_title
             }];
           }
-        }
 
-        if (extract.serial || extract.translations) {
-          filter();
-          append(filtred());
+          extract.translations = [];
+          getTranslations(translations, function () {
+            component.loading(false);
+            filter();
+            append(filtred());
+          });
         } else component.emptyForQuery(select_title);
+      }
+
+      function getTranslations(translations, call) {
+        if (translations && translations.length) {
+          var t = translations.shift();
+          var element = {
+            media: t
+          };
+          getStream(element, function (element) {
+            if (element.voices) {
+              element.voices.forEach(function (v) {
+                extract.translations.push({
+                  id: t.id,
+                  title: v.label || t.title,
+                  stream: v.file,
+                  qualitys: false,
+                  subtitles: element.subtitles
+                });
+              });
+            } else {
+              extract.translations.push({
+                id: t.id,
+                title: t.title,
+                stream: element.stream,
+                qualitys: element.qualitys,
+                subtitles: element.subtitles
+              });
+            }
+
+            getTranslations(translations, call);
+          }, function () {
+            extract.translations.push({
+              id: t.id,
+              title: t.title
+            });
+            getTranslations(translations, call);
+          });
+        } else call();
       }
 
       function decode(data, hxcv) {
@@ -10767,7 +10811,10 @@
               title: t.title || select_title,
               quality: '360p ~ 1080p',
               info: '',
-              media: t
+              media: t,
+              stream: t.stream,
+              qualitys: t.qualitys,
+              subtitles: t.subtitles
             });
           });
         }
@@ -10783,13 +10830,12 @@
       function getStream(element, call, error) {
         if (element.stream) return call(element);
         if (!element.media.id) return error();
-        var url = extract.domain;
         var postdata = 'player_ajax=1';
         postdata += '&id_file=' + encodeURIComponent(element.media.id);
         postdata += '&token=' + encodeURIComponent(token);
         network.clear();
         network.timeout(10000);
-        network["native"](prox + url, function (json) {
+        network["native"](prox + extract.domain, function (json) {
           if (json.url) {
             var hxcv;
 
@@ -10798,24 +10844,24 @@
             } catch (e) {}
 
             var file = decode(json.url, hxcv);
-            var quality = false;
 
             if (file.charAt(0) === '{') {
               var items = extractItems('[]' + file);
 
               if (items && items.length) {
+                element.voices = items;
                 file = items[0].file;
-                quality = {};
+                var voices = {};
                 items.forEach(function (item) {
-                  quality[item.label] = item.file;
+                  voices[item.label] = item.file;
                 });
-                if (quality[json.default_audio]) file = quality[json.default_audio];
+                if (voices[json.default_audio]) file = voices[json.default_audio];
               } else file = '';
             }
 
             if (file) {
               element.stream = file;
-              element.qualitys = quality;
+              element.qualitys = false;
               element.subtitles = false;
               var subtitle = decode(json.subtitle || '', hxcv);
 
