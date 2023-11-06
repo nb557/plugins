@@ -10617,7 +10617,7 @@
               element.voices.forEach(function (v) {
                 extract.translations.push({
                   id: t.id,
-                  title: v.label || t.title,
+                  title: (t.title !== select_title ? t.title + ' / ' : '') + v.label,
                   stream: v.file,
                   qualitys: false,
                   subtitles: element.subtitles
