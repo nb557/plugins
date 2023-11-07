@@ -1,4 +1,4 @@
-//06.11.2023 - Add alloha
+//07.11.2023 - Add alloha
 
 (function () {
     'use strict';
@@ -10644,19 +10644,18 @@
         } else call();
       }
 
-      function decode(data, hxcv) {
-        if (data.startsWith('#7')) return decode7(data, hxcv);
-        if (data.startsWith('#9')) return decode9(data);
+      function decode(data, aes) {
+        if (data.startsWith('#9')) return decodeAES(data.substring(2), aes);
+        if (data.startsWith('#7')) return decodeTrash(data.substring(2));
         return data;
       }
 
-      function decode7(data, hxcv) {
-        if (!data.startsWith('#7')) return data;
+      function decodeAES(data, aes) {
         var y = data.split('##');
 
         if (y.length == 3) {
           try {
-            return JSON.parse(cryptoJS.AES.decrypt('{"ct":"' + y[0].substr(2) + '","iv":"' + y[1] + '","s":"' + y[2] + '"}', hxcv, {
+            return JSON.parse(cryptoJS.AES.decrypt('{"ct":"' + y[0] + '","iv":"' + y[1] + '","s":"' + y[2] + '"}', aes, {
               format: {
                 stringify: function stringify(cipherParams) {
                   var j = {
@@ -10683,9 +10682,7 @@
         return '';
       }
 
-      function decode9(data) {
-        if (!data.startsWith('#9')) return data;
-
+      function decodeTrash(data) {
         var enc = function enc(str) {
           return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, function (match, p1) {
             return String.fromCharCode('0x' + p1);
@@ -10699,7 +10696,7 @@
         };
 
         var trashList = [';!?^№>*^*`||^<*№||^*`^**|№*~][|>|', '|[>*№>^?[;||>|*<**№]||^<**|', '<`^*`*>|№**№]?[*;||>|*№;^*`№*>', '?;>)!(*;||>|*<^|*|^*`>?|(|*>||~][|>|*^*', '?|;^^|*>*>??>^|^<|>|?!*№(|;!?^№>'];
-        var x = data.substring(2);
+        var x = data;
         trashList.forEach(function (trash) {
           x = x.replace('##' + enc(trash), '');
         });
@@ -10837,13 +10834,13 @@
         network.timeout(10000);
         network["native"](prox + extract.domain, function (json) {
           if (json.url) {
-            var hxcv;
+            var aes;
 
             try {
-              hxcv = json.aes && (0, eval)('(function(){' + json.aes + '; return hxcv; })();');
+              aes = json.aes && (0, eval)('(function(){' + json.aes + '; return serv; })();');
             } catch (e) {}
 
-            var file = decode(json.url, hxcv);
+            var file = decode(json.url, aes);
 
             if (file.charAt(0) === '{') {
               var items = extractItems('[]' + file);
@@ -10863,7 +10860,7 @@
               element.stream = file;
               element.qualitys = false;
               element.subtitles = false;
-              var subtitle = decode(json.subtitle || '', hxcv);
+              var subtitle = decode(json.subtitle || '', aes);
 
               if (subtitle.endsWith('index.php')) {
                 network.clear();
@@ -15513,7 +15510,7 @@
       Lampa.Template.add('online_mod_folder', "<div class=\"online selector\">\n        <div class=\"online__body\">\n            <div style=\"position: absolute;left: 0;top: -0.3em;width: 2.4em;height: 2.4em\">\n                <svg style=\"height: 2.4em; width:  2.4em;\" viewBox=\"0 0 128 112\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n                    <rect y=\"20\" width=\"128\" height=\"92\" rx=\"13\" fill=\"white\"/>\n                    <path d=\"M29.9963 8H98.0037C96.0446 3.3021 91.4079 0 86 0H42C36.5921 0 31.9555 3.3021 29.9963 8Z\" fill=\"white\" fill-opacity=\"0.23\"/>\n                    <rect x=\"11\" y=\"8\" width=\"106\" height=\"76\" rx=\"13\" fill=\"white\" fill-opacity=\"0.51\"/>\n                </svg>\n            </div>\n            <div class=\"online__title\" style=\"padding-left: 2.1em;\">{title}</div>\n            <div class=\"online__quality\" style=\"padding-left: 3.4em;\">{quality}{info}</div>\n        </div>\n    </div>");
     }
 
-    var button = "<div class=\"full-start__button selector view--online_mod\" data-subtitle=\"online_mod 06.11.2023\">\n    <svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:svgjs=\"http://svgjs.com/svgjs\" version=\"1.1\" width=\"512\" height=\"512\" x=\"0\" y=\"0\" viewBox=\"0 0 244 260\" style=\"enable-background:new 0 0 512 512\" xml:space=\"preserve\" class=\"\">\n    <g xmlns=\"http://www.w3.org/2000/svg\">\n        <path d=\"M242,88v170H10V88h41l-38,38h37.1l38-38h38.4l-38,38h38.4l38-38h38.3l-38,38H204L242,88L242,88z M228.9,2l8,37.7l0,0 L191.2,10L228.9,2z M160.6,56l-45.8-29.7l38-8.1l45.8,29.7L160.6,56z M84.5,72.1L38.8,42.4l38-8.1l45.8,29.7L84.5,72.1z M10,88 L2,50.2L47.8,80L10,88z\" fill=\"currentColor\"/>\n    </g></svg>\n\n    <span>#{online_mod_title}</span>\n    </div>"; // нужна заглушка, а то при страте лампы говорит пусто
+    var button = "<div class=\"full-start__button selector view--online_mod\" data-subtitle=\"online_mod 07.11.2023\">\n    <svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:svgjs=\"http://svgjs.com/svgjs\" version=\"1.1\" width=\"512\" height=\"512\" x=\"0\" y=\"0\" viewBox=\"0 0 244 260\" style=\"enable-background:new 0 0 512 512\" xml:space=\"preserve\" class=\"\">\n    <g xmlns=\"http://www.w3.org/2000/svg\">\n        <path d=\"M242,88v170H10V88h41l-38,38h37.1l38-38h38.4l-38,38h38.4l38-38h38.3l-38,38H204L242,88L242,88z M228.9,2l8,37.7l0,0 L191.2,10L228.9,2z M160.6,56l-45.8-29.7l38-8.1l45.8,29.7L160.6,56z M84.5,72.1L38.8,42.4l38-8.1l45.8,29.7L84.5,72.1z M10,88 L2,50.2L47.8,80L10,88z\" fill=\"currentColor\"/>\n    </g></svg>\n\n    <span>#{online_mod_title}</span>\n    </div>"; // нужна заглушка, а то при страте лампы говорит пусто
 
     Lampa.Component.add('online_mod', component); //то же самое
 
