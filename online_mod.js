@@ -1,4 +1,4 @@
-//09.11.2023 - Add alloha
+//12.11.2023 - Alloha quality levels
 
 (function () {
     'use strict';
@@ -10627,7 +10627,7 @@
           var element = {
             media: t
           };
-          getStream(element, function (element) {
+          getBaseStream(element, function (element) {
             if (element.voices) {
               element.voices.forEach(function (v) {
                 extract.translations.push({
@@ -10840,6 +10840,91 @@
 
 
       function getStream(element, call, error) {
+        getBaseStream(element, function (element) {
+          if (element.parsed) return call(element);
+          var file = element.stream;
+          network.clear();
+          network.timeout(10000);
+          network["native"](prox + file, function (str) {
+            var items = extractQuality(str, file);
+            items = items.filter(function (elem) {
+              return elem.quality > 0;
+            });
+            var tmp = items.filter(function (elem) {
+              return elem.codecs.indexOf('avc1') !== -1 && elem.codecs.indexOf('mp4a') !== -1;
+            });
+            if (tmp.length) items = tmp;
+
+            if (items.length) {
+              file = items[0].file;
+              var quality = {};
+              items.forEach(function (item) {
+                if (!quality[item.label]) quality[item.label] = item.file;
+              });
+              var preferably = Lampa.Storage.get('video_quality_default', '1080') + 'p';
+              if (quality[preferably]) file = quality[preferably];
+              element.stream = file;
+              element.qualitys = quality;
+            }
+
+            element.parsed = true;
+            call(element);
+          }, function (a, c) {
+            call(element);
+          }, false, {
+            dataType: 'text'
+          });
+        }, error);
+      }
+
+      function extractQuality(str, url) {
+        if (!str) return [];
+
+        try {
+          var base_url = url.substring(0, url.lastIndexOf('/'));
+          var items = component.parseM3U(str).map(function (item) {
+            var link = item.link;
+            var quality = item.height;
+            if (quality > 1440 && quality <= 2160) quality = 2160;else if (quality > 1080 && quality <= 1440) quality = 1440;else if (quality > 720 && quality <= 1080) quality = 1080;else if (quality > 480 && quality <= 720) quality = 720;else if (quality > 360 && quality <= 480) quality = 480;else if (quality > 240 && quality <= 360) quality = 360;
+
+            if (!quality) {
+              var alt_quality = link.match(/\b(\d\d\d+)\b/);
+
+              if (alt_quality) {
+                var alt_height = parseInt(alt_quality[1]);
+                if (alt_height > quality && alt_height <= 4320) quality = alt_height;
+              }
+            }
+
+            return {
+              label: quality ? quality + 'p' : '360p ~ 1080p',
+              quality: quality,
+              bandwidth: item.bandwidth,
+              codecs: item.codecs,
+              file: link.indexOf('://') == -1 ? base_url + '/' + (link.startsWith('/') ? link.substring(1) : link) : link
+            };
+          });
+          items.sort(function (a, b) {
+            if (b.quality > a.quality) return 1;
+            if (b.quality < a.quality) return -1;
+            if (b.bandwidth > a.bandwidth) return 1;
+            if (b.bandwidth < a.bandwidth) return -1;
+            if (b.label > a.label) return 1;
+            if (b.label < a.label) return -1;
+            return 0;
+          });
+          return items;
+        } catch (e) {}
+
+        return [];
+      }
+      /**
+       * Получить поток
+       * @param {*} element
+       */
+
+
+      function getBaseStream(element, call, error) {
         if (element.stream) return call(element);
         if (!element.media.id) return error();
         var postdata = 'player_ajax=1';
@@ -13622,7 +13707,7 @@
     function hdvb(component, _object) {
       var network = new Lampa.Reguest();
       var extract = [];
-      var backend = 'http://back.freebie.tom.ru/lampa/hdvburl?v=2224';
+      var backend = 'http://back.freebie.tom.ru/lampa/hdvburl?v=2311';
       var object = _object;
       var select_title = '';
       var select_id = '';
@@ -14626,26 +14711,52 @@
         var pl = [];
 
         try {
+          var info = false;
+          var bandwidth = 0;
           var width = 0;
           var height = 0;
+          var codecs = '';
           str.split('\n').forEach(function (line) {
             line = line.trim();
 
             if (line.charAt(0) == '#') {
-              var resolution = line.match(/\bRESOLUTION=(\d+)x(\d+)\b/);
+              if (line.startsWith('#EXT-X-STREAM-INF')) {
+                info = true;
+                var BANDWIDTH = line.match(/\bBANDWIDTH=(\d+)\b/);
 
-              if (resolution) {
-                width = parseInt(resolution[1]);
-                height = parseInt(resolution[2]);
+                if (BANDWIDTH) {
+                  bandwidth = BANDWIDTH[1];
+                }
+
+                var RESOLUTION = line.match(/\bRESOLUTION=(\d+)x(\d+)\b/);
+
+                if (RESOLUTION) {
+                  width = parseInt(RESOLUTION[1]);
+                  height = parseInt(RESOLUTION[2]);
+                }
+
+                var CODECS = line.match(/\bCODECS="([^"]+)"/);
+
+                if (CODECS) {
+                  codecs = CODECS[1];
+                }
               }
             } else if (line.length) {
-              pl.push({
-                width: width,
-                height: height,
-                link: line
-              });
+              if (info) {
+                pl.push({
+                  bandwidth: bandwidth,
+                  width: width,
+                  height: height,
+                  codecs: codecs,
+                  link: line
+                });
+              }
+
+              info = false;
+              bandwidth = 0;
               width = 0;
               height = 0;
+              codecs = '';
             }
           });
         } catch (e) {}
@@ -15525,7 +15636,7 @@
       Lampa.Template.add('online_mod_folder', "<div class=\"online selector\">\n        <div class=\"online__body\">\n            <div style=\"position: absolute;left: 0;top: -0.3em;width: 2.4em;height: 2.4em\">\n                <svg style=\"height: 2.4em; width:  2.4em;\" viewBox=\"0 0 128 112\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n                    <rect y=\"20\" width=\"128\" height=\"92\" rx=\"13\" fill=\"white\"/>\n                    <path d=\"M29.9963 8H98.0037C96.0446 3.3021 91.4079 0 86 0H42C36.5921 0 31.9555 3.3021 29.9963 8Z\" fill=\"white\" fill-opacity=\"0.23\"/>\n                    <rect x=\"11\" y=\"8\" width=\"106\" height=\"76\" rx=\"13\" fill=\"white\" fill-opacity=\"0.51\"/>\n                </svg>\n            </div>\n            <div class=\"online__title\" style=\"padding-left: 2.1em;\">{title}</div>\n            <div class=\"online__quality\" style=\"padding-left: 3.4em;\">{quality}{info}</div>\n        </div>\n    </div>");
     }
 
-    var button = "<div class=\"full-start__button selector view--online_mod\" data-subtitle=\"online_mod 09.11.2023\">\n    <svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:svgjs=\"http://svgjs.com/svgjs\" version=\"1.1\" width=\"512\" height=\"512\" x=\"0\" y=\"0\" viewBox=\"0 0 244 260\" style=\"enable-background:new 0 0 512 512\" xml:space=\"preserve\" class=\"\">\n    <g xmlns=\"http://www.w3.org/2000/svg\">\n        <path d=\"M242,88v170H10V88h41l-38,38h37.1l38-38h38.4l-38,38h38.4l38-38h38.3l-38,38H204L242,88L242,88z M228.9,2l8,37.7l0,0 L191.2,10L228.9,2z M160.6,56l-45.8-29.7l38-8.1l45.8,29.7L160.6,56z M84.5,72.1L38.8,42.4l38-8.1l45.8,29.7L84.5,72.1z M10,88 L2,50.2L47.8,80L10,88z\" fill=\"currentColor\"/>\n    </g></svg>\n\n    <span>#{online_mod_title}</span>\n    </div>"; // нужна заглушка, а то при страте лампы говорит пусто
+    var button = "<div class=\"full-start__button selector view--online_mod\" data-subtitle=\"online_mod 12.11.2023\">\n    <svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:svgjs=\"http://svgjs.com/svgjs\" version=\"1.1\" width=\"512\" height=\"512\" x=\"0\" y=\"0\" viewBox=\"0 0 244 260\" style=\"enable-background:new 0 0 512 512\" xml:space=\"preserve\" class=\"\">\n    <g xmlns=\"http://www.w3.org/2000/svg\">\n        <path d=\"M242,88v170H10V88h41l-38,38h37.1l38-38h38.4l-38,38h38.4l38-38h38.3l-38,38H204L242,88L242,88z M228.9,2l8,37.7l0,0 L191.2,10L228.9,2z M160.6,56l-45.8-29.7l38-8.1l45.8,29.7L160.6,56z M84.5,72.1L38.8,42.4l38-8.1l45.8,29.7L84.5,72.1z M10,88 L2,50.2L47.8,80L10,88z\" fill=\"currentColor\"/>\n    </g></svg>\n\n    <span>#{online_mod_title}</span>\n    </div>"; // нужна заглушка, а то при страте лампы говорит пусто
 
     Lampa.Component.add('online_mod', component); //то же самое
 
