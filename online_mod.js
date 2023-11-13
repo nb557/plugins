@@ -10841,8 +10841,8 @@
 
       function getStream(element, call, error) {
         getBaseStream(element, function (element) {
-          if (element.parsed) return call(element);
-          var file = element.stream;
+          var file = element.stream || '';
+          if (element.parsed || !file.endsWith('.m3u8')) return call(element);
           network.clear();
           network.timeout(10000);
           network["native"](prox + file, function (str) {
