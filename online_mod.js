@@ -1,4 +1,4 @@
-//14.11.2023 - Alloha quality levels
+//14.11.2023 - Fix cdnmovies
 
 (function () {
     'use strict';
@@ -3114,6 +3114,7 @@
           var items = component.parsePlaylist(str).map(function (item) {
             var quality = item.label.match(/(\d\d\d+)p/);
             var link = item.links[0] || '';
+            link = link.replace('/sundb.coldcdn.xyz/', '/sundb.nl/');
             if (prefer_http) ;
             if (prefer_mp4) ;
             return {
@@ -3175,6 +3176,8 @@
           parseStream(element, call, error, extractItemsPlaylist, url, '');
           return;
         }
+
+        url = url.replace('/sundb.coldcdn.xyz/', '/sundb.nl/');
 
         if (url) {
           element.stream = url;
@@ -3240,6 +3243,7 @@
         if (!str) return false;
         var subtitles = component.parsePlaylist(str).map(function (item) {
           var link = item.links[0] || '';
+          link = link.replace('/sundb.coldcdn.xyz/', '/sundb.nl/');
           return {
             label: item.label,
             url: link
