@@ -1,4 +1,4 @@
-//16.11.2023 - Fix
+//17.11.2023 - Fix cdnmovies
 
 (function () {
     'use strict';
@@ -2952,6 +2952,7 @@
       var prefer_mp4 = false;
       var prox = component.proxy('cdnmovies');
       var embed = prox + 'https://skinny-wilderness.cdnmovies-stream.online/';
+      var iframe_proxy = !prox && Lampa.Storage.field('online_mod_iframe_proxy') === true && !window.location.protocol.startsWith('http');
       var filter_items = {};
       var choice = {
         season: 0,
@@ -2960,24 +2961,32 @@
       };
 
       function cdn_api_search(api, callback, error) {
-        var meta = $('head meta[name="referrer"]');
-        var referrer = meta.attr('content') || 'never';
-        meta.attr('content', 'origin');
+        var call_success = function call_success(str) {
+          if (callback) callback(str || '');
+        };
 
-        try {
-          network.clear();
-          network.timeout(10000);
-          network.silent(embed + api, function (str) {
-            if (callback) callback(str || '');
-          }, function (a, c) {
-            if ((a.status == 404 || a.status == 403) && a.responseText && (a.responseText.indexOf('<title>Not Found</title>') !== -1 || a.responseText.indexOf('Не найдено!') !== -1 || a.responseText.indexOf('Контент не найден или недоступен в вашем регионе!') !== -1) || a.status == 0 && a.statusText !== 'timeout') {
-              if (callback) callback('');
-            } else if (error) error(network.errorDecode(a, c));
-          }, false, {
-            dataType: 'text'
-          });
-        } finally {
-          meta.attr('content', referrer);
+        var call_error = function call_error(a, c) {
+          if ((a.status == 404 || a.status == 403) && a.responseText && (a.responseText.indexOf('<title>Not Found</title>') !== -1 || a.responseText.indexOf('Не найдено!') !== -1 || a.responseText.indexOf('Контент не найден или недоступен в вашем регионе!') !== -1) || a.status == 0 && a.statusText !== 'timeout') {
+            if (callback) callback('');
+          } else if (error) error(network.errorDecode(a, c));
+        };
+
+        if (iframe_proxy) {
+          component.proxyCall2('GET', embed + api, 10000, null, call_success, call_error);
+        } else {
+          var meta = $('head meta[name="referrer"]');
+          var referrer = meta.attr('content') || 'never';
+          meta.attr('content', 'origin');
+
+          try {
+            network.clear();
+            network.timeout(10000);
+            network.silent(embed + api, call_success, call_error, false, {
+              dataType: 'text'
+            });
+          } finally {
+            meta.attr('content', referrer);
+          }
         }
       }
       /**
@@ -14221,8 +14230,8 @@
       }
     }
 
-    var proxyInitialized = false;
-    var proxyWindow;
+    var proxyInitialized = {};
+    var proxyWindow = {};
     var proxyCalls = {};
 
     function component(object) {
@@ -14784,9 +14793,9 @@
         return pl;
       };
 
-      this.proxyCall = function (method, url, timeout, post_data, call_success, call_fail) {
+      this.proxyUrlCall = function (proxy_url, method, url, timeout, post_data, call_success, call_fail) {
         var process = function process() {
-          if (proxyWindow) {
+          if (proxyWindow[proxy_url]) {
             timeout = timeout || 60 * 1000;
             var message_id;
 
@@ -14799,7 +14808,7 @@
               success: call_success,
               fail: call_fail
             };
-            proxyWindow.postMessage({
+            proxyWindow[proxy_url].postMessage({
               message: 'proxyMessage',
               message_id: message_id,
               method: method,
@@ -14828,25 +14837,18 @@
           }
         };
 
-        if (!proxyInitialized) {
-          proxyInitialized = true;
-          var proxyOrigin = (window.location.protocol === 'https:' ? 'https://' : 'http://') + 'nb557.surge.sh';
-          var proxyUrl = proxyOrigin + '/proxy.html';
-
-          if (Lampa.Storage.field('online_mod_alt_iframe_proxy') === true) {
-            proxyOrigin = 'https://nb557.github.io';
-            proxyUrl = proxyOrigin + '/plugins/proxy.html';
-          }
-
+        if (!proxyInitialized[proxy_url]) {
+          proxyInitialized[proxy_url] = true;
+          var proxyOrigin = proxy_url.replace(/(https?:\/\/[^\/]+)\/.*/, '$1');
           var proxyIframe = document.createElement('iframe');
-          proxyIframe.setAttribute('src', proxyUrl);
+          proxyIframe.setAttribute('src', proxy_url);
           proxyIframe.setAttribute('width', '0');
           proxyIframe.setAttribute('height', '0');
           proxyIframe.setAttribute('tabindex', '-1');
           proxyIframe.setAttribute('title', 'empty');
           proxyIframe.setAttribute('style', 'display:none');
           proxyIframe.addEventListener('load', function () {
-            proxyWindow = proxyIframe.contentWindow;
+            proxyWindow[proxy_url] = proxyIframe.contentWindow;
             window.addEventListener('message', function (event) {
               var data = event.data;
 
@@ -14879,6 +14881,17 @@
         } else {
           process();
         }
+      };
+
+      this.proxyCall = function (method, url, timeout, post_data, call_success, call_fail) {
+        var proxy_url = (window.location.protocol === 'https:' ? 'https://' : 'http://') + 'nb557.surge.sh/proxy.html';
+        if (Lampa.Storage.field('online_mod_alt_iframe_proxy') === true) proxy_url = 'https://nb557.github.io/plugins/proxy.html';
+        this.proxyUrlCall(proxy_url, method, url, timeout, post_data, call_success, call_fail);
+      };
+
+      this.proxyCall2 = function (method, url, timeout, post_data, call_success, call_fail) {
+        var proxy_url = (window.location.protocol === 'https:' ? 'https://' : 'http://') + 'lampa.stream/proxy.html';
+        this.proxyUrlCall(proxy_url, method, url, timeout, post_data, call_success, call_fail);
       };
 
       this.extendChoice = function () {
