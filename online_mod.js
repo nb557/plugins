@@ -1,4 +1,4 @@
-//17.11.2023 - Fix cdnmovies
+//19.11.2023 - Fix
 
 (function () {
     'use strict';
@@ -10463,6 +10463,7 @@
       var prox = component.proxy('alloha');
       var token = 'd317441359e505c343c2063edc97e7';
       var embed = prox + 'https://api.apbugall.org/?token=' + token;
+      var decrypt = Utils.decodeSecret([16, 86, 76, 90, 80, 77, 93, 95, 90, 16, 67, 90, 70, 90, 73, 64, 28, 20, 76, 95, 82, 81, 93, 21, 20, 89, 80, 17, 75, 25, 66, 82, 75, 20, 20, 20, 5, 16, 66, 73, 8, 25, 66, 81, 70, 24, 104, 116, 120, 123, 77, 64, 64, 102, 93, 65, 76, 81, 64, 77, 20, 13, 20, 94, 69, 87, 87, 71, 80, 91, 94, 20, 96, 125, 117, 124, 71, 77, 68, 98, 81, 73, 69, 92, 71, 71, 17, 29, 75, 20, 76, 88, 80, 71, 29, 86, 68, 85, 90, 24, 13, 25, 82, 70, 87, 87, 68, 93, 87, 94, 17, 29, 72, 68, 15, 16, 64, 80, 89, 74, 26, 64, 92, 64, 98, 81, 73, 69, 92, 71, 71, 113, 81, 81, 80, 93, 66, 25, 9, 19, 95, 65, 94, 87, 76, 89, 86, 90, 27, 16, 79, 77, 15, 24, 68, 81, 93, 64, 23, 71, 85, 90, 92, 16, 4, 20, 85, 76, 90, 83, 64, 81, 95, 87, 28, 26, 66, 73, 11, 20, 69, 11, 25, 66, 82, 75, 20, 104, 112, 87, 93, 88, 93, 93, 107, 81, 65, 65, 93, 67, 77, 20, 14, 25, 108, 125, 120, 112, 68, 77, 68, 97, 92, 69, 69, 81, 75, 68, 2, 20, 71, 75, 77, 16, 79, 24, 85, 79, 85, 95, 17, 71, 83, 70, 81, 64, 77, 29, 8, 25, 73, 16, 87, 89, 68, 90, 92, 19, 17, 81, 25, 79, 69, 16, 75, 81, 71, 76, 70, 94, 20, 67, 16, 72, 65, 86, 75, 77, 10, 20, 26, 15, 77, 91, 88, 92, 90, 65, 9, 26, 16, 18, 20, 86, 87, 87, 95, 80, 93, 101, 107, 125, 112, 86, 89, 64, 91, 86, 85, 87, 64, 27, 79, 85, 66, 71, 73, 25, 21, 20, 67, 86, 71, 68, 80, 89, 68, 88, 14, 19, 27, 64, 95, 95, 93, 94, 4, 22, 19, 18, 20, 85, 90, 91, 95, 93, 81, 102, 107, 125, 115, 91, 85, 64, 86, 90, 86, 87, 64, 24, 64, 87, 91, 92, 90, 26, 25, 31, 16, 22, 30, 89, 93, 9, 17, 25, 31, 16, 81, 86, 83, 86, 80, 86, 108, 102, 121, 119, 87, 93, 73, 91, 93, 92, 90, 68, 28, 81, 84, 16, 20, 24, 25, 22, 22, 65, 77, 89, 74, 9, 17, 25, 31, 16, 81, 86, 83, 86, 80, 86, 108, 102, 121, 119, 87, 93, 73, 91, 93, 92, 90, 68, 28, 77, 69, 80, 71, 26, 25, 73, 11, 20, 69, 25, 23, 87, 82, 85, 88, 24, 79, 69, 28]);
       var filter_items = {};
       var choice = {
         season: 0,
@@ -10987,25 +10988,18 @@
               } else error();
             };
 
-            var _postdata = '';
+            var params = null;
 
             try {
-              var params = json.tokenq && (0, eval)('(function(){' + json.tokenq + '; return {tokens: tokens, uuid: uuid}; })();');
-
-              if (params) {
-                _postdata = "tokenq=" + encodeURIComponent(params.tokens);
-                _postdata += "&token=" + encodeURIComponent(token);
-                _postdata += "&id=" + encodeURIComponent(element.media.id);
-                _postdata += "&uuid=" + encodeURIComponent(params.uuid);
-              }
+              params = (0, eval)(decrypt + [JSON.stringify(json.tokenq), JSON.stringify(token), JSON.stringify(element.media.id)].join(',') + ');');
             } catch (e) {}
 
-            if (_postdata) {
+            if (params) {
               network.clear();
               network.timeout(10000);
-              network["native"](prox + extract.domain, decodeStream, function (a, c) {
+              network["native"]((prox || 'https://cors.nb557.workers.dev/') + extract.domain + params.query, decodeStream, function (a, c) {
                 decodeStream('');
-              }, _postdata, {
+              }, params.postdata, {
                 dataType: 'text'
               });
             } else decodeStream('');
@@ -15669,7 +15663,7 @@
       Lampa.Template.add('online_mod_folder', "<div class=\"online selector\">\n        <div class=\"online__body\">\n            <div style=\"position: absolute;left: 0;top: -0.3em;width: 2.4em;height: 2.4em\">\n                <svg style=\"height: 2.4em; width:  2.4em;\" viewBox=\"0 0 128 112\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n                    <rect y=\"20\" width=\"128\" height=\"92\" rx=\"13\" fill=\"white\"/>\n                    <path d=\"M29.9963 8H98.0037C96.0446 3.3021 91.4079 0 86 0H42C36.5921 0 31.9555 3.3021 29.9963 8Z\" fill=\"white\" fill-opacity=\"0.23\"/>\n                    <rect x=\"11\" y=\"8\" width=\"106\" height=\"76\" rx=\"13\" fill=\"white\" fill-opacity=\"0.51\"/>\n                </svg>\n            </div>\n            <div class=\"online__title\" style=\"padding-left: 2.1em;\">{title}</div>\n            <div class=\"online__quality\" style=\"padding-left: 3.4em;\">{quality}{info}</div>\n        </div>\n    </div>");
     }
 
-    var button = "<div class=\"full-start__button selector view--online_mod\" data-subtitle=\"online_mod 17.11.2023\">\n    <svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:svgjs=\"http://svgjs.com/svgjs\" version=\"1.1\" width=\"512\" height=\"512\" x=\"0\" y=\"0\" viewBox=\"0 0 244 260\" style=\"enable-background:new 0 0 512 512\" xml:space=\"preserve\" class=\"\">\n    <g xmlns=\"http://www.w3.org/2000/svg\">\n        <path d=\"M242,88v170H10V88h41l-38,38h37.1l38-38h38.4l-38,38h38.4l38-38h38.3l-38,38H204L242,88L242,88z M228.9,2l8,37.7l0,0 L191.2,10L228.9,2z M160.6,56l-45.8-29.7l38-8.1l45.8,29.7L160.6,56z M84.5,72.1L38.8,42.4l38-8.1l45.8,29.7L84.5,72.1z M10,88 L2,50.2L47.8,80L10,88z\" fill=\"currentColor\"/>\n    </g></svg>\n\n    <span>#{online_mod_title}</span>\n    </div>"; // нужна заглушка, а то при страте лампы говорит пусто
+    var button = "<div class=\"full-start__button selector view--online_mod\" data-subtitle=\"online_mod 19.11.2023\">\n    <svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:svgjs=\"http://svgjs.com/svgjs\" version=\"1.1\" width=\"512\" height=\"512\" x=\"0\" y=\"0\" viewBox=\"0 0 244 260\" style=\"enable-background:new 0 0 512 512\" xml:space=\"preserve\" class=\"\">\n    <g xmlns=\"http://www.w3.org/2000/svg\">\n        <path d=\"M242,88v170H10V88h41l-38,38h37.1l38-38h38.4l-38,38h38.4l38-38h38.3l-38,38H204L242,88L242,88z M228.9,2l8,37.7l0,0 L191.2,10L228.9,2z M160.6,56l-45.8-29.7l38-8.1l45.8,29.7L160.6,56z M84.5,72.1L38.8,42.4l38-8.1l45.8,29.7L84.5,72.1z M10,88 L2,50.2L47.8,80L10,88z\" fill=\"currentColor\"/>\n    </g></svg>\n\n    <span>#{online_mod_title}</span>\n    </div>"; // нужна заглушка, а то при страте лампы говорит пусто
 
     Lampa.Component.add('online_mod', component); //то же самое
 
