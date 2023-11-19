@@ -1,4 +1,4 @@
-//19.11.2023 - Fix
+//19.11.2023 - Fix zetflix
 
 (function () {
     'use strict';
@@ -4408,7 +4408,7 @@
       var select_id = '';
       var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true;
       var prox = component.proxy('zetflix');
-      var embed = prox + (prefer_http || prox ? 'http:' : 'https:') + '//zetfix.online/iplayer/videodb.php';
+      var embed = prox + (prefer_http || prox ? 'http:' : 'https:') + '//zeflix.online/iplayer/videodb.php';
       var iframe_proxy = !prox && Lampa.Storage.field('online_mod_iframe_proxy') === true && !window.location.protocol.startsWith('http');
       var filter_items = {};
       var choice = {
