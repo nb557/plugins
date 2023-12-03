@@ -10,6 +10,7 @@ export default {
       const url = new URL(request.url);
       let api = url.href.substring(url.origin.length + 1);
       let ip;
+      let params = [];
 
       if (api === "headers") {
         let body = "";
@@ -25,6 +26,24 @@ export default {
         } else {
           ip = api.substring(2);
           api = "";
+        }
+      }
+
+      let next_param = true;
+      while (next_param) {
+        if (api.startsWith("param?")) {
+          let param;
+          let pos = api.indexOf("/");
+          if (pos !== -1) {
+            param = api.substring(6, pos);
+            api = api.substring(pos + 1);
+          } else {
+            param = api.substring(6);
+            api = "";
+          }
+          params.push(param.split("="));
+        } else {
+            next_param = false;
         }
       }
 
@@ -86,6 +105,11 @@ export default {
       if (apiUrl.hostname === "kinoplay.site" || apiUrl.hostname === "kinoplay1.site") {
         request.headers.set("Cookie", "invite=a246a3f46c82fe439a45c3dbbbb24ad5");
       }
+      params.forEach(param => {
+        if (param[0]) {
+          request.headers.set(decodeURIComponent(param[0]), decodeURIComponent(param[1] || ""));
+        }
+      });
       let response = await fetch(request);
 
       // Recreate the response so you can modify the headers
