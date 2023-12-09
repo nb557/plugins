@@ -280,6 +280,18 @@
       };
     }
 
+    function cleanTitle(str) {
+      return str.replace(/[\s.,:;’'`!?]+/g, ' ').trim();
+    }
+
+    function normalizeTitle(str) {
+      return cleanTitle(str.toLowerCase().replace(/—/g, '-').replace(/ё/g, 'е'));
+    }
+
+    function containsTitle(str, title) {
+      return typeof str === 'string' && typeof title === 'string' && normalizeTitle(str).indexOf(normalizeTitle(title)) !== -1;
+    }
+
     function getList(method) {
       var params = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
       var oncomplite = arguments.length > 2 ? arguments[2] : undefined;
@@ -287,7 +299,7 @@
       var url = method;
 
       if (params.query) {
-        var clean_title = params.query && decodeURIComponent(params.query).replace(/[\s.,:;’'`!?]+/g, ' ').trim();
+        var clean_title = params.query && cleanTitle(decodeURIComponent(params.query));
 
         if (!clean_title) {
           onerror();
@@ -535,12 +547,22 @@
     function search() {
       var params = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
       var oncomplite = arguments.length > 1 ? arguments[1] : undefined;
+      var title = decodeURIComponent(params.query || '');
       var status = new Lampa.Status(1);
 
       status.onComplite = function (data) {
         var items = [];
 
         if (data.query && data.query.results) {
+          var tmp = data.query.results.filter(function (elem) {
+            return containsTitle(elem.name, title) || containsTitle(elem.original_name, title);
+          });
+
+          if (tmp.length && tmp.length !== data.query.results.length) {
+            data.query.results = tmp;
+            data.query.more = true;
+          }
+
           var movie = Object.assign({}, data.query);
           movie.results = data.query.results.filter(function (elem) {
             return elem.type === 'movie';
