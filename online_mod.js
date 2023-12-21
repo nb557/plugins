@@ -1,4 +1,4 @@
-//07.12.2023 - Update
+//21.12.2023 - Fix proxy
 
 (function () {
     'use strict';
@@ -34,17 +34,17 @@
 
     function rezka2Mirror() {
       var url = Lampa.Storage.get('online_mod_rezka2_mirror', '');
-      if (!url) return 'https://hdrezka.ag/';
+      if (!url) return 'https://hdrezka.ag';
       if (url.indexOf('://') == -1) url = 'https://' + url;
-      if (url.charAt(url.length - 1) != '/') url += '/';
+      if (url.charAt(url.length - 1) === '/') url = url.substring(0, url.length - 1);
       return url;
     }
 
     function kinobaseMirror() {
       var url = Lampa.Storage.get('online_mod_kinobase_mirror', '');
-      if (!url) return 'https://kinobase.org/';
+      if (!url) return 'https://kinobase.org';
       if (url.indexOf('://') == -1) url = 'https://' + url;
-      if (url.charAt(url.length - 1) != '/') url += '/';
+      if (url.charAt(url.length - 1) === '/') url = url.substring(0, url.length - 1);
       return url;
     }
 
@@ -59,7 +59,7 @@
     function proxy(name) {
       var ip = getMyIp();
       var proxy1 = (window.location.protocol === 'https:' ? 'https://' : 'http://') + 'prox.lampa.stream/';
-      var proxy2 = 'https://cors.nb557.workers.dev/' + (ip ? 'ip' + ip + '/' : '');
+      var proxy2 = 'https://cors.nb557.workers.dev:8443/' + (ip ? 'ip' + ip + '/' : '');
       var proxy3 = Lampa.Storage.field('online_mod_proxy_other') === true ? Lampa.Storage.field('online_mod_proxy_other_url') : '';
       var proxy32 = proxy3 || proxy2;
       var alt_proxy = Lampa.Storage.field('online_mod_proxy_other') === true ? proxy32 : proxy1;
@@ -104,7 +104,7 @@
     function get(method, oncomplite, onerror) {
       var use_proxy = total_cnt >= 10 && good_cnt > total_cnt / 2;
       if (!use_proxy) total_cnt++;
-      var kp_prox = 'https://cors.kp556.workers.dev/';
+      var kp_prox = 'https://cors.kp556.workers.dev:8443/';
       var url = 'https://kinopoiskapiunofficial.tech/';
       url += method;
       network$1.timeout(15000);
@@ -1326,7 +1326,8 @@
       var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true;
       var prefer_mp4 = Lampa.Storage.field('online_mod_prefer_mp4') === true;
       var prox = component.proxy('rezka2');
-      var embed = prox ? prox + 'https://hdrezka.ag/' : Utils.rezka2Mirror();
+      var host = prox ? 'https://hdrezka.ag' : Utils.rezka2Mirror();
+      var embed = prox + host + '/';
       var logged_in = Lampa.Storage.field('online_mod_rezka2_status') === true && !prox;
       var network_call = logged_in ? network.silent : network["native"];
       var filter_items = {};
@@ -2092,14 +2093,14 @@
       var extract = [];
       var object = _object;
       var select_title = '';
-      var select_id = '';
       var is_playlist = false;
       var quality_type = '';
       var translation = '';
       var prefer_mp4 = Lampa.Storage.field('online_mod_prefer_mp4') === true;
       var prox = component.proxy('kinobase');
-      var embed = prox ? prox + 'https://kinobase.org/' : Utils.kinobaseMirror();
-      var token = atob('cmV2PURGOTQ3MzQwNzIzJmJlZj1PTzkwMzQ4NTY5Mg==');
+      var host = prox ? 'https://kinobase.org' : Utils.kinobaseMirror();
+      var embed = prox + host + '/';
+      var decrypt = atob('InVzZSBzdHJpY3QiOyAoZnVuY3Rpb24oc2NyaXB0MSwgc2NyaXB0Miwgc3RyKXsgdmFyIHJlcyA9IFtdOyB2YXIgZG9jdW1lbnQgPSAobmV3IERPTVBhcnNlcikucGFyc2VGcm9tU3RyaW5nKCI8aGVhZD48L2hlYWQ+PGJvZHk+PC9ib2R5PiIsICJ0ZXh0L2h0bWwiKTsgdmFyIHBhdXNlX3RpbWUgPSAwOyB2YXIgZlZvaWQgPSBmdW5jdGlvbigpe307IHZhciBmSW50ID0gZnVuY3Rpb24oKXsgcmV0dXJuIDE7IH07IHZhciAkID0gZnVuY3Rpb24oKXsgcmV0dXJuICQ7IH07ICQuYWRkQ2xhc3MgPSAkLmFmdGVyID0gJC5hcHBlbmQgPSAkLmF0dHIgPSAkLmNsaWNrID0gJC5jbG9zZXN0ID0gJC5jc3MgPSAkLmZpbmQgPSAkLmZvY3VzID0gJC5oaWRlID0gJC5odG1sID0gJC5vbiA9ICQucGFyZW50ID0gJC5wcmVwZW5kID0gJC5yYXRpbmcgPSAkLnJlYWR5ID0gJC5yZW1vdmUgPSAkLnJlbW92ZUNsYXNzID0gJC5zaG93ID0gJC5zdWJtaXQgPSAkLnRhYiA9ICQudGV4dCA9ICQudG9vbHRpcCA9ICQudmFsID0gJDsgJC53aWR0aCA9IGZJbnQ7ICQuYWpheFNldHVwID0gJC5jb29raWUgPSBmVm9pZDsgJC5hamF4ID0gZnVuY3Rpb24oc2V0dGluZ3MpeyBpZiAoc2V0dGluZ3MudXJsKSByZXMucHVzaCh7dHlwZTogImFqYXgiLCB1cmw6IHNldHRpbmdzLnVybCwgcGFyYW1zOiBzZXR0aW5ncy5kYXRhfSk7IH07ICQuZ2V0ID0gZnVuY3Rpb24odXJsLCBkYXRhKXsgcmVzLnB1c2goe3R5cGU6ICJnZXQiLCB1cmw6IHVybCwgcGFyYW1zOiBkYXRhfSk7IH07ICQucG9zdCA9IGZ1bmN0aW9uKHVybCwgZGF0YSl7IHJlcy5wdXNoKHt0eXBlOiAicG9zdCIsIHVybDogdXJsLCBwYXJhbXM6IGRhdGF9KTsgfTsgJC5nZXRTY3JpcHQgPSBmdW5jdGlvbih1cmwpeyByZXMucHVzaCh7dHlwZTogImdldFNjcmlwdCIsIHVybDogdXJsLCBwYXJhbXM6IHsiXyI6IERhdGUubm93KCl9fSk7IH07IHZhciBYTUxIdHRwUmVxdWVzdCA9IGZ1bmN0aW9uIFhNTEh0dHBSZXF1ZXN0KCkgeyB0aGlzLm9wZW4gPSBmdW5jdGlvbihtLCB1KSB7IHJlcy5wdXNoKHsgdXJsOiB1IH0pOyB9OyB0aGlzLnNlbmQgPSBmdW5jdGlvbigpIHt9OyB9OyB2YXIgb2xkVCA9IHdpbmRvdy5zZXRUaW1lb3V0LCBvbGRDVCA9IHdpbmRvdy5jbGVhclRpbWVvdXQsIG9sZEkgPSB3aW5kb3cuc2V0SW50ZXJ2YWwsIG9sZENJID0gd2luZG93LmNsZWFySW50ZXJ2YWw7IHRyeSB7IHdpbmRvdy5zZXRUaW1lb3V0ID0gd2luZG93LnNldEludGVydmFsID0gZkludDsgd2luZG93LmNsZWFyVGltZW91dCA9IHdpbmRvdy5jbGVhckludGVydmFsID0gZlZvaWQ7IGV2YWwoc2NyaXB0MSArICJcbiIgKyBzY3JpcHQyICsgIlxuIiArIHN0ciArICJcbnVzZXJfZGF0YSgpOyBsb2FkX3BsYXllcigpOyIpOyB9IGNhdGNoIChlKXt9IHdpbmRvdy5zZXRUaW1lb3V0ID0gb2xkVDsgd2luZG93LmNsZWFyVGltZW91dCA9IG9sZENUOyB3aW5kb3cuc2V0SW50ZXJ2YWwgPSBvbGRJOyB3aW5kb3cuY2xlYXJJbnRlcnZhbCA9IG9sZENJOyB2YXIgcGFyYW1zID0ge307IHJlcy5mb3JFYWNoKGZ1bmN0aW9uIChwKXsgaWYgKCgvXC91c2VyX2RhdGFcYi8pLnRlc3QocC51cmwpKSBwYXJhbXMudXNlcl9kYXRhID0gcDsgZWxzZSBpZiAoKC9cL3ZvZGpcLmpzXGIvKS50ZXN0KHAudXJsKSkgcGFyYW1zLnBsYXllciA9IHA7IH0pOyByZXR1cm4gcGFyYW1zOyB9KS5jYWxsKHt9LA==');
       var filter_items = {};
       var choice = {
         season: 0,
@@ -2203,7 +2204,12 @@
         }, function (a, c) {
           component.empty(network.errorDecode(a, c));
         }, false, {
-          dataType: 'text'
+          dataType: 'text',
+          withCredentials: !prox,
+          headers: Lampa.Platform.is('android') ? {
+            'Origin': host,
+            'Referer': host + '/'
+          } : {}
         });
       };
 
@@ -2415,99 +2421,136 @@
       }
 
       function getPage(url) {
+        var headers = Lampa.Platform.is('android') ? {
+          'Origin': host,
+          'Referer': url.indexOf('://') == -1 ? host + '/' + (url.startsWith('/') ? url.substring(1) : url) : url,
+          'Cookie': 'player_type=new; file_type=' + (prefer_mp4 ? "mp4" : "hls")
+        } : {};
         url = url.indexOf('://') == -1 ? embed + (url.startsWith('/') ? url.substring(1) : url) : prox + url;
         network.clear();
         network.timeout(1000 * 10);
         network["native"](url, function (str) {
           str = str.replace(/\n/g, '');
-          var MOVIE_ID = str.match('var MOVIE_ID = ([^;]+);');
-          var IDENTIFIER = str.match('var IDENTIFIER = "([^"]+)"');
-          var PLAYER_CUID = str.match('var PLAYER_CUID = "([^"]+)"');
+          var IMAGES_URL = str.match('<script[^>]*>([^<]*var IMAGES_URL = [^<]*)</script>');
+          var MOVIE_ID = str.match('<script[^>]*>([^<]*var MOVIE_ID = [^<]*)</script>');
+          var MOVIE_URL = str.match('<script src="([^"]*\/movie.js\?[^"]*)"');
 
-          if (MOVIE_ID && IDENTIFIER && PLAYER_CUID) {
-            select_id = MOVIE_ID[1];
-            var identifier = IDENTIFIER[1];
-            var player_cuid = PLAYER_CUID[1];
-            var user_url = "user_data";
-            user_url = Lampa.Utils.addUrlComponent(user_url, "page=movie");
-            user_url = Lampa.Utils.addUrlComponent(user_url, "movie_id=" + select_id);
-            user_url = Lampa.Utils.addUrlComponent(user_url, "cuid=" + player_cuid);
-            user_url = Lampa.Utils.addUrlComponent(user_url, "device=DESKTOP");
-            user_url = Lampa.Utils.addUrlComponent(user_url, "_=" + Date.now());
-            var file_type = prefer_mp4 ? "mp4" : "hls";
-            var player_url = "videoplayer.js";
-            player_url = Lampa.Utils.addUrlComponent(player_url, "movie_id=" + select_id);
-            player_url = Lampa.Utils.addUrlComponent(player_url, "identifier=" + identifier);
-            player_url = Lampa.Utils.addUrlComponent(player_url, "player_type=new");
-            player_url = Lampa.Utils.addUrlComponent(player_url, "file_type=" + file_type);
-            player_url = Lampa.Utils.addUrlComponent(player_url, token);
-            player_url = Lampa.Utils.addUrlComponent(player_url, "_=" + Math.floor(Date.now() / 1e3));
+          if (MOVIE_ID && MOVIE_URL) {
+            var SCRIPTS = IMAGES_URL ? IMAGES_URL.index > MOVIE_ID.index ? [MOVIE_ID[1], IMAGES_URL[1]] : [IMAGES_URL[1], MOVIE_ID[1]] : [MOVIE_ID[1], ''];
+            if (SCRIPTS[1] === SCRIPTS[0]) SCRIPTS[1] = '';
+            var movie_url = MOVIE_URL[1];
+            movie_url = movie_url.indexOf('://') == -1 ? embed + (movie_url.startsWith('/') ? movie_url.substring(1) : movie_url) : prox + movie_url;
             network.clear();
             network.timeout(1000 * 10);
-            network["native"](embed + user_url, function () {}, function () {}, false, {
-              dataType: 'text',
-              withCredentials: !prox
-            });
-            network.timeout(1000 * 10);
-            network["native"](embed + player_url, function (vod_script) {
-              var vod_data;
+            network["native"](movie_url, function (script) {
+              var params = {};
 
               try {
-                var tmp = $.get;
-
-                try {
-                  vod_data = (0, eval)('"use strict"; (function() { var res = [], new_player = function() {}, init_player = new_player, $ = {}; $.get = function(u, p, f) { var pl = false; new_player = function() { pl = true; }; init_player = new_player; f && f("file|||Выкл."); res.push({ url: u, params: p, pl: pl }); }; var XMLHttpRequest = function XMLHttpRequest() { this.open = function(m, u) { res.push({ url: u }); }; this.send = function() {}; }; try { eval(' + JSON.stringify(vod_script) + '); } catch (e) {} return res; })();');
-                } finally {
-                  $.get = tmp;
-                }
+                params = (0, eval)(decrypt + [JSON.stringify(component.decodeHtml(SCRIPTS[0])), JSON.stringify(component.decodeHtml(SCRIPTS[1])), JSON.stringify(script)].join(',') + ');');
               } catch (e) {}
 
-              var vod_url;
+              var onComplite = function onComplite() {
+                if (params.player) {
+                  var player_url = params.player.url;
+                  player_url = player_url.indexOf('://') == -1 ? embed + (player_url.startsWith('/') ? player_url.substring(1) : player_url) : prox + player_url;
 
-              if (vod_data) {
-                vod_data.forEach(function (data) {
-                  if (!data.pl) return;
-                  var url = data.url || '';
-
-                  if (data.params) {
-                    for (var name in data.params) {
-                      var value = encodeURIComponent(data.params[name]);
-                      url = Lampa.Utils.addUrlComponent(url, name + "=" + value);
+                  if (params.player.params) {
+                    for (var name in params.player.params) {
+                      var value = params.player.params[name];
+                      player_url = Lampa.Utils.addUrlComponent(player_url, encodeURIComponent(name) + "=" + encodeURIComponent(value));
                     }
                   }
 
-                  if (/^\/vod\/\d+\?/.test(url) && url.indexOf('=new') !== -1 && url.indexOf('=' + file_type) !== -1) {
-                    vod_url = url.substring(1);
-                  }
-                });
-              }
+                  network.timeout(1000 * 10);
+                  network["native"](player_url, function (vod_script) {
+                    var vod_data;
 
-              if (vod_url) {
+                    try {
+                      vod_data = (0, eval)('"use strict"; (function() { var res = [], new_player = function() {}, init_player = new_player, $ = {}; $.get = function(u, p, f) { var pl = false; new_player = function() { pl = true; }; init_player = new_player; f && f("file|||Выкл."); res.push({ url: u, params: p, pl: pl }); }; var XMLHttpRequest = function XMLHttpRequest() { this.open = function(m, u) { res.push({ url: u }); }; this.send = function() {}; }; try { eval(' + JSON.stringify(vod_script) + '); } catch (e) {} return res; })();');
+                    } catch (e) {}
+
+                    var vod_url;
+
+                    if (vod_data) {
+                      vod_data.forEach(function (data) {
+                        if (!data.pl) return;
+                        var url = data.url || '';
+
+                        if (data.params) {
+                          for (var _name in data.params) {
+                            var _value = data.params[_name];
+                            url = Lampa.Utils.addUrlComponent(url, encodeURIComponent(_name) + "=" + encodeURIComponent(_value));
+                          }
+                        }
+
+                        if (/^\/vod\/\d+\?/.test(url) && url.indexOf('=new') !== -1) {
+                          vod_url = url.substring(1);
+                        }
+                      });
+                    }
+
+                    if (vod_url) {
+                      network.clear();
+                      network.timeout(1000 * 10);
+                      network["native"](embed + vod_url, function (files) {
+                        component.loading(false);
+                        extractData(files, str);
+                        filter();
+                        append(filtred());
+                      }, function (a, c) {
+                        component.empty(network.errorDecode(a, c));
+                      }, false, {
+                        dataType: 'text',
+                        withCredentials: !prox,
+                        headers: headers
+                      });
+                    } else component.empty(Lampa.Lang.translate('torrent_parser_no_hash'));
+                  }, function (a, c) {
+                    component.empty(network.errorDecode(a, c));
+                  }, false, {
+                    dataType: 'text',
+                    withCredentials: !prox,
+                    headers: headers
+                  });
+                } else component.emptyForQuery(select_title);
+              };
+
+              if (params.user_data) {
+                var user_url = params.user_data.url;
+                user_url = user_url.indexOf('://') == -1 ? embed + (user_url.startsWith('/') ? user_url.substring(1) : user_url) : prox + user_url;
+
+                if (params.user_data.params) {
+                  for (var name in params.user_data.params) {
+                    var value = params.user_data.params[name];
+                    user_url = Lampa.Utils.addUrlComponent(user_url, encodeURIComponent(name) + "=" + encodeURIComponent(value));
+                  }
+                }
+
                 network.clear();
                 network.timeout(1000 * 10);
-                network["native"](embed + vod_url, function (files) {
-                  component.loading(false);
-                  extractData(files, str);
-                  filter();
-                  append(filtred());
-                }, function (a, c) {
-                  component.empty(network.errorDecode(a, c));
-                }, false, {
+                network["native"](user_url, onComplite, onComplite, false, {
                   dataType: 'text',
-                  withCredentials: !prox
+                  withCredentials: !prox,
+                  headers: headers
                 });
-              } else component.empty(Lampa.Lang.translate('torrent_parser_no_hash'));
+              } else onComplite();
             }, function (a, c) {
               component.empty(network.errorDecode(a, c));
             }, false, {
               dataType: 'text',
-              withCredentials: !prox
+              withCredentials: !prox,
+              headers: headers
             });
           } else component.emptyForQuery(select_title);
         }, function (a, c) {
           component.empty(network.errorDecode(a, c));
         }, false, {
-          dataType: 'text'
+          dataType: 'text',
+          withCredentials: !prox,
+          headers: Lampa.Platform.is('android') ? {
+            'Origin': host,
+            'Referer': host + '/'
+          } : {}
         });
       }
       /**
@@ -3146,7 +3189,7 @@
           }).join(''));
         };
 
-        var trashList = ['-*frofpscprpamfpQ*45612.3256dfrgd', '54vjfhcgdbrydkcfkndz568436fred+*d', 'lvfycgndqcydrcgcfg+95147gfdgf-zd*', 'az+-erw*3457edgtjd-feqsptf/re*q*Y', 'df8vg69r9zxWdlyf+*fgx455g8fh9z-e*Q'];
+        var trashList = ['wNp2wBTNcPRQvTC0_CpxCsq_8T1u9Q', 'md-Od2G9RWOgSa5HoBSSbWrCyIqQyY', 'kzuOYQqB_QSOL-xzN_Kz3kkgkHhHit', '6-xQWMh7ertLp8t_M9huUDk1M0VrYJ', 'RyTwtf15_GLEsXxnpU4Ljjd0ReY-VH'];
         var x = data.substring(2);
         trashList.forEach(function (trash) {
           x = x.replace('//' + enc(trash), '');
@@ -12596,7 +12639,7 @@
       var prox = component.proxy('kinopub');
       var embed = prox + 'https://api.srvkp.com/v1/';
       var token = Utils.decodeSecret([76, 91, 92, 0, 67, 85, 66, 68, 0, 95, 84, 92, 2, 11, 77, 64, 0, 3, 94, 91, 84, 68, 70, 83, 13, 92, 90, 79, 2, 78, 5, 5]);
-      var embed2 = Utils.decodeSecret([80, 68, 77, 68, 64, 3, 27, 31, 87, 87, 66, 74, 26, 81, 78, 85, 30, 67, 87, 66, 82, 81, 65, 74, 26, 84, 81, 78, 31, 82, 93, 93, 86, 68, 69, 86, 22, 81, 73, 68, 28, 79, 5, 31]);
+      var embed2 = Utils.decodeSecret([80, 68, 77, 68, 64, 3, 27, 31, 87, 87, 66, 74, 26, 81, 78, 85, 30, 67, 87, 66, 82, 81, 65, 74, 26, 84, 81, 78, 10, 1, 0, 7, 10, 27, 91, 93, 86, 95, 73, 65, 81, 23, 85, 64, 68, 23, 70, 8, 27]);
       var server = 'ru';
       var hls_type = 'hls';
       var filter_items = {};
@@ -14881,7 +14924,7 @@
       };
     }
 
-    var mod_version = '07.12.2023';
+    var mod_version = '21.12.2023';
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
     var isIFrame = window.parent !== window;
@@ -15466,7 +15509,7 @@
 
 
     function rezka2Login(success, error) {
-      var url = Utils.rezka2Mirror() + 'ajax/login/';
+      var url = Utils.rezka2Mirror() + '/ajax/login/';
       var postdata = 'login_name=' + encodeURIComponent(Lampa.Storage.get('online_mod_rezka2_name', ''));
       postdata += '&login_password=' + encodeURIComponent(Lampa.Storage.get('online_mod_rezka2_password', ''));
       postdata += '&login_not_save=0';
@@ -15490,7 +15533,7 @@
     }
 
     function rezka2Logout(success, error) {
-      var url = Utils.rezka2Mirror() + 'logout/';
+      var url = Utils.rezka2Mirror() + '/logout/';
       network.clear();
       network.timeout(8000);
       network.silent(url, function (str) {
