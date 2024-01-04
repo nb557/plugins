@@ -1,4 +1,4 @@
-//21.12.2023 - Fix proxy
+//04.01.2024 - Fix videocdn
 
 (function () {
     'use strict';
@@ -408,11 +408,7 @@
           var call_success = function call_success(raw) {
             get_links_wait = false;
             component.render().find('.broadcast__scan').remove();
-            var math = raw.replace(/\n/g, '').match(/id="files" value="(.*?)"/);
-
-            if (!math) {
-              math = raw.replace(/\n/g, '').match(/id="files" value='(.*?)'/);
-            }
+            var math = raw.replace(/\n/g, '').match(/id="fs" value='([^']*)'/);
 
             if (math) {
               var json = Lampa.Arrays.decodeJson(component.decodeHtml(math[1]), {});
@@ -12639,15 +12635,53 @@
       var prox = component.proxy('kinopub');
       var embed = prox + 'https://api.srvkp.com/v1/';
       var token = Utils.decodeSecret([76, 91, 92, 0, 67, 85, 66, 68, 0, 95, 84, 92, 2, 11, 77, 64, 0, 3, 94, 91, 84, 68, 70, 83, 13, 92, 90, 79, 2, 78, 5, 5]);
-      var embed2 = Utils.decodeSecret([80, 68, 77, 68, 64, 3, 27, 31, 87, 87, 66, 74, 26, 81, 78, 85, 30, 67, 87, 66, 82, 81, 65, 74, 26, 84, 81, 78, 10, 1, 0, 7, 10, 27, 91, 93, 86, 95, 73, 65, 81, 23, 85, 64, 68, 23, 70, 8, 27]);
       var server = 'ru';
       var hls_type = 'hls';
+      var replace_mask = /\/(pd|http|hls4|hls2|hls)\/[^\/]*/;
       var filter_items = {};
       var choice = {
         season: 0,
         voice: 0,
         voice_name: ''
       };
+      var secret = '';
+      var secret_part = '';
+      var secret_timestamp = null;
+
+      function decodeSecretToken(callback) {
+        if (secret_part) secret = '/$1/' + secret_part;
+        var timestamp = new Date().getTime();
+        var cache_timestamp = timestamp - 1000 * 60 * 10;
+
+        if (secret && secret_timestamp && secret_timestamp > cache_timestamp) {
+          if (callback) callback();
+          return;
+        }
+
+        var url = Utils.decodeSecret([80, 68, 77, 68, 64, 3, 27, 31, 86, 79, 81, 23, 64, 92, 22, 64, 85, 89, 72, 31, 82, 93, 93, 86, 68, 69, 86, 76, 91, 23, 64, 75, 77]);
+
+        if (!url.startsWith('http')) {
+          if (callback) callback();
+          return;
+        }
+
+        url = Lampa.Utils.addUrlComponent(url, 'v=' + Date.now());
+        network.clear();
+        network.timeout(10000);
+        network.silent(url, function (str) {
+          if (str) {
+            secret_part = str;
+            secret = '/$1/' + secret_part;
+            secret_timestamp = timestamp;
+          }
+
+          if (callback) callback();
+        }, function (a, c) {
+          if (callback) callback();
+        }, false, {
+          dataType: 'text'
+        });
+      }
 
       function kinopub_api_search(api, callback, error) {
         network.clear();
@@ -12775,9 +12809,11 @@
         params = Lampa.Utils.addUrlComponent(params, 'perpage=100');
         params = Lampa.Utils.addUrlComponent(params, 'field=title');
         params = Lampa.Utils.addUrlComponent(params, 'q=' + encodeURIComponent(select_title));
-        kinopub_api_search(embed + params, function (json) {
-          display(json.items);
-        }, error);
+        decodeSecretToken(function () {
+          kinopub_api_search(embed + params, function (json) {
+            display(json.items);
+          }, error);
+        });
       };
 
       this.extendChoice = function (saved) {
@@ -12828,7 +12864,7 @@
       function success(item) {
         var params = Lampa.Utils.addUrlComponent('items/' + item.id, 'access_token=' + token);
         var error = component.empty.bind(component);
-        kinopub_api_search(embed2 + params, function (json) {
+        kinopub_api_search(embed + params, function (json) {
           if (json.item && (json.item.videos && json.item.videos.length || json.item.seasons && json.item.seasons.length)) {
             component.loading(false);
             extractData(json.item);
@@ -12880,6 +12916,10 @@
               if (base) {
                 var base_url = base[1];
 
+                if (replace_mask && secret) {
+                  base_url = base_url.replace(replace_mask, secret);
+                }
+
                 if (prefer_http) {
                   base_url = base_url.replace('https://', 'http://');
                 } else {
@@ -12921,6 +12961,10 @@
               if (_base) {
                 var _base_url = _base[1];
 
+                if (replace_mask && secret) {
+                  _base_url = _base_url.replace(replace_mask, secret);
+                }
+
                 if (prefer_http) {
                   _base_url = _base_url.replace('https://', 'http://');
                 } else {
@@ -12952,6 +12996,10 @@
               if (_base2) {
                 var _base_url2 = _base2[1];
 
+                if (replace_mask && secret) {
+                  _base_url2 = _base_url2.replace(replace_mask, secret);
+                }
+
                 if (prefer_http) {
                   _base_url2 = _base_url2.replace('https://', 'http://');
                 } else {
@@ -12982,6 +13030,10 @@
 
               if (_base3) {
                 var _base_url3 = _base3[1];
+
+                if (replace_mask && secret) {
+                  _base_url3 = _base_url3.replace(replace_mask, secret);
+                }
 
                 if (prefer_http) {
                   _base_url3 = _base_url3.replace('https://', 'http://');
@@ -13351,7 +13403,7 @@
     function hdvb(component, _object) {
       var network = new Lampa.Reguest();
       var extract = [];
-      var backend = 'http://back.freebie.tom.ru/lampa/hdvburl?v=2403';
+      var backend = 'http://back.freebie.tom.ru/lampa/hdvburl?v=2423';
       var object = _object;
       var select_title = '';
       var select_id = '';
@@ -14924,7 +14976,7 @@
       };
     }
 
-    var mod_version = '21.12.2023';
+    var mod_version = '04.01.2024';
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
     var isIFrame = window.parent !== window;
