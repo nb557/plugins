@@ -93,7 +93,7 @@ async function handle(request, connInfo) {
         request.headers.set("X-Real-IP", ip);
         request.headers.set("cf-connecting-ip", ip);
       }
-      if (apiUrl.hostname === "hdrezka.ag") {
+      if (apiUrl.hostname === "rezka.ag" || apiUrl.hostname === "hdrezka.ag" || apiUrl.hostname === "hdrezka.me" || apiUrl.hostname === "hdrezka.sh") {
         request.headers.set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36");
       }
       if (apiUrl.hostname.endsWith(".svetacdn.in")) {
