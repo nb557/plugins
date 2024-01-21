@@ -1,4 +1,4 @@
-//13.01.2024 - Fix rezka2 default quality
+//21.01.2024 - Fix videocdn
 
 (function () {
     'use strict';
@@ -59,25 +59,27 @@
     function proxy(name) {
       var ip = getMyIp();
       var proxy1 = (window.location.protocol === 'https:' ? 'https://' : 'http://') + 'prox.lampa.stream/';
-      var proxy2 = 'https://cors.nb557.workers.dev:8443/' + (ip ? 'ip' + ip + '/' : '');
-      var proxy3 = Lampa.Storage.field('online_mod_proxy_other') === true ? Lampa.Storage.field('online_mod_proxy_other_url') : '';
-      var proxy32 = proxy3 || proxy2;
-      var alt_proxy = Lampa.Storage.field('online_mod_proxy_other') === true ? proxy32 : proxy1;
-      if (name === 'filmix') return window.location.protocol === 'https:' ? proxy32 : '';
-      if (name === 'svetacdn') return proxy32;
-      if (name === 'allohacdn') return Lampa.Platform.is('android') ? '' : proxy32;
+      var proxy2 = 'https://cors.nb557.workers.dev:8443/';
+      var proxy3 = 'https://cors557.deno.dev/';
+      var proxy_other = Lampa.Storage.field('online_mod_proxy_other') === true ? Lampa.Storage.field('online_mod_proxy_other_url') : '';
+      var user_proxy2 = (proxy_other || proxy2) + (ip ? 'ip' + ip + '/' : '');
+      var user_proxy3 = (proxy_other || proxy3) + (ip ? 'ip' + ip + '/' : '');
+      var alt_proxy = Lampa.Storage.field('online_mod_proxy_other') === true ? user_proxy2 : proxy1;
+      if (name === 'filmix') return window.location.protocol === 'https:' ? user_proxy2 : '';
+      if (name === 'svetacdn') return '';
+      if (name === 'allohacdn') return Lampa.Platform.is('android') ? '' : user_proxy3;
 
       if (Lampa.Storage.field('online_mod_proxy_' + name) === true) {
         if (name === 'rezka') return alt_proxy;
         if (name === 'rezka2') return alt_proxy;
-        if (name === 'kinobase') return proxy32;
-        if (name === 'cdnmovies') return proxy32;
-        if (name === 'videodb') return proxy32;
-        if (name === 'zetflix') return proxy32;
-        if (name === 'redheadsound') return proxy32;
+        if (name === 'kinobase') return user_proxy3;
+        if (name === 'cdnmovies') return user_proxy3;
+        if (name === 'videodb') return user_proxy2;
+        if (name === 'zetflix') return user_proxy2;
+        if (name === 'redheadsound') return user_proxy2;
         if (name === 'anilibria') return alt_proxy;
-        if (name === 'kodik') return proxy32;
-        if (name === 'kinopub') return proxy32;
+        if (name === 'kodik') return user_proxy3;
+        if (name === 'kinopub') return user_proxy2;
       }
 
       return '';
@@ -403,7 +405,7 @@
 
         if (movie) {
           get_links_wait = true;
-          var src = 'http:' + movie.iframe_src;
+          var src = (window.location.protocol === 'https:' && !prox2 ? 'https:' : 'http:') + movie.iframe_src;
 
           var call_success = function call_success(raw) {
             get_links_wait = false;
@@ -444,7 +446,7 @@
 
           if (iframe_proxy) {
             component.proxyCall('GET', src, 20000, null, call_success, call_fail);
-          } else if (window.location.protocol !== 'http:') {
+          } else if (prox2 && window.location.protocol !== 'http:') {
             network.clear();
             network.timeout(20000);
             network.silent(prox2 + src, call_success, call_fail, false, {
@@ -2106,6 +2108,7 @@
       var translation = '';
       var prefer_mp4 = Lampa.Storage.field('online_mod_prefer_mp4') === true;
       var prox = component.proxy('kinobase');
+      var token = Lampa.Storage.field('online_mod_kinobase_token');
       var host = prox ? 'https://kinobase.org' : Utils.kinobaseMirror();
       var embed = prox + host + '/';
       var filter_items = {};
@@ -2430,7 +2433,7 @@
 
       function getUrlWithParams(url, params) {
         url = url || '';
-        url = url.indexOf('://') == -1 ? embed + (url.startsWith('/') ? url.substring(1) : url) : prox + url;
+        url = url.indexOf('://') == -1 ? host + '/' + (url.startsWith('/') ? url.substring(1) : url) : url;
 
         if (params) {
           for (var name in params) {
@@ -2443,22 +2446,31 @@
       }
 
       function getPage(url) {
+        url = url.indexOf('://') == -1 ? host + '/' + (url.startsWith('/') ? url.substring(1) : url) : url;
+        var cookie = 'csid=' + token + '; player_type=new; file_type=' + (prefer_mp4 ? "mp4" : "hls");
         var headers = Lampa.Platform.is('android') ? {
           'Origin': host,
-          'Referer': url.indexOf('://') == -1 ? host + '/' + (url.startsWith('/') ? url.substring(1) : url) : url,
-          'Cookie': 'csid=9bc5d9de649d91c4bfc014d677b29429; player_type=new; file_type=' + (prefer_mp4 ? "mp4" : "hls")
+          'Referer': url,
+          'Cookie': cookie
         } : {};
-        url = url.indexOf('://') == -1 ? embed + (url.startsWith('/') ? url.substring(1) : url) : prox + url;
+        var page_prox = prox;
+
+        if (page_prox) {
+          page_prox += 'param?Origin=' + encodeURIComponent(host) + '/';
+          page_prox += 'param?Referer=' + encodeURIComponent(url) + '/';
+          page_prox += 'param?Cookie=' + encodeURIComponent(cookie) + '/';
+        }
+
         network.clear();
         network.timeout(1000 * 10);
-        network["native"](url, function (str) {
+        network["native"](page_prox + url, function (str) {
           str = str.replace(/\n/g, '');
           var MOVIE_ID = str.match('var MOVIE_ID = (\\d+);');
           var PLAYER_CUID = str.match('var PLAYER_CUID = "([^"]+)";');
           var IDENTIFIER = str.match('var IDENTIFIER = "([^"]+)";');
 
           if (MOVIE_ID && PLAYER_CUID && IDENTIFIER) {
-            var user_url = getUrlWithParams('/user_data', {
+            var user_url = page_prox + getUrlWithParams('/user_data', {
               page: 'movie',
               movie_id: MOVIE_ID[1],
               cuid: PLAYER_CUID[1],
@@ -2468,7 +2480,7 @@
             network.timeout(1000 * 10);
             network["native"](user_url, function (data) {
               if (data && data.vod_hash != null && data.vod_time != null) {
-                var vod_url = getUrlWithParams('/vod/' + MOVIE_ID[1], {
+                var vod_url = page_prox + getUrlWithParams('/vod/' + MOVIE_ID[1], {
                   'identifier': IDENTIFIER[1],
                   'player_type': 'new',
                   'file_type': prefer_mp4 ? "mp4" : "hls",
@@ -10526,8 +10538,8 @@
       var prox2 = component.proxy('allohacdn');
       var token = 'd317441359e505c343c2063edc97e7';
       var embed = prox + 'https://api.apbugall.org/?token=' + token;
-      var decrypt = Utils.decodeSecret([16, 86, 76, 90, 80, 77, 93, 95, 90, 16, 67, 77, 70, 31, 25, 65, 66, 88, 20, 16, 77, 91, 88, 92, 90, 25, 79, 24, 70, 88, 70, 19, 92, 76, 68, 70, 89, 83, 77, 20, 14, 25, 79, 77, 15, 24, 70, 88, 70, 19, 81, 91, 67, 64, 24, 13, 25, 65, 65, 85, 26, 93, 85, 76, 83, 81, 28, 28, 103, 28, 88, 64, 76, 64, 74, 11, 9, 101, 27, 108, 27, 99, 110, 101, 27, 110, 18, 29, 108, 27, 23, 25, 2, 20, 90, 95, 20, 24, 92, 87, 67, 77, 29, 72, 25, 66, 81, 70, 24, 89, 93, 107, 64, 72, 20, 13, 20, 75, 68, 75, 26, 94, 88, 64, 83, 92, 16, 31, 79, 85, 65, 25, 93, 84, 107, 75, 65, 25, 9, 19, 30, 28, 107, 106, 31, 109, 19, 29, 20, 2, 27, 25, 15, 24, 85, 65, 64, 65, 88, 87, 68, 26, 81, 84, 102, 71, 66, 25, 9, 16, 93, 92, 111, 74, 69, 19, 6, 20, 89, 80, 103, 67, 72, 111, 2, 100, 20, 10, 20, 31, 23, 2, 20, 86, 65, 64, 66, 85, 91, 68, 23, 68, 92, 74, 64, 84, 85, 76, 81, 25, 9, 19, 30, 18, 68, 91, 83, 85, 87, 9, 20, 25, 31, 16, 81, 86, 83, 86, 80, 86, 108, 102, 121, 119, 87, 93, 73, 91, 93, 92, 90, 68, 28, 76, 95, 82, 81, 93, 16, 20, 27, 20, 31, 22, 80, 80, 108, 74, 69, 13, 19, 24, 27, 25, 81, 93, 90, 91, 84, 81, 109, 98, 112, 119, 92, 84, 68, 95, 90, 93, 94, 77, 28, 86, 65, 64, 66, 85, 91, 68, 23, 93, 87, 102, 71, 65, 29, 3, 16, 79, 85, 65, 25, 70, 85, 82, 93, 66, 92, 70, 19, 4, 20, 85, 76, 76, 66, 88, 87, 71, 23, 93, 84, 107, 75, 65, 25, 11, 19, 117, 85, 93, 68, 89, 30, 108, 64, 90, 85, 71, 30, 85, 92, 84, 108, 70, 95, 122, 91, 93, 68, 87, 94, 92, 90, 71, 17, 65, 66, 88, 20, 16, 30, 65, 90, 93, 107, 65, 9, 31, 16, 18, 20, 86, 87, 87, 95, 80, 93, 101, 107, 125, 112, 86, 89, 64, 91, 86, 85, 87, 64, 27, 92, 76, 68, 70, 89, 83, 77, 26, 90, 93, 107, 67, 69, 17, 25, 25, 14, 19, 76, 70, 92, 15, 24, 85, 65, 64, 65, 88, 87, 68, 26, 92, 95, 84, 85, 90, 87, 20, 13, 20, 80, 95, 74, 64, 104, 8, 105, 16, 31, 24, 23, 22, 19, 8, 25, 81, 72, 64, 74, 81, 90, 64, 29, 93, 91, 93, 85, 81, 94, 11, 20, 14, 25, 28, 23, 68, 89, 66, 88, 89, 12, 107, 81, 86, 81, 74, 85, 75, 9, 20, 25, 31, 16, 81, 86, 83, 86, 80, 86, 108, 102, 121, 119, 87, 93, 73, 91, 93, 92, 90, 68, 28, 74, 85, 95, 81, 65, 92, 70, 25, 20, 19, 16, 30, 27, 20, 16, 20, 27, 20, 93, 72, 77, 70, 82, 90, 64, 30, 80, 87, 93, 88, 93, 93, 2, 20, 85, 76, 76, 66, 88, 87, 71, 23, 92, 85, 85, 92, 85, 75, 71, 19, 4, 20, 124, 85, 85, 64, 88, 26, 99, 85, 85, 68, 82, 87, 66, 84, 26, 90, 74, 28, 23, 85, 86, 84, 75, 91, 90, 93, 19, 25, 20, 7, 16, 66, 20, 20, 118, 70, 89, 83, 81, 94, 30, 14, 19, 81, 91, 67, 64, 99, 1, 100, 24, 19, 30, 102, 85, 82, 93, 66, 92, 70, 20, 3, 20, 66, 81, 94, 85, 75, 81, 65, 25, 73, 16, 14, 24, 75, 68, 15, 19, 68, 20, 66, 81, 76, 69, 75, 90, 19, 92, 76, 68, 70, 89, 83, 77, 15, 19, 68, 29, 30, 87, 89, 92, 85, 28, 72, 68, 24]);
-      var decrypt2 = Utils.decodeSecret([16, 86, 76, 90, 80, 77, 93, 95, 90, 16, 67, 90, 70, 90, 73, 64, 28, 20, 76, 95, 82, 81, 93, 21, 20, 89, 80, 17, 75, 25, 66, 82, 75, 20, 71, 93, 86, 84, 86, 67, 19, 4, 20, 75, 73, 20, 16, 29, 20, 14, 25, 79, 77, 15, 24, 70, 88, 70, 19, 97, 121, 124, 124, 76, 68, 73, 102, 86, 72, 65, 85, 71, 76, 16, 4, 20, 85, 76, 90, 83, 64, 81, 95, 87, 20, 107, 116, 120, 120, 64, 76, 64, 107, 81, 66, 76, 81, 67, 64, 16, 25, 66, 20, 71, 81, 93, 67, 26, 87, 64, 92, 90, 19, 4, 20, 86, 65, 86, 83, 77, 93, 92, 87, 28, 25, 79, 69, 11, 25, 64, 91, 80, 71, 30, 71, 93, 68, 107, 81, 66, 76, 81, 67, 64, 112, 85, 88, 80, 86, 75, 20, 13, 20, 94, 69, 87, 87, 71, 80, 91, 94, 28, 17, 75, 68, 15, 19, 77, 92, 89, 71, 22, 67, 92, 90, 87, 25, 9, 16, 82, 77, 94, 90, 64, 90, 86, 90, 24, 29, 67, 77, 2, 20, 78, 2, 20, 70, 85, 74, 16, 97, 112, 92, 84, 85, 89, 90, 106, 85, 72, 65, 86, 74, 64, 16, 9, 24, 104, 116, 120, 123, 77, 64, 64, 102, 93, 65, 76, 81, 64, 77, 15, 16, 64, 74, 73, 25, 79, 19, 92, 66, 81, 88, 16, 67, 90, 70, 90, 73, 64, 25, 15, 24, 77, 25, 87, 82, 77, 87, 88, 20, 16, 85, 16, 79, 78, 25, 70, 85, 64, 77, 66, 87, 20, 72, 25, 69, 69, 81, 74, 73, 3, 20, 17, 6, 87, 88, 65, 72, 81, 90, 92, 70, 73, 71, 13, 22, 24, 27, 25, 81, 93, 90, 91, 84, 81, 109, 98, 112, 119, 92, 84, 68, 95, 90, 93, 94, 77, 28, 73, 65, 66, 81, 71, 92, 81, 74, 80, 82, 74, 66, 81, 71, 92, 87, 88, 71, 85, 79, 80, 25, 24, 24, 64, 86, 71, 71, 93, 85, 68, 85, 2, 16, 27, 89, 70, 93, 93, 92, 85, 90, 81, 93, 6, 14, 27, 20, 27, 20, 93, 94, 90, 91, 87, 92, 97, 98, 125, 123, 95, 84, 68, 92, 87, 81, 94, 64, 16, 68, 86, 95, 86, 87, 29, 16, 31, 24, 18, 31, 90, 86, 78, 89, 69, 80, 81, 92, 88, 86, 82, 93, 9, 18, 20, 19, 16, 92, 90, 80, 86, 80, 85, 97, 106, 121, 122, 91, 94, 73, 91, 94, 81, 86, 68, 17, 93, 87, 16, 20, 27, 20, 26, 22, 86, 88, 87, 84, 65, 84, 93, 84, 81, 91, 85, 87, 4, 22, 16, 31, 24, 85, 87, 87, 92, 93, 81, 101, 102, 113, 115, 86, 89, 67, 86, 90, 85, 90, 76, 24, 76, 65, 66, 16, 20, 77, 15, 24, 77, 16, 26, 80, 88, 88, 92, 28, 67, 77, 21]);
+      var decrypt = Utils.decodeSecret([16, 86, 76, 90, 80, 77, 93, 95, 90, 16, 67, 77, 70, 31, 25, 65, 66, 88, 20, 16, 77, 91, 88, 92, 90, 25, 79, 24, 70, 88, 70, 19, 92, 76, 68, 70, 89, 83, 77, 20, 14, 25, 79, 77, 15, 24, 70, 88, 70, 19, 81, 91, 67, 64, 24, 13, 25, 65, 65, 85, 26, 93, 85, 76, 83, 81, 28, 28, 103, 28, 88, 64, 76, 64, 74, 11, 9, 101, 27, 108, 27, 99, 110, 101, 27, 110, 18, 29, 108, 27, 23, 25, 2, 20, 90, 95, 20, 24, 92, 87, 67, 77, 29, 72, 25, 66, 81, 70, 24, 89, 93, 107, 64, 72, 20, 13, 20, 75, 68, 75, 26, 94, 88, 64, 83, 92, 16, 31, 79, 85, 65, 25, 93, 84, 107, 75, 65, 25, 9, 19, 30, 28, 107, 106, 31, 109, 19, 29, 20, 2, 27, 25, 15, 24, 85, 65, 64, 65, 88, 87, 68, 26, 81, 84, 102, 71, 66, 25, 9, 16, 93, 92, 111, 74, 69, 19, 6, 20, 89, 80, 103, 67, 72, 111, 2, 100, 20, 10, 20, 31, 23, 2, 20, 86, 65, 64, 66, 85, 91, 68, 23, 68, 92, 74, 64, 84, 85, 76, 81, 25, 9, 19, 30, 18, 68, 91, 83, 85, 87, 9, 20, 25, 31, 16, 81, 86, 83, 86, 80, 86, 108, 102, 121, 119, 87, 93, 73, 91, 93, 92, 90, 68, 28, 76, 95, 82, 81, 93, 16, 20, 27, 20, 31, 22, 80, 80, 108, 74, 69, 13, 19, 24, 27, 25, 81, 93, 90, 91, 84, 81, 109, 98, 112, 119, 92, 84, 68, 95, 90, 93, 94, 77, 28, 86, 65, 64, 66, 85, 91, 68, 23, 93, 87, 102, 71, 65, 29, 3, 16, 79, 85, 65, 25, 70, 85, 82, 93, 66, 92, 70, 19, 4, 20, 85, 76, 76, 66, 88, 87, 71, 23, 93, 84, 107, 75, 65, 25, 11, 19, 117, 85, 93, 68, 89, 30, 108, 64, 90, 85, 71, 30, 85, 92, 84, 108, 70, 95, 122, 91, 93, 68, 87, 94, 92, 90, 71, 17, 65, 66, 88, 20, 16, 30, 65, 90, 93, 107, 65, 9, 31, 16, 18, 20, 86, 87, 87, 95, 80, 93, 101, 107, 125, 112, 86, 89, 64, 91, 86, 85, 87, 64, 27, 92, 76, 68, 70, 89, 83, 77, 26, 90, 93, 107, 67, 69, 17, 25, 25, 14, 19, 76, 70, 92, 15, 24, 85, 65, 64, 65, 88, 87, 68, 26, 92, 95, 84, 85, 90, 87, 20, 13, 20, 80, 95, 74, 64, 104, 8, 105, 16, 31, 24, 23, 22, 19, 8, 25, 81, 72, 64, 74, 81, 90, 64, 29, 73, 70, 95, 76, 10, 16, 4, 20, 27, 30, 68, 81, 70, 89, 93, 6, 123, 65, 80, 83, 89, 90, 5, 23, 25, 31, 19, 92, 90, 83, 91, 92, 85, 108, 102, 122, 122, 91, 93, 68, 87, 94, 92, 90, 71, 17, 92, 95, 71, 76, 107, 8, 105, 26, 25, 31, 16, 19, 23, 23, 16, 20, 24, 25, 28, 23, 68, 89, 66, 88, 89, 12, 107, 81, 86, 81, 74, 85, 75, 9, 20, 25, 31, 16, 81, 86, 83, 86, 80, 86, 108, 102, 121, 119, 87, 93, 73, 91, 93, 92, 90, 68, 28, 74, 85, 95, 81, 65, 92, 70, 25, 20, 19, 16, 30, 27, 20, 16, 15, 16, 81, 64, 68, 75, 85, 80, 77, 26, 88, 81, 89, 84, 92, 70, 64, 25, 9, 16, 120, 89, 93, 73, 85, 29, 105, 88, 81, 64, 94, 95, 75, 89, 29, 80, 71, 24, 19, 89, 94, 93, 70, 92, 80, 80, 23, 29, 24, 15, 25, 79, 19, 30, 123, 66, 93, 95, 89, 87, 19, 9, 25, 92, 95, 71, 76, 107, 8, 105, 31, 25, 19, 98, 81, 94, 85, 75, 81, 65, 30, 14, 16, 70, 93, 86, 92, 70, 86, 75, 20, 77, 20, 2, 16, 66, 73, 8, 25, 73, 16, 70, 93, 68, 76, 70, 93, 25, 81, 72, 64, 74, 81, 90, 64, 8, 25, 73, 25, 26, 91, 81, 85, 88, 27, 66, 73, 28]);
+      var decrypt2 = Utils.decodeSecret([16, 86, 76, 90, 80, 77, 93, 95, 90, 16, 67, 90, 70, 90, 73, 64, 28, 20, 76, 95, 82, 81, 93, 21, 20, 89, 80, 17, 75, 25, 66, 82, 75, 20, 71, 93, 86, 84, 86, 67, 19, 4, 20, 75, 73, 20, 16, 29, 20, 14, 25, 79, 77, 15, 24, 70, 88, 70, 19, 97, 121, 124, 124, 76, 68, 73, 102, 86, 72, 65, 85, 71, 76, 16, 4, 20, 85, 76, 90, 83, 64, 81, 95, 87, 20, 107, 116, 120, 120, 64, 76, 64, 107, 81, 66, 76, 81, 67, 64, 16, 25, 66, 20, 71, 81, 93, 67, 26, 87, 64, 92, 90, 19, 4, 20, 86, 65, 86, 83, 77, 93, 92, 87, 28, 25, 79, 69, 11, 25, 64, 91, 80, 71, 30, 71, 93, 68, 107, 81, 66, 76, 81, 67, 64, 112, 85, 88, 80, 86, 75, 20, 13, 20, 94, 69, 87, 87, 71, 80, 91, 94, 28, 17, 75, 68, 15, 19, 77, 92, 89, 71, 22, 67, 92, 90, 87, 25, 9, 16, 82, 77, 94, 90, 64, 90, 86, 90, 24, 29, 67, 77, 2, 20, 78, 2, 20, 70, 85, 74, 16, 97, 112, 92, 84, 85, 89, 90, 106, 85, 72, 65, 86, 74, 64, 16, 9, 24, 104, 116, 120, 123, 77, 64, 64, 102, 93, 65, 76, 81, 64, 77, 15, 16, 64, 74, 73, 25, 79, 19, 92, 66, 81, 88, 16, 67, 90, 70, 90, 73, 64, 25, 15, 24, 77, 25, 87, 82, 77, 87, 88, 20, 16, 85, 16, 79, 78, 25, 70, 85, 64, 77, 66, 87, 20, 72, 25, 69, 69, 81, 74, 73, 3, 20, 17, 6, 87, 88, 65, 72, 81, 90, 92, 70, 73, 71, 13, 22, 24, 27, 25, 81, 93, 90, 91, 84, 81, 109, 98, 112, 119, 92, 84, 68, 95, 90, 93, 94, 77, 28, 73, 65, 66, 81, 71, 92, 81, 74, 80, 82, 74, 66, 81, 71, 92, 87, 88, 71, 85, 79, 80, 25, 24, 24, 64, 86, 71, 71, 93, 85, 68, 85, 2, 16, 27, 89, 70, 93, 93, 92, 85, 90, 81, 93, 83, 86, 64, 9, 18, 20, 19, 16, 92, 90, 80, 86, 80, 85, 97, 106, 121, 122, 91, 94, 73, 91, 94, 81, 86, 68, 17, 64, 92, 82, 81, 94, 29, 24, 27, 25, 22, 21, 87, 81, 71, 89, 77, 84, 80, 88, 82, 91, 85, 84, 9, 26, 16, 18, 20, 86, 87, 87, 95, 80, 93, 101, 107, 125, 112, 86, 89, 64, 91, 86, 85, 87, 64, 27, 80, 80, 25, 20, 19, 16, 27, 18, 92, 85, 80, 93, 65, 92, 89, 85, 85, 81, 88, 80, 13, 22, 24, 27, 25, 81, 93, 90, 91, 84, 81, 109, 98, 112, 119, 92, 84, 68, 95, 90, 93, 94, 77, 28, 70, 76, 69, 25, 24, 24, 70, 10, 14, 19, 74, 71, 28, 20, 78, 1, 3, 20, 64, 77, 86, 16, 73, 3, 16, 68, 29, 29, 90, 85, 92, 88, 16, 75, 68, 24]);
       var filter_items = {};
       var choice = {
         season: 0,
@@ -10934,7 +10946,7 @@
           if (element.parsed || !file.endsWith('.m3u8')) return call(element);
           network.clear();
           network.timeout(10000);
-          network["native"](prox + file, function (str) {
+          network["native"]((prox2 ? prox2 + extract.prox2 : prox) + file, function (str) {
             var items = extractQuality(str, file);
             items = items.filter(function (elem) {
               return elem.quality > 0;
@@ -10961,7 +10973,8 @@
           }, function (a, c) {
             call(element);
           }, false, {
-            dataType: 'text'
+            dataType: 'text',
+            headers: extract.headers
           });
         }, error);
       }
@@ -11023,10 +11036,15 @@
         postdata += extract.postdata;
         network.clear();
         network.timeout(10000);
-        network["native"](prox + extract.domain, function (json) {
+        network["native"]((prox2 ? prox2 + extract.prox2 : prox) + extract.domain, function (json) {
           if (json.url) {
             var decodeStream = function decodeStream(aes) {
               var file = decode(json.url, aes);
+
+              if (element.params) {
+                file = file.replace(/\{v3\}/g, element.params.v3);
+                file = file.replace(/\{v1\}/g, element.params.v1);
+              }
 
               if (file.charAt(0) === '{') {
                 var items = extractItems('[]' + file);
@@ -11051,13 +11069,14 @@
                 if (subtitle.endsWith('index.php')) {
                   network.clear();
                   network.timeout(10000);
-                  network["native"](prox + subtitle, function (str) {
+                  network["native"]((prox2 ? prox2 + extract.prox2 : prox) + subtitle, function (str) {
                     element.subtitles = parseSubs(str);
                     call(element);
                   }, function (a, c) {
                     call(element);
                   }, false, {
-                    dataType: 'text'
+                    dataType: 'text',
+                    headers: extract.headers
                   });
                 } else call(element);
               } else error();
@@ -11069,10 +11088,12 @@
               params = (0, eval)(decrypt2 + [JSON.stringify(json.tokenq), JSON.stringify(token), JSON.stringify(element.media.id)].join(',') + ');');
             } catch (e) {}
 
+            element.params = params;
+
             if (params) {
               network.clear();
               network.timeout(10000);
-              network["native"]((prox2 ? prox2 + extract.domain2 : prox + extract.domain) + params.query, decodeStream, function (a, c) {
+              network["native"]((prox2 ? prox2 + extract.prox2 : prox) + extract.domain + params.query, decodeStream, function (a, c) {
                 decodeStream('');
               }, params.postdata, {
                 dataType: 'text',
@@ -14946,7 +14967,7 @@
       };
     }
 
-    var mod_version = '13.01.2024';
+    var mod_version = '21.01.2024';
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
     var isIFrame = window.parent !== window;
@@ -14956,7 +14977,9 @@
     console.log('App', 'is iframe:', isIFrame);
     console.log('App', 'is local:', isLocal);
     Lampa.Storage.set('online_mod_proxy_videocdn', 'false');
+    Lampa.Storage.set('online_mod_proxy_kinobase', 'false');
     Lampa.Storage.set('online_mod_proxy_collaps', 'false');
+    Lampa.Storage.set('online_mod_proxy_cdnmovies', 'false');
     Lampa.Storage.set('online_mod_proxy_kinopub', 'true');
     Lampa.Storage.set('online_mod_proxy_alloha', 'false');
     Lampa.Storage.set('online_mod_proxy_hdvb', 'false');
@@ -14987,6 +15010,7 @@
     Lampa.Params.trigger('online_mod_av1_support', true);
     Lampa.Params.trigger('online_mod_save_last_balanser', false);
     Lampa.Params.select('online_mod_kinobase_mirror', '', '');
+    Lampa.Params.select('online_mod_kinobase_token', '', '');
     Lampa.Params.select('online_mod_rezka2_mirror', '', '');
     Lampa.Params.select('online_mod_rezka2_name', '', '');
     Lampa.Params.select('online_mod_rezka2_password', '', '');
@@ -15205,6 +15229,13 @@
         be: 'Люстэрка для kinobase',
         en: 'Mirror for kinobase',
         zh: 'kinobase的镜子'
+      },
+      online_mod_kinobase_token: {
+        ru: 'ТОКЕН от kinobase',
+        uk: 'ТОКЕН від kinobase',
+        be: 'ТОКЕН ад kinobase',
+        en: 'TOKEN from kinobase',
+        zh: 'TOKEN 来自 kinobase'
       },
       online_mod_rezka2_mirror: {
         ru: 'Зеркало для rezka2',
@@ -15579,7 +15610,7 @@
     } ///////Онлайн Мод/////////
 
 
-    var template = "<div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_rezka\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} rezka</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_rezka2\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} rezka2</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_kinobase\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} kinobase</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_cdnmovies\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} cdnmovies</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_videodb\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} videodb</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_zetflix\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} zetflix</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_redheadsound\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} redheadsound</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_anilibria\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} anilibria</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_kodik\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} kodik</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_skip_kp_search\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_skip_kp_search}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_iframe_proxy\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_iframe_proxy}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_prefer_http\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_prefer_http}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_prefer_mp4\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_prefer_mp4}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_prefer_dash\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_prefer_dash}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_save_last_balanser\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_save_last_balanser}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_clear_last_balanser\" data-static=\"true\">\n        <div class=\"settings-param__name\">#{online_mod_clear_last_balanser}</div>\n        <div class=\"settings-param__status\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_kinobase_mirror\" data-type=\"input\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{online_mod_kinobase_mirror}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_rezka2_mirror\" data-type=\"input\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{online_mod_rezka2_mirror}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_rezka2_name\" data-type=\"input\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{online_mod_rezka2_name}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_rezka2_password\" data-type=\"input\" data-string=\"true\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{online_mod_rezka2_password}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_rezka2_login\" data-static=\"true\">\n        <div class=\"settings-param__name\">#{online_mod_rezka2_login}</div>\n        <div class=\"settings-param__status\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_rezka2_logout\" data-static=\"true\">\n        <div class=\"settings-param__name\">#{online_mod_rezka2_logout}</div>\n        <div class=\"settings-param__status\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_find_ip\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_find_ip}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_other\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_other}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_other_url\" data-type=\"input\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_other_url}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_secret_password\" data-type=\"input\" data-string=\"true\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{online_mod_secret_password}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
+    var template = "<div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_rezka\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} rezka</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_rezka2\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} rezka2</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_kinobase\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} kinobase</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_cdnmovies\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} cdnmovies</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_videodb\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} videodb</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_zetflix\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} zetflix</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_redheadsound\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} redheadsound</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_anilibria\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} anilibria</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_kodik\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} kodik</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_skip_kp_search\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_skip_kp_search}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_iframe_proxy\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_iframe_proxy}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_prefer_http\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_prefer_http}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_prefer_mp4\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_prefer_mp4}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_prefer_dash\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_prefer_dash}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_save_last_balanser\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_save_last_balanser}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_clear_last_balanser\" data-static=\"true\">\n        <div class=\"settings-param__name\">#{online_mod_clear_last_balanser}</div>\n        <div class=\"settings-param__status\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_kinobase_mirror\" data-type=\"input\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{online_mod_kinobase_mirror}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_kinobase_token\" data-type=\"input\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{online_mod_kinobase_token}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_rezka2_mirror\" data-type=\"input\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{online_mod_rezka2_mirror}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_rezka2_name\" data-type=\"input\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{online_mod_rezka2_name}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_rezka2_password\" data-type=\"input\" data-string=\"true\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{online_mod_rezka2_password}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_rezka2_login\" data-static=\"true\">\n        <div class=\"settings-param__name\">#{online_mod_rezka2_login}</div>\n        <div class=\"settings-param__status\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_rezka2_logout\" data-static=\"true\">\n        <div class=\"settings-param__name\">#{online_mod_rezka2_logout}</div>\n        <div class=\"settings-param__status\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_find_ip\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_find_ip}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_other\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_other}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_other_url\" data-type=\"input\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_other_url}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_secret_password\" data-type=\"input\" data-string=\"true\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{online_mod_secret_password}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
 
     if (Utils.isDebug()) {
       template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_av1_support\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_av1_support}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
