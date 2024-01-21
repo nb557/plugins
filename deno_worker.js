@@ -1,12 +1,11 @@
-export default {
-  async fetch(request) {
+async function handle(request, connInfo) {
     const corsHeaders = {
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Methods": "GET,HEAD,POST,OPTIONS",
       "Access-Control-Max-Age": "86400",
     };
 
-    async function handleRequest(request) {
+    async function handleRequest(request, connInfo) {
       const url = new URL(request.url);
       let api = url.href.substring(url.origin.length + 1);
       let ip;
@@ -16,6 +15,9 @@ export default {
       if (api === "headers") {
         let body = "";
         request.headers.forEach((value, key) => body += key + " = " + value + "\n");
+        if (connInfo && connInfo.remoteAddr) {
+          body += "connInfo" + " = " + JSON.stringify(connInfo.remoteAddr) + "\n";
+        }
         return new Response(body);
       }
 
@@ -47,6 +49,9 @@ export default {
         } else {
           next_param = false;
         }
+      }
+      if (!ip) {
+        ip = connInfo && connInfo.remoteAddr && connInfo.remoteAddr.hostname || "";
       }
 
       if (!api || !/^https?:\/\/[^\/]/.test(api)) {
@@ -83,8 +88,8 @@ export default {
         request.headers.delete("cf-visitor");
       }
       if (ip) {
-        //request.headers.set("X-Forwarded-For", ip);
-        //request.headers.set("X-Forwarded-Proto", "https");
+        request.headers.set("X-Forwarded-For", ip);
+        request.headers.set("X-Forwarded-Proto", "https");
         request.headers.set("X-Real-IP", ip);
         request.headers.set("cf-connecting-ip", ip);
       }
@@ -145,7 +150,7 @@ export default {
       return response;
     }
 
-    async function handleOptions(request) {
+    async function handleOptions(request, connInfo) {
       if (
         request.headers.get("Origin") !== null &&
         request.headers.get("Access-Control-Request-Method") !== null &&
@@ -172,19 +177,20 @@ export default {
 
     if (request.method === "OPTIONS") {
       // Handle CORS preflight requests
-      return handleOptions(request);
+      return handleOptions(request, connInfo);
     } else if (
       request.method === "GET" ||
       request.method === "HEAD" ||
       request.method === "POST"
     ) {
       // Handle requests to the API server
-      return handleRequest(request);
+      return handleRequest(request, connInfo);
     } else {
       return new Response(null, {
         status: 405,
         statusText: "Method Not Allowed",
       });
     }
-  },
-};
+}
+
+Deno.serve(handle);
