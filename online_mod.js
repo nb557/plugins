@@ -1,9 +1,12 @@
-//23.01.2024 - Fix collaps
+//23.01.2024 - Fix rezka ua
 
 (function () {
     'use strict';
 
     var myIp = '';
+
+    var country = '';
+    $.get('https://apn.monster/country',function(text){ country=text });
 
     function decodeSecret(input) {
       var result = '';
@@ -1825,10 +1828,10 @@
             var items = extractItems(video);
 
             if (items && items.length) {
-              file = items[0].file;
+              file = country == 'UA' ? items[0].file.replace('stream.voidboost.cc', 'prx-ams.ukrtelcdn.net') : items[0].file;
               quality = {};
               items.forEach(function (item) {
-                quality[item.label] = item.file;
+                quality[item.label] = country == 'UA' ? item.file.replace('stream.voidboost.cc', 'prx-ams.ukrtelcdn.net') : item.file;
               });
               var preferably = Lampa.Storage.get('video_quality_default', '1080') + 'p';
               if (quality[preferably]) file = quality[preferably];else if (preferably === '1440p' && quality['2K']) file = quality['2K'];else if (preferably === '2160p' && quality['4K']) file = quality['4K'];
