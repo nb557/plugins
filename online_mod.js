@@ -1,4 +1,4 @@
-//23.01.2024 - Fix kodik
+//23.01.2024 - Fix collaps
 
 (function () {
     'use strict';
@@ -2695,7 +2695,7 @@
       var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true;
       var prefer_dash = Lampa.Storage.field('online_mod_prefer_dash') === true;
       var prox = component.proxy('collaps');
-      var embed = prox + (prefer_http || prox ? 'http:' : 'https:') + '//api.embr.ws/embed/';
+      var embed = prox + (prefer_http || prox ? 'http:' : 'https:') + '//api.lessornot.ws/embed/';
       var filter_items = {};
       var choice = {
         season: 0,
