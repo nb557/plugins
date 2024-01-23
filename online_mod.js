@@ -1,4 +1,4 @@
-//23.01.2024 - Fix rezka ua
+//23.01.2024 - apn
 
 (function () {
     'use strict';
@@ -7,6 +7,15 @@
 
     var country = '';
     $.get('https://apn.monster/country',function(text){ country=text });
+	
+	function apn(uri) {
+      if (country == 'UA') {
+        if (uri.indexOf('stream.voidboost.cc') !== -1)
+          return uri.replace('stream.voidboost.cc', 'prx-ams.ukrtelcdn.net');
+        return 'https://apn.watch/'+uri;
+	  }
+      return uri;
+    }
 
     function decodeSecret(input) {
       var result = '';
@@ -1828,10 +1837,10 @@
             var items = extractItems(video);
 
             if (items && items.length) {
-              file = country == 'UA' ? items[0].file.replace('stream.voidboost.cc', 'prx-ams.ukrtelcdn.net') : items[0].file;
+              file = apn(items[0].file);
               quality = {};
               items.forEach(function (item) {
-                quality[item.label] = country == 'UA' ? item.file.replace('stream.voidboost.cc', 'prx-ams.ukrtelcdn.net') : item.file;
+                quality[item.label] = apn(item.file);
               });
               var preferably = Lampa.Storage.get('video_quality_default', '1080') + 'p';
               if (quality[preferably]) file = quality[preferably];else if (preferably === '1440p' && quality['2K']) file = quality['2K'];else if (preferably === '2160p' && quality['4K']) file = quality['4K'];
@@ -4383,10 +4392,10 @@
         var items = element.media.items;
 
         if (items && items.length) {
-          file = items[0].file;
+          file = apn(items[0].file);
           quality = {};
           items.forEach(function (item) {
-            quality[item.label] = item.file;
+            quality[item.label] = apn(item.file);
           });
           var preferably = Lampa.Storage.get('video_quality_default', '1080') + 'p';
           if (quality[preferably]) file = quality[preferably];
@@ -4765,10 +4774,10 @@
         var items = element.media.items;
 
         if (items && items.length) {
-          file = items[0].file;
+          file = apn(items[0].file);
           quality = {};
           items.forEach(function (item) {
-            quality[item.label] = item.file;
+            quality[item.label] = apn(item.file);
           });
           var preferably = Lampa.Storage.get('video_quality_default', '1080') + 'p';
           if (quality[preferably]) file = quality[preferably];
@@ -12467,10 +12476,10 @@
                     quality = false;
 
                 if (items && items.length) {
-                  file = items[0].file;
+                  file = apn(items[0].file);
                   quality = {};
                   items.forEach(function (item) {
-                    quality[item.label] = item.file;
+                    quality[item.label] = apn(item.file);
                   });
                   var preferably = Lampa.Storage.get('video_quality_default', '1080') + 'p';
                   if (quality[preferably]) file = quality[preferably];
