@@ -1,4 +1,4 @@
-//24.01.2024 - Proxy video stream option
+//24.01.2024 - Fix proxy video stream option
 
 (function () {
     'use strict';
@@ -71,7 +71,7 @@
 
       if (Lampa.Storage.field('online_mod_proxy_' + name) === true) {
         if (name === 'rezka') return alt_proxy;
-        if (name === 'rezka2') return alt_proxy;
+        if (name === 'rezka2') return Lampa.Storage.field('online_mod_proxy_rezka2_mirror') === true || Lampa.Storage.field('online_mod_use_stream_proxy') === true ? user_proxy2 : alt_proxy;
         if (name === 'kinobase') return user_proxy3;
         if (name === 'cdnmovies') return user_proxy3;
         if (name === 'videodb') return user_proxy2;
@@ -4239,7 +4239,7 @@
           if (prefer_http) link = link.replace('https://', 'http://');
           return {
             label: link.split('/').pop(),
-            url: link
+            url: component.proxyStream(link, 'videodb')
           };
         }).filter(function (s) {
           return s.url;
@@ -15000,7 +15000,6 @@
     Lampa.Storage.set('online_mod_proxy_videocdn', 'false');
     Lampa.Storage.set('online_mod_proxy_kinobase', 'false');
     Lampa.Storage.set('online_mod_proxy_collaps', 'false');
-    Lampa.Storage.set('online_mod_proxy_cdnmovies', 'false');
     Lampa.Storage.set('online_mod_proxy_kinopub', 'true');
     Lampa.Storage.set('online_mod_proxy_alloha', 'false');
     Lampa.Storage.set('online_mod_proxy_hdvb', 'false');
@@ -15498,7 +15497,7 @@
     });
 
     if (Lampa.Storage.get('online_mod_use_stream_proxy', '') === '') {
-      $.get('https://apn.monster/country', function (country) {
+      $.get((window.location.protocol === 'https:' ? 'https://' : 'http://') + 'geo.cub.red/', function (country) {
         Lampa.Storage.set('online_mod_use_stream_proxy', '' + (country === 'UA'));
       });
     } ///////FILMIX/////////
