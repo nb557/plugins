@@ -1,4 +1,4 @@
-//24.01.2024 - Fix proxy video stream option
+//26.01.2024 - Fix normalizeTitle
 
 (function () {
     'use strict';
@@ -251,7 +251,6 @@
       var prox2 = component.proxy('svetacdn');
       var host = (prefer_http || prox ? 'http:' : 'https:') + '//videocdn.tv';
       var embed = prox + host + '/api/';
-      var iframe_proxy = !prox && Lampa.Storage.field('online_mod_iframe_proxy') === true && Lampa.Storage.field('online_mod_alt_iframe_proxy') !== true && !window.location.protocol.startsWith('http');
       var filter_items = {};
       var choice = {
         season: 0,
@@ -444,9 +443,7 @@
             component.render().find('.broadcast__scan').remove();
           };
 
-          if (iframe_proxy) {
-            component.proxyCall('GET', src, 20000, null, call_success, call_fail);
-          } else if (prox2 && window.location.protocol !== 'http:') {
+          if (prox2 && window.location.protocol !== 'http:') {
             network.clear();
             network.timeout(20000);
             network.silent(prox2 + src, call_success, call_fail, false, {
@@ -3202,7 +3199,7 @@
             return {
               label: item.label,
               quality: quality ? parseInt(quality[1]) : NaN,
-              file: link
+              file: component.proxyStream(link, 'cdnmovies')
             };
           });
           items.sort(function (a, b) {
@@ -3262,7 +3259,7 @@
         url = url.replace('/sundb.coldcdn.xyz/', '/sundb.nl/');
 
         if (url) {
-          element.stream = url;
+          element.stream = component.proxyStream(url, 'cdnmovies');
           element.qualitys = false;
           call(element);
         } else error();
@@ -3328,7 +3325,7 @@
           link = link.replace('/sundb.coldcdn.xyz/', '/sundb.nl/');
           return {
             label: item.label,
-            url: link
+            url: component.proxyStream(link, 'cdnmovies')
           };
         });
         return subtitles.length ? subtitles : false;
@@ -14058,7 +14055,7 @@
       };
 
       this.normalizeTitle = function (str) {
-        return this.cleanTitle(str.toLowerCase().replace(/—/g, '-').replace(/ё/g, 'е'));
+        return this.cleanTitle(str.toLowerCase().replace(/[\-\u2010-\u2015\u2E3A\u2E3B\uFE58\uFE63\uFF0D]+/g, '-').replace(/ё/g, 'е'));
       };
 
       this.equalTitle = function (t1, t2) {
@@ -14556,6 +14553,8 @@
         this.proxyUrlCall(proxy_url, method, url, timeout, post_data, call_success, call_fail);
       };
 
+      this.proxyCall = this.proxyCall2;
+
       this.extendChoice = function () {
         var data = Lampa.Storage.cache('online_mod_choice_' + balanser, 500, {});
         var save = data[selected_id || object.movie.id] || {};
@@ -14988,7 +14987,7 @@
       };
     }
 
-    var mod_version = '24.01.2024';
+    var mod_version = '26.01.2024';
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
     var isIFrame = window.parent !== window;

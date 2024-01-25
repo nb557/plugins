@@ -285,7 +285,7 @@
     }
 
     function normalizeTitle(str) {
-      return cleanTitle(str.toLowerCase().replace(/—/g, '-').replace(/ё/g, 'е'));
+      return cleanTitle(str.toLowerCase().replace(/[\-\u2010-\u2015\u2E3A\u2E3B\uFE58\uFE63\uFF0D]+/g, '-').replace(/ё/g, 'е'));
     }
 
     function containsTitle(str, title) {
