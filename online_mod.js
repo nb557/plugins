@@ -1,4 +1,4 @@
-//26.01.2024 - Fix normalizeTitle
+//27.01.2024 - Fix rezka iframe proxy
 
 (function () {
     'use strict';
@@ -1091,7 +1091,7 @@
         };
 
         if (iframe_proxy) {
-          component.proxyCall('GET', url, 5000, null, call_success, error);
+          component.proxyCall3('GET', url, 5000, null, call_success, error);
         } else {
           network.clear();
           network.timeout(5000);
@@ -14544,12 +14544,16 @@
 
       this.proxyCall = function (method, url, timeout, post_data, call_success, call_fail) {
         var proxy_url = (window.location.protocol === 'https:' ? 'https://' : 'http://') + 'nb557.surge.sh/proxy.html';
-        if (Lampa.Storage.field('online_mod_alt_iframe_proxy') === true) proxy_url = 'https://nb557.github.io/plugins/proxy.html';
         this.proxyUrlCall(proxy_url, method, url, timeout, post_data, call_success, call_fail);
       };
 
       this.proxyCall2 = function (method, url, timeout, post_data, call_success, call_fail) {
         var proxy_url = (window.location.protocol === 'https:' ? 'https://' : 'http://') + 'lampa.stream/proxy.html';
+        this.proxyUrlCall(proxy_url, method, url, timeout, post_data, call_success, call_fail);
+      };
+
+      this.proxyCall3 = function (method, url, timeout, post_data, call_success, call_fail) {
+        var proxy_url = 'https://nb557.github.io/plugins/proxy.html';
         this.proxyUrlCall(proxy_url, method, url, timeout, post_data, call_success, call_fail);
       };
 
@@ -14987,7 +14991,7 @@
       };
     }
 
-    var mod_version = '26.01.2024';
+    var mod_version = '27.01.2024';
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
     var isIFrame = window.parent !== window;
@@ -15003,7 +15007,6 @@
     Lampa.Storage.set('online_mod_proxy_alloha', 'false');
     Lampa.Storage.set('online_mod_proxy_hdvb', 'false');
     Lampa.Storage.set('online_mod_proxy_kp', 'false');
-    Lampa.Storage.set('online_mod_alt_iframe_proxy', 'false');
     Lampa.Params.trigger('online_mod_iframe_proxy', !isTizen || isLocal);
     Lampa.Params.trigger('online_mod_use_stream_proxy', false);
     Lampa.Params.trigger('online_mod_proxy_find_ip', false);
@@ -15496,8 +15499,14 @@
     });
 
     if (Lampa.Storage.get('online_mod_use_stream_proxy', '') === '') {
-      $.get((window.location.protocol === 'https:' ? 'https://' : 'http://') + 'geo.cub.red/', function (country) {
-        Lampa.Storage.set('online_mod_use_stream_proxy', '' + (country === 'UA'));
+      $.ajax({
+        url: (window.location.protocol === 'https:' ? 'https://' : 'http://') + 'ipwho.is/?fields=ip,country_code',
+        jsonp: 'callback',
+        dataType: 'jsonp'
+      }).done(function (json) {
+        if (json && json.country_code) {
+          Lampa.Storage.set('online_mod_use_stream_proxy', '' + (json.country_code === 'UA'));
+        }
       });
     } ///////FILMIX/////////
 
