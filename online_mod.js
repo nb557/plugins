@@ -1,4 +1,4 @@
-//27.01.2024 - Fix rezka iframe proxy
+//27.01.2024 - Fix http stream proxy
 
 (function () {
     'use strict';
@@ -13910,6 +13910,7 @@
       var balanser = Lampa.Storage.get('online_mod_balanser', 'videocdn');
       var last_bls = Lampa.Storage.field('online_mod_save_last_balanser') === true ? Lampa.Storage.cache('online_mod_last_balanser', 200, {}) : {};
       var use_stream_proxy = Lampa.Storage.field('online_mod_use_stream_proxy') === true;
+      var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true;
       var contextmenu_all = [];
 
       if (last_bls[object.movie.id]) {
@@ -13923,7 +13924,7 @@
       this.proxyStream = function (url, name) {
         if (url && use_stream_proxy) {
           if (name === 'rezka2') return url.replace('//stream.voidboost.cc/', '//prx-ams.ukrtelcdn.net/');
-          return 'https://apn.watch/' + url;
+          return (prefer_http ? 'http://apn.cfhttp.top/' : 'https://apn.watch/') + url;
         }
 
         return url;
@@ -14098,7 +14099,6 @@
       };
 
       this.vcdn_api_search = function (api, data, callback, error) {
-        var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true;
         var prox = this.proxy('videocdn');
         var url = prox + (prefer_http || prox ? 'http:' : 'https:') + '//videocdn.tv/api/';
         network.clear();
