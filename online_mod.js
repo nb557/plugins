@@ -1,4 +1,4 @@
-//28.01.2024 - Hide kinobase and cdnmovies
+//31.01.2024 - Fix proxy
 
 (function () {
     'use strict';
@@ -71,7 +71,7 @@
 
       if (Lampa.Storage.field('online_mod_proxy_' + name) === true) {
         if (name === 'rezka') return alt_proxy;
-        if (name === 'rezka2') return Lampa.Storage.field('online_mod_proxy_rezka2_mirror') === true || Lampa.Storage.field('online_mod_use_stream_proxy') === true ? user_proxy2 : alt_proxy;
+        if (name === 'rezka2') return user_proxy2;
         if (name === 'kinobase') return user_proxy3;
         if (name === 'cdnmovies') return user_proxy3;
         if (name === 'videodb') return user_proxy2;
@@ -14993,7 +14993,7 @@
       };
     }
 
-    var mod_version = '28.01.2024';
+    var mod_version = '31.01.2024';
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
     var isIFrame = window.parent !== window;
