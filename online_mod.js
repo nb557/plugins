@@ -1,4 +1,4 @@
-//03.02.2024 - Fix
+//04.02.2024 - Fix kodik
 
 (function () {
     'use strict';
@@ -12018,7 +12018,7 @@
       var prefer_mp4 = false;
       var prox = component.proxy('kodik');
       var embed = prox + (prefer_http || prox ? 'http:' : 'https:') + '//kodikapi.com/search';
-      var gvi = prox + (prefer_http || prox ? 'http:' : 'https:') + '//kodik.biz/vdu';
+      var gvi = prox + (prefer_http || prox ? 'http:' : 'https:') + '//kodik.info/vgu';
       var token = 'b7cc4293ed475c4ad1fd599d114f4435';
       var filter_items = {};
       var choice = {
@@ -14991,7 +14991,7 @@
       };
     }
 
-    var mod_version = '03.02.2024';
+    var mod_version = '04.02.2024';
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
     var isIFrame = window.parent !== window;
