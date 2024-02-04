@@ -1,4 +1,4 @@
-//04.02.2024 - Fix kodik
+//05.02.2024 - Fix filmix search
 
 (function () {
     'use strict';
@@ -66,6 +66,7 @@
       var user_proxy3 = (proxy_other || proxy3) + (ip ? 'ip' + ip + '/' : '');
       var alt_proxy = Lampa.Storage.field('online_mod_proxy_other') === true ? user_proxy2 : proxy1;
       if (name === 'filmix') return window.location.protocol === 'https:' ? user_proxy2 : '';
+      if (name === 'filmix_site') return user_proxy2;
       if (name === 'svetacdn') return '';
       if (name === 'allohacdn') return Lampa.Platform.is('android') ? '' : user_proxy3;
 
@@ -3488,7 +3489,9 @@
       var object = _object;
       var debug = _debug;
       var prox = component.proxy('filmix');
+      var prox2 = component.proxy('filmix_site');
       var embed = prox + 'http://filmixapp.cyou/api/v2/';
+      var site = prox2 + 'https://filmix.biz/';
       var select_title = '';
       var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true;
       var filter_items = {};
@@ -3570,86 +3573,107 @@
         var search_year = parseInt((search_date + '').slice(0, 4));
         var orig = object.movie.original_title || object.movie.original_name;
         var clean_title = component.cleanTitle(select_title).replace(/\b(\d\d\d\d+)\b/g, '+$1');
+        var object_date = object.movie.release_date || object.movie.first_air_date || object.movie.last_air_date || '0000';
+        var object_year = parseInt((object_date + '').slice(0, 4));
 
-        if (search_year) {
-          clean_title = clean_title.replace(new RegExp(' \\+(' + search_year + ')$'), ' $1');
+        if (object_year) {
+          clean_title = clean_title.replace(new RegExp(' \\+(' + object_year + ')$'), ' $1');
         }
 
-        var url = embed + 'search' + dev_token;
-        url = Lampa.Utils.addUrlComponent(url, 'story=' + encodeURIComponent(clean_title));
-        decodeSecretToken(function () {
-          network.clear();
-          network.timeout(10000);
-          network.silent(url, function (json) {
-            var is_sure = false;
-            json.forEach(function (c) {
-              if (!c.year && c.alt_name) c.year = parseInt(c.alt_name.split('-').pop());
-            });
-            var cards = json;
+        var display = function display(json) {
+          var is_sure = false;
+          json.forEach(function (c) {
+            if (!c.orig_title) c.orig_title = c.original_title || c.original_name;
+            if (!c.year && c.alt_name) c.year = parseInt(c.alt_name.split('-').pop());
+          });
+          var cards = json;
 
-            if (cards.length) {
+          if (cards.length) {
+            if (orig) {
+              var tmp = cards.filter(function (c) {
+                return component.containsTitle(c.orig_title, orig) || component.containsTitle(c.title, orig);
+              });
+
+              if (tmp.length) {
+                cards = tmp;
+                is_sure = true;
+              }
+            }
+
+            if (select_title) {
+              var _tmp = cards.filter(function (c) {
+                return component.containsTitle(c.title, select_title) || component.containsTitle(c.orig_title, select_title);
+              });
+
+              if (_tmp.length) {
+                cards = _tmp;
+                is_sure = true;
+              }
+            }
+
+            if (cards.length > 1 && search_year) {
+              var _tmp2 = cards.filter(function (c) {
+                return c.year == search_year;
+              });
+
+              if (!_tmp2.length) _tmp2 = cards.filter(function (c) {
+                return c.year && c.year > search_year - 2 && c.year < search_year + 2;
+              });
+              if (_tmp2.length) cards = _tmp2;
+            }
+          }
+
+          if (cards.length == 1 && is_sure) {
+            if (search_year && cards[0].year) {
+              is_sure = cards[0].year > search_year - 2 && cards[0].year < search_year + 2;
+            }
+
+            if (is_sure) {
+              is_sure = false;
+
               if (orig) {
-                var tmp = cards.filter(function (c) {
-                  return component.containsTitle(c.original_title, orig) || component.containsTitle(c.title, orig);
-                });
-
-                if (tmp.length) {
-                  cards = tmp;
-                  is_sure = true;
-                }
+                is_sure |= component.equalTitle(cards[0].orig_title, orig) || component.equalTitle(cards[0].title, orig);
               }
 
               if (select_title) {
-                var _tmp = cards.filter(function (c) {
-                  return component.containsTitle(c.title, select_title) || component.containsTitle(c.original_title, select_title);
-                });
-
-                if (_tmp.length) {
-                  cards = _tmp;
-                  is_sure = true;
-                }
-              }
-
-              if (cards.length > 1 && search_year) {
-                var _tmp2 = cards.filter(function (c) {
-                  return c.year == search_year;
-                });
-
-                if (!_tmp2.length) _tmp2 = cards.filter(function (c) {
-                  return c.year && c.year > search_year - 2 && c.year < search_year + 2;
-                });
-                if (_tmp2.length) cards = _tmp2;
+                is_sure |= component.equalTitle(cards[0].title, select_title) || component.equalTitle(cards[0].orig_title, select_title);
               }
             }
+          }
 
-            if (cards.length == 1 && is_sure) {
-              if (search_year && cards[0].year) {
-                is_sure = cards[0].year > search_year - 2 && cards[0].year < search_year + 2;
-              }
+          if (cards.length == 1 && is_sure) find(cards[0].id);else if (json.length) {
+            _this.wait_similars = true;
+            json.forEach(function (c) {
+              c.is_similars = true;
+              c.seasons_count = c.last_episode && c.last_episode.season;
+              c.episodes_count = c.last_episode && c.last_episode.episode;
+            });
+            component.similars(json);
+            component.loading(false);
+          } else component.emptyForQuery(select_title);
+        };
 
-              if (is_sure) {
-                is_sure = false;
+        decodeSecretToken(function () {
+          var url = embed + 'search' + dev_token;
+          url = Lampa.Utils.addUrlComponent(url, 'story=' + encodeURIComponent(clean_title));
+          network.clear();
+          network.timeout(10000);
+          network.silent(url, function (json) {
+            if (json.length) display(json);else {
+              var _url = site + 'api/v2/suggestions?search_word=' + encodeURIComponent(clean_title);
 
-                if (orig) {
-                  is_sure |= component.equalTitle(cards[0].original_title, orig) || component.equalTitle(cards[0].title, orig);
+              network.clear();
+              network.timeout(10000);
+              network.silent(_url, function (json) {
+                display(json.posts || []);
+              }, function (a, c) {
+                component.empty(network.errorDecode(a, c));
+              }, false, {
+                headers: {
+                  'X-Requested-With': 'XMLHttpRequest'
                 }
-
-                if (select_title) {
-                  is_sure |= component.equalTitle(cards[0].title, select_title) || component.equalTitle(cards[0].original_title, select_title);
-                }
-              }
-            }
-
-            if (cards.length == 1 && is_sure) find(cards[0].id);else if (json.length) {
-              _this.wait_similars = true;
-              json.forEach(function (c) {
-                c.is_similars = true;
-                c.seasons_count = c.last_episode && c.last_episode.season;
-                c.episodes_count = c.last_episode && c.last_episode.episode;
               });
-              component.similars(json);
-              component.loading(false);
-            } else component.emptyForQuery(select_title);
+            }
           }, function (a, c) {
             component.empty(network.errorDecode(a, c));
           });
@@ -14991,7 +15015,7 @@
       };
     }
 
-    var mod_version = '04.02.2024';
+    var mod_version = '05.02.2024';
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
     var isIFrame = window.parent !== window;
@@ -15360,11 +15384,11 @@
         zh: '将设备添加到 Filmix'
       },
       online_mod_filmix_modal_text: {
-        ru: 'Введите его на странице https://filmix.ac/consoles в вашем авторизованном аккаунте!',
-        uk: 'Введіть його на сторінці https://filmix.ac/consoles у вашому авторизованому обліковому записі!',
-        be: 'Увядзіце яго на старонцы https://filmix.ac/consoles у вашым аўтарызаваным акаўнце!',
-        en: 'Enter it at https://filmix.ac/consoles in your authorized account!',
-        zh: '在您的授权帐户中的 https://filmix.ac/consoles 中输入！'
+        ru: 'Введите его на странице https://filmix.biz/consoles в вашем авторизованном аккаунте!',
+        uk: 'Введіть його на сторінці https://filmix.biz/consoles у вашому авторизованому обліковому записі!',
+        be: 'Увядзіце яго на старонцы https://filmix.biz/consoles у вашым аўтарызаваным акаўнце!',
+        en: 'Enter it at https://filmix.biz/consoles in your authorized account!',
+        zh: '在您的授权帐户中的 https://filmix.biz/consoles 中输入！'
       },
       online_mod_filmix_modal_wait: {
         ru: 'Ожидаем код',
