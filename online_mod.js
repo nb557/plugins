@@ -1,4 +1,4 @@
-//05.02.2024 - Fix filmix search
+//05.02.2024 - Fix kodik
 
 (function () {
     'use strict';
@@ -12042,8 +12042,8 @@
       var prefer_mp4 = false;
       var prox = component.proxy('kodik');
       var embed = prox + (prefer_http || prox ? 'http:' : 'https:') + '//kodikapi.com/search';
-      var gvi = prox + (prefer_http || prox ? 'http:' : 'https:') + '//kodik.info/vgu';
-      var token = 'b7cc4293ed475c4ad1fd599d114f4435';
+      var gvi = prox + (prefer_http || prox ? 'http:' : 'https:') + '//kodik.info/bor';
+      var token = atob('NDVjNTM1NzhmMTFlY2ZiNzRlMzEyNjdiNjM0Y2M2YTg=');
       var filter_items = {};
       var choice = {
         season: 0,
@@ -12468,7 +12468,8 @@
             postdata += '&pd_sign=' + json.pd_sign;
             postdata += '&ref=' + json.ref;
             postdata += '&ref_sign=' + json.ref_sign;
-            postdata += '&bad_user=false';
+            postdata += '&bad_user=true';
+            postdata += '&cdn_is_working=true';
             postdata += '&type=' + type[1];
             postdata += '&hash=' + hash[1];
             postdata += '&id=' + id[1];
