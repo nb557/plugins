@@ -95,7 +95,6 @@ async function handle(request, connInfo) {
       }
       if (apiUrl.hostname === "rezka.ag" || apiUrl.hostname === "hdrezka.ag" || apiUrl.hostname === "hdrezka.me" || apiUrl.hostname === "hdrezka.sh" || apiUrl.hostname === "hdrezka.cm" || apiUrl.hostname === "hdrezka.kim") {
         request.headers.set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36");
-        request.headers.set("Cookie", atob("ZGxlX3VzZXJfdGFrZW49MTsgZGxlX3VzZXJfdG9rZW49NWEwN2IwNzFhYjNjMzIwMWUxMjYxZTlhYTM0ODAyOTM7IGRsZV91c2VyX2lkPTk3NTE5NTsgZGxlX3Bhc3N3b3JkPTM0M2FkOTAxYzBmMTY4MTk1OTU1NTY5MjY3NmM1YmU5"));
       }
       if (apiUrl.hostname.endsWith(".svetacdn.in")) {
         request.headers.set("Origin", "https://videocdn.tv");

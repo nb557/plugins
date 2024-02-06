@@ -1,4 +1,4 @@
-//05.02.2024 - Fix kodik
+//06.02.2024 - Remove cookie
 
 (function () {
     'use strict';
@@ -1330,8 +1330,7 @@
       var headers = Lampa.Platform.is('android') && !logged_in ? {
         'Origin': host,
         'Referer': host + '/',
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36',
-        'Cookie': atob('ZGxlX3VzZXJfdGFrZW49MTsgZGxlX3VzZXJfdG9rZW49NWEwN2IwNzFhYjNjMzIwMWUxMjYxZTlhYTM0ODAyOTM7IGRsZV91c2VyX2lkPTk3NTE5NTsgZGxlX3Bhc3N3b3JkPTM0M2FkOTAxYzBmMTY4MTk1OTU1NTY5MjY3NmM1YmU5')
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36'
       } : {};
       var filter_items = {};
       var choice = {
@@ -15016,7 +15015,7 @@
       };
     }
 
-    var mod_version = '05.02.2024';
+    var mod_version = '06.02.2024';
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
     var isIFrame = window.parent !== window;
