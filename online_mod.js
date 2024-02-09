@@ -1,4 +1,4 @@
-//10.02.2024 - Fix collaps
+//10.02.2024 - Fix filmix
 
 (function () {
     'use strict';
@@ -3662,29 +3662,30 @@
           } else component.emptyForQuery(select_title);
         };
 
+        var siteSearch = function siteSearch() {
+          var url = site + 'api/v2/suggestions?search_word=' + encodeURIComponent(clean_title);
+          network.clear();
+          network.timeout(10000);
+          network.silent(url, function (json) {
+            display(json.posts || []);
+          }, function (a, c) {
+            component.empty(network.errorDecode(a, c));
+          }, false, {
+            headers: {
+              'X-Requested-With': 'XMLHttpRequest'
+            }
+          });
+        };
+
         decodeSecretToken(function () {
           var url = embed + 'search' + dev_token;
           url = Lampa.Utils.addUrlComponent(url, 'story=' + encodeURIComponent(clean_title));
           network.clear();
           network.timeout(10000);
           network.silent(url, function (json) {
-            if (json.length) display(json);else {
-              var _url = site + 'api/v2/suggestions?search_word=' + encodeURIComponent(clean_title);
-
-              network.clear();
-              network.timeout(10000);
-              network.silent(_url, function (json) {
-                display(json.posts || []);
-              }, function (a, c) {
-                component.empty(network.errorDecode(a, c));
-              }, false, {
-                headers: {
-                  'X-Requested-With': 'XMLHttpRequest'
-                }
-              });
-            }
+            if (json.length) display(json);else siteSearch();
           }, function (a, c) {
-            component.empty(network.errorDecode(a, c));
+            siteSearch();
           });
         });
       };
