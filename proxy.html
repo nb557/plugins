@@ -13,6 +13,7 @@
             if (data && data.message === 'proxyMessage' && data.message_id && data.method && data.url) {
                 var xhr = new XMLHttpRequest();
                 xhr.timeout = data.timeout || 60 * 1000;
+                xhr.withCredentials = !!data.withCredentials;
                 xhr.onreadystatechange = function () {
                     if (xhr.readyState === XMLHttpRequest.DONE) {
                         source.postMessage({
