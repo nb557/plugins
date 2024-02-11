@@ -1,4 +1,4 @@
-//10.02.2024 - Fix
+//11.02.2024 - Fix
 
 (function () {
     'use strict';
@@ -4127,10 +4127,9 @@
       var object = _object;
       var select_title = '';
       var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true;
-      var prox = component.proxy('videodb');
-      var host = 'https://kinoplay2.site';
+      var prox = 'https://cors.apn.monster/';
+      var host = 'http://vdb.host';
       var embed = prox + host + '/iplayer/videodb.php';
-      var iframe_proxy = !prox && Lampa.Storage.field('online_mod_iframe_proxy') === true && !window.location.protocol.startsWith('http');
       var logged_in = !prox;
       var filter_items = {};
       var choice = {
@@ -4164,9 +4163,7 @@
           component.empty(network.errorDecode(a, c));
         };
 
-        if (iframe_proxy) {
-          component.proxyCall3('GET', url, 10000, null, call_success, call_error, logged_in);
-        } else {
+        {
           var meta = $('head meta[name="referrer"]');
           var referrer = meta.attr('content') || 'never';
           meta.attr('content', 'origin');
@@ -4283,7 +4280,7 @@
       function parse(str) {
         component.loading(false);
         str = str.replace(/\n/g, '');
-        var find = str.match('var config = ({.*?});');
+        var find = str.match(' = ({.*?});');
         var json;
 
         try {
@@ -14677,14 +14674,13 @@
         voice: Lampa.Lang.translate('torrent_parser_voice'),
         source: Lampa.Lang.translate('settings_rest_source')
       };
-      var filter_sources = ['videocdn', 'rezka', 'rezka2', 'kinobase', 'collaps', 'cdnmovies', 'filmix', 'lordfilm', 'redheadsound', 'cdnvideohub', 'anilibria', 'kodik'];
+      var filter_sources = ['videocdn', 'rezka', 'rezka2', 'kinobase', 'collaps', 'cdnmovies', 'filmix', 'videodb', 'lordfilm', 'redheadsound', 'cdnvideohub', 'anilibria', 'kodik'];
 
       if (Utils.isDebug()) {
         filter_sources.push('kinopub');
         filter_sources.push('filmix2');
         filter_sources.push('alloha');
         filter_sources.push('hdvb');
-        filter_sources.push('videodb');
         filter_sources.push('zetflix');
       } // шаловливые ручки
 
@@ -15716,7 +15712,7 @@
       };
     }
 
-    var mod_version = '10.02.2024';
+    var mod_version = '11.02.2024';
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
     var isIFrame = window.parent !== window;
