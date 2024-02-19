@@ -1,4 +1,4 @@
-//13.02.2024 - Fix
+//20.02.2024 - Fix
 
 (function () {
     'use strict';
@@ -34,7 +34,7 @@
 
     function rezka2Mirror() {
       var url = Lampa.Storage.get('online_mod_rezka2_mirror', '');
-      if (!url) return 'https://hdrezka.ag';
+      if (!url) return 'https://hdrezka.la';
       if (url.indexOf('://') == -1) url = 'https://' + url;
       if (url.charAt(url.length - 1) === '/') url = url.substring(0, url.length - 1);
       return url;
@@ -64,21 +64,20 @@
       var proxy_other = Lampa.Storage.field('online_mod_proxy_other') === true ? Lampa.Storage.field('online_mod_proxy_other_url') : '';
       var user_proxy2 = (proxy_other || proxy2) + (ip ? 'ip' + ip + '/' : '');
       var user_proxy3 = (proxy_other || proxy3) + (ip ? 'ip' + ip + '/' : '');
-      var alt_proxy = Lampa.Storage.field('online_mod_proxy_other') === true ? user_proxy2 : proxy1;
       if (name === 'filmix') return window.location.protocol === 'https:' ? user_proxy2 : '';
       if (name === 'filmix_site') return user_proxy2;
       if (name === 'svetacdn') return '';
       if (name === 'allohacdn') return Lampa.Platform.is('android') ? '' : user_proxy3;
 
       if (Lampa.Storage.field('online_mod_proxy_' + name) === true) {
-        if (name === 'rezka') return alt_proxy;
+        if (name === 'rezka') return user_proxy2;
         if (name === 'rezka2') return user_proxy2;
         if (name === 'kinobase') return user_proxy3;
         if (name === 'cdnmovies') return user_proxy3;
         if (name === 'videodb') return user_proxy2;
         if (name === 'zetflix') return user_proxy2;
         if (name === 'redheadsound') return user_proxy2;
-        if (name === 'anilibria') return alt_proxy;
+        if (name === 'anilibria') return user_proxy2;
         if (name === 'kodik') return user_proxy3;
         if (name === 'kinopub') return user_proxy2;
       }
@@ -762,7 +761,7 @@
       var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true;
       var prefer_mp4 = Lampa.Storage.field('online_mod_prefer_mp4') === true;
       var prox = component.proxy('rezka');
-      var embed = prox + (prox ? 'http:' : 'https:') + '//voidboost.tv/';
+      var embed = prox + 'https://voidboost.net/';
       var iframe_proxy = !prox && Lampa.Storage.field('online_mod_iframe_proxy') === true && window.location.protocol.startsWith('http') && !Lampa.Platform.is('android');
       var filter_items = {};
       var choice = {
@@ -1340,7 +1339,7 @@
         }
       }
 
-      var host = prox && !proxy_mirror ? 'https://hdrezka.ag' : Utils.rezka2Mirror();
+      var host = prox && !proxy_mirror ? 'https://hdrezka.la' : Utils.rezka2Mirror();
       var embed = prox + host + '/';
       var filter_items = {};
       var choice = {
@@ -4127,7 +4126,7 @@
       var select_title = '';
       var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true;
       var prox = component.proxy('videodb');
-      var host = 'https://kinoplay1.site';
+      var host = 'https://kinoplay2.site';
       var embed = prox + host + '/iplayer/videodb.php';
       var iframe_proxy = !prox && Lampa.Storage.field('online_mod_iframe_proxy') === true && !window.location.protocol.startsWith('http');
       var logged_in = !prox;
@@ -15322,7 +15321,7 @@
       };
     }
 
-    var mod_version = '13.02.2024';
+    var mod_version = '20.02.2024';
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
     var isIFrame = window.parent !== window;
