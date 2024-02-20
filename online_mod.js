@@ -1,4 +1,4 @@
-//20.02.2024 - Fix
+//21.02.2024 - Fix
 
 (function () {
     'use strict';
@@ -3047,9 +3047,11 @@
             network.timeout(10000);
             network["native"](embed + api, call_success, call_error, false, {
               dataType: 'text',
+              disableH2: true,
               headers: Lampa.Platform.is('android') ? {
                 'Origin': host,
-                'Referer': host + '/'
+                'Referer': host + '/',
+                'User-Agent': 'Mozilla/5.0 (Linux; Android 10; K; client) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.6167.178 Mobile Safari/537.36'
               } : {}
             });
           } finally {
@@ -15321,7 +15323,7 @@
       };
     }
 
-    var mod_version = '20.02.2024';
+    var mod_version = '21.02.2024';
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
     var isIFrame = window.parent !== window;
