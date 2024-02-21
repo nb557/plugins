@@ -1,4 +1,4 @@
-//21.02.2024 - Fix
+//22.02.2024 - Fix
 
 (function () {
     'use strict';
@@ -32,6 +32,11 @@
       return secret === 'debug';
     }
 
+    function isDebug2() {
+      var secret = decodeSecret([86, 81, 81, 71, 83]);
+      return secret === 'debug';
+    }
+
     function rezka2Mirror() {
       var url = Lampa.Storage.get('online_mod_rezka2_mirror', '');
       if (!url) return 'https://hdrezka.la';
@@ -58,7 +63,6 @@
 
     function proxy(name) {
       var ip = getMyIp();
-      var proxy1 = (window.location.protocol === 'https:' ? 'https://' : 'http://') + 'prox.lampa.stream/';
       var proxy2 = 'https://cors.nb557.workers.dev:8443/';
       var proxy3 = 'https://cors557.deno.dev/';
       var proxy_other = Lampa.Storage.field('online_mod_proxy_other') === true ? Lampa.Storage.field('online_mod_proxy_other_url') : '';
@@ -88,6 +92,7 @@
     var Utils = {
       decodeSecret: decodeSecret,
       isDebug: isDebug,
+      isDebug2: isDebug2,
       rezka2Mirror: rezka2Mirror,
       kinobaseMirror: kinobaseMirror,
       setMyIp: setMyIp,
@@ -761,7 +766,7 @@
       var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true;
       var prefer_mp4 = Lampa.Storage.field('online_mod_prefer_mp4') === true;
       var prox = component.proxy('rezka');
-      var embed = prox + 'https://voidboost.net/';
+      var embed = prox + 'https://voidboost.org/';
       var iframe_proxy = !prox && Lampa.Storage.field('online_mod_iframe_proxy') === true && window.location.protocol.startsWith('http') && !Lampa.Platform.is('android');
       var filter_items = {};
       var choice = {
@@ -1322,7 +1327,7 @@
       var prefer_mp4 = Lampa.Storage.field('online_mod_prefer_mp4') === true;
       var proxy_mirror = Lampa.Storage.field('online_mod_proxy_rezka2_mirror') === true;
       var prox = component.proxy('rezka2');
-      var logged_in = Lampa.Storage.field('online_mod_rezka2_status') === true && !prox;
+      var logged_in = Lampa.Storage.get('online_mod_rezka2_status', '') === true && !prox;
       var network_call = logged_in ? network.silent : network["native"];
       var headers = Lampa.Platform.is('android') && !logged_in ? {
         'Origin': host,
@@ -3209,7 +3214,7 @@
             return {
               label: item.label,
               quality: quality ? parseInt(quality[1]) : NaN,
-              file: component.proxyStream(link, 'cdnmovies')
+              file: link
             };
           });
           items.sort(function (a, b) {
@@ -3269,7 +3274,7 @@
         url = url.replace('/sundb.coldcdn.xyz/', '/sundb.nl/');
 
         if (url) {
-          element.stream = component.proxyStream(url, 'cdnmovies');
+          element.stream = url;
           element.qualitys = false;
           call(element);
         } else error();
@@ -3335,7 +3340,7 @@
           link = link.replace('/sundb.coldcdn.xyz/', '/sundb.nl/');
           return {
             label: item.label,
-            url: component.proxyStream(link, 'cdnmovies')
+            url: link
           };
         });
         return subtitles.length ? subtitles : false;
@@ -14888,8 +14893,6 @@
         this.proxyUrlCall(proxy_url, method, url, timeout, post_data, call_success, call_fail, withCredentials);
       };
 
-      this.proxyCall = this.proxyCall2;
-
       this.extendChoice = function () {
         var data = Lampa.Storage.cache('online_mod_choice_' + balanser, 500, {});
         var save = data[selected_id || object.movie.id] || {};
@@ -15323,7 +15326,7 @@
       };
     }
 
-    var mod_version = '21.02.2024';
+    var mod_version = '22.02.2024';
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
     var isIFrame = window.parent !== window;
@@ -15378,6 +15381,28 @@
 
     if (window.location.protocol === 'https:') {
       Lampa.Storage.set('online_mod_prefer_http', 'false');
+    }
+
+    if (Lampa.Storage.get('online_mod_proxy_reset', '') != 1) {
+      Lampa.Storage.set('online_mod_proxy_videodb', 'false');
+      Lampa.Storage.set('online_mod_proxy_zetflix', 'false');
+      Lampa.Storage.set('online_mod_proxy_anilibria', 'false');
+
+      if (Lampa.Platform.is('android') || isLocal || Lampa.Storage.field('online_mod_iframe_proxy') === true) {
+        Lampa.Storage.set('online_mod_proxy_rezka', 'false');
+      }
+
+      if (Lampa.Storage.get('online_mod_rezka2_status', '') !== true) {
+        Lampa.Storage.set('online_mod_rezka2_mirror', '');
+      }
+
+      if (Lampa.Platform.is('android') || isLocal) {
+        Lampa.Storage.set('online_mod_proxy_rezka2', 'false');
+        Lampa.Storage.set('online_mod_proxy_redheadsound', 'false');
+        Lampa.Storage.set('online_mod_proxy_kodik', 'false');
+      }
+
+      Lampa.Storage.set('online_mod_proxy_reset', '1');
     }
 
     if (!Lampa.Lang) {
@@ -15850,6 +15875,12 @@
           Lampa.Storage.set('online_mod_use_stream_proxy', '' + (json.country_code === 'UA'));
         }
       });
+    }
+
+    if (Lampa.VPN && Lampa.VPN.region && (Utils.isDebug() || Utils.isDebug2())) {
+      Lampa.VPN.region = function (call) {
+        if (call) call('de');
+      };
     } ///////FILMIX/////////
 
 
@@ -15994,6 +16025,7 @@
         Lampa.Storage.set("online_mod_rezka2_status", 'false');
         if (success) success();
       }, function (a, c) {
+        Lampa.Storage.set("online_mod_rezka2_status", 'false');
         Lampa.Noty.show(network.errorDecode(a, c));
         if (error) error();
       }, false, {
