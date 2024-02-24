@@ -1,4 +1,4 @@
-//22.02.2024 - Fix
+//24.02.2024 - Fix
 
 (function () {
     'use strict';
@@ -11785,9 +11785,32 @@
 
         if (json && json.file) {
           var seasons = [];
+          var season_count = 0;
           var items = json.file.forEach ? json.file : [json.file];
           items.forEach(function (data) {
-            if (!data.title || data.title === 'Season 0 - Episode 0') {
+            if (data.folder) {
+              season_count++;
+              if (!data.title) data.title = '';
+              var str_s = data.title.match(/(Season|Сезон) (\d+)/i);
+              if (str_s) data.season = parseInt(str_s[2]);else data.season = season_count;
+
+              if (!seasons.find(function (s) {
+                return s.id === data.season;
+              })) {
+                seasons.push({
+                  id: data.season,
+                  title: str_s || !data.title ? Lampa.Lang.translate('torrent_serial_season') + ' ' + data.season : data.title
+                });
+              }
+
+              var episode_count = 0;
+              data.folder.forEach(function (ep) {
+                episode_count++;
+                if (!ep.title) ep.title = '';
+                var str_e = ep.title.match(/(Episode|Серия) (\d+)/i);
+                if (str_e) ep.episode = parseInt(str_e[2]);else ep.episode = episode_count;
+              });
+            } else if (!data.title || data.title === 'Season 0 - Episode 0') {
               data.title = '';
             } else {
               var str_s_e = data.title.match(/Season (\d+) - Episode (\d+)/i);
@@ -11843,16 +11866,31 @@
           var season_id = extract.seasons[choice.season] && extract.seasons[choice.season].id;
           extract.items.forEach(function (data) {
             if (data.season == season_id) {
-              var title = 'S' + season_id + ' / ' + Lampa.Lang.translate('torrent_serial_episode') + ' ' + data.episode;
-              filtred.push({
-                title: title,
-                quality: '360p ~ 1080p',
-                info: data.id ? ' / id: ' + data.id : '',
-                data_id: data.id,
-                season: '' + season_id,
-                episode: data.episode,
-                file: data.file
-              });
+              if (data.folder) {
+                data.folder.forEach(function (ep) {
+                  var title = 'S' + season_id + ' / ' + Lampa.Lang.translate('torrent_serial_episode') + ' ' + ep.episode;
+                  filtred.push({
+                    title: title,
+                    quality: '360p ~ 1080p',
+                    info: ep.id ? ' / id: ' + ep.id : '',
+                    data_id: ep.id,
+                    season: '' + season_id,
+                    episode: ep.episode,
+                    file: ep.file
+                  });
+                });
+              } else {
+                var title = 'S' + season_id + ' / ' + Lampa.Lang.translate('torrent_serial_episode') + ' ' + data.episode;
+                filtred.push({
+                  title: title,
+                  quality: '360p ~ 1080p',
+                  info: data.id ? ' / id: ' + data.id : '',
+                  data_id: data.id,
+                  season: '' + season_id,
+                  episode: data.episode,
+                  file: data.file
+                });
+              }
             }
           });
         } else {
@@ -15326,7 +15364,7 @@
       };
     }
 
-    var mod_version = '22.02.2024';
+    var mod_version = '24.02.2024';
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
     var isIFrame = window.parent !== window;
