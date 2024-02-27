@@ -288,6 +288,10 @@
       return str.replace(/[\s.,:;’'`!?]+/g, ' ').trim();
     }
 
+    function kpCleanTitle(str) {
+      return cleanTitle(str).replace(/^[ \/\\]+/, '').replace(/[ \/\\]+$/, '').replace(/\+( *[+\/\\])+/g, '+').replace(/([+\/\\] *)+\+/g, '+').replace(/( *[\/\\]+ *)+/g, '+');
+    }
+
     function normalizeTitle(str) {
       return cleanTitle(str.toLowerCase().replace(/[\-\u2010-\u2015\u2E3A\u2E3B\uFE58\uFE63\uFF0D]+/g, '-').replace(/ё/g, 'е'));
     }
@@ -303,7 +307,7 @@
       var url = method;
 
       if (params.query) {
-        var clean_title = params.query && cleanTitle(decodeURIComponent(params.query));
+        var clean_title = params.query && kpCleanTitle(decodeURIComponent(params.query));
 
         if (!clean_title) {
           onerror();

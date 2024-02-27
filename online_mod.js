@@ -1,4 +1,4 @@
-//24.02.2024 - Fix
+//27.02.2024 - Fix
 
 (function () {
     'use strict';
@@ -14428,6 +14428,10 @@
         return str.replace(/[\s.,:;’'`!?]+/g, ' ').trim();
       };
 
+      this.kpCleanTitle = function (str) {
+        return this.cleanTitle(str).replace(/^[ \/\\]+/, '').replace(/[ \/\\]+$/, '').replace(/\+( *[+\/\\])+/g, '+').replace(/([+\/\\] *)+\+/g, '+').replace(/( *[\/\\]+ *)+/g, '+');
+      };
+
       this.normalizeTitle = function (str) {
         return this.cleanTitle(str.toLowerCase().replace(/[\-\u2010-\u2015\u2E3A\u2E3B\uFE58\uFE63\uFF0D]+/g, '-').replace(/ё/g, 'е'));
       };
@@ -14652,7 +14656,7 @@
         };
 
         var kp_search_by_title = function kp_search_by_title(callback, error) {
-          var url = 'api/v2.1/films/search-by-keyword?keyword=' + encodeURIComponent(_this2.cleanTitle(query));
+          var url = 'api/v2.1/films/search-by-keyword?keyword=' + encodeURIComponent(_this2.kpCleanTitle(query));
 
           _this2.kp_api_search(url, callback, error);
         };
@@ -15364,7 +15368,7 @@
       };
     }
 
-    var mod_version = '24.02.2024';
+    var mod_version = '27.02.2024';
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
     var isIFrame = window.parent !== window;

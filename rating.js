@@ -3,7 +3,7 @@
 
 	function rating_kp_imdb(card) {
 		var network = new Lampa.Reguest();
-		var clean_title = cleanTitle(card.title);
+		var clean_title = kpCleanTitle(card.title);
 		var search_date = card.release_date || card.first_air_date || card.last_air_date || '0000';
 		var search_year = parseInt((search_date + '').slice(0, 4));
 		var orig = card.original_title || card.original_name;
@@ -189,6 +189,10 @@
 
 		function cleanTitle(str){
 			return str.replace(/[\s.,:;’'`!?]+/g, ' ').trim();
+		}
+
+		function kpCleanTitle(str){
+			return cleanTitle(str).replace(/^[ \/\\]+/, '').replace(/[ \/\\]+$/, '').replace(/\+( *[+\/\\])+/g, '+').replace(/([+\/\\] *)+\+/g, '+').replace(/( *[\/\\]+ *)+/g, '+');
 		}
 
 		function normalizeTitle(str){
