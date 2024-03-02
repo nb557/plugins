@@ -137,7 +137,7 @@ export default {
 
       if (get_cookie) {
         let json = {};
-        json.cookie = response.headers.get("Set-Cookie");
+        json.cookie = response.headers.getSetCookie();
         response = new Response(JSON.stringify(json), response);
         response.headers.delete("Set-Cookie");
         response.headers.set("Content-Type", "application/json; charset=utf-8");
