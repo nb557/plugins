@@ -1,4 +1,4 @@
-//06.03.2024 - Fix videocdn
+//07.03.2024 - Fix videocdn
 
 (function () {
     'use strict';
@@ -266,39 +266,20 @@
         voice_name: '',
         voice_id: 0
       };
-      /**
-       * Начать поиск
-       * @param {Object} _object 
-       * @param {String} kinopoisk_id
-       */
 
-      this.search = function (_object, kinopoisk_id, data) {
-        object = _object;
-        select_title = object.search || object.movie.title;
-        var iframe_src = data[0] && data[0].iframe_src;
-
-        if (!iframe_src) {
-          if (!object.clarification && object.movie.imdb_id) {
-            iframe_src = Lampa.Utils.addUrlComponent(embed, 'imdb_id=' + object.movie.imdb_id);
-          } else {
-            iframe_src = Lampa.Utils.addUrlComponent(embed, 'kp_id=' + kinopoisk_id);
-          }
-        }
-
+      function videocdn_search(iframe_src, callback, error) {
         var url = (window.location.protocol === 'https:' && !prox2 ? 'https:' : 'http:') + iframe_src;
 
-        var call_success = function call_success(str) {
-          parse(str);
-        };
-
-        var call_error = function call_error(a, c) {
-          component.empty(network.errorDecode(a, c));
+        var error_check = function error_check(a, c) {
+          if (a.status == 404 || a.status == 0 && a.statusText !== 'timeout') {
+            if (callback) callback('');
+          } else if (error) error(network.errorDecode(a, c));
         };
 
         if (prox2 && window.location.protocol !== 'http:') {
           network.clear();
           network.timeout(20000);
-          network.silent(prox2 + url, call_success, call_error, false, {
+          network.silent(prox2 + url, callback, error_check, false, {
             dataType: 'text'
           });
         } else {
@@ -309,7 +290,7 @@
           try {
             network.clear();
             network.timeout(20000);
-            network["native"](url, call_success, call_error, false, {
+            network["native"](url, callback, error_check, false, {
               dataType: 'text',
               headers: Lampa.Platform.is('android') ? {
                 'Origin': host,
@@ -320,6 +301,28 @@
             meta.attr('content', referrer);
           }
         }
+      }
+      /**
+       * Начать поиск
+       * @param {Object} _object 
+       * @param {String} kinopoisk_id
+       */
+
+
+      this.search = function (_object, kinopoisk_id, data) {
+        object = _object;
+        select_title = object.search || object.movie.title;
+        var error = component.empty.bind(component);
+        var iframe_src = data[0] && data[0].iframe_src;
+        var src = iframe_src ? iframe_src : Lampa.Utils.addUrlComponent(embed, (+kinopoisk_id ? 'kp_id=' : 'imdb_id=') + kinopoisk_id);
+        videocdn_search(src, function (str) {
+          if (str) parse(str);else if (!iframe_src && !object.clarification && object.movie.imdb_id && kinopoisk_id != object.movie.imdb_id) {
+            var src2 = Lampa.Utils.addUrlComponent(embed, 'imdb_id=' + object.movie.imdb_id);
+            videocdn_search(src2, function (str) {
+              if (str) parse(str);else component.emptyForQuery(select_title);
+            }, error);
+          } else component.emptyForQuery(select_title);
+        }, error);
       };
 
       this.extendChoice = function (saved) {
@@ -419,34 +422,33 @@
           extract.season_num = [];
           extract.voice_seasons = {};
           extract.fs = files;
+          var voice_map = {};
 
           if (voices && fs) {
             var select = $(voices[1]);
             $('option', select).each(function () {
               var id = $(this).val();
               var name = $(this).text();
+              if (name) name = name.trim();
 
-              if (id && name) {
+              if (id && name && !extract.voice.find(function (v) {
+                return v.id == id;
+              })) {
                 extract.voice.push({
                   id: id,
-                  name: name.trim()
+                  name: name
                 });
+                voice_map[id] = name;
               }
             });
           }
 
           var json = Lampa.Arrays.decodeJson(component.decodeHtml(fs[1]), {});
+          var skip0 = json[0] && json[7] && JSON.stringify(json[0]) === JSON.stringify(json[7]);
 
           var _loop = function _loop(i) {
-            if (!extract.voice.find(function (v) {
-              return v.id == i;
-            })) {
-              extract.voice.push({
-                id: i,
-                name: i == 0 ? 'Перевод' : i == 7 ? 'Оригинал' : i
-              });
-            }
-
+            if (i == 0 && skip0) return "continue";
+            var voice_name = voice_map[i] || (i == 0 ? 'Перевод' : '');
             var voice_seasons = [];
             extract.voice_seasons[i] = voice_seasons;
             files[i] = {
@@ -491,8 +493,17 @@
                   }
 
                   if (episode_num == null) episode_num = episode_count;
+                  var alt_voice = '';
+
+                  if (media.comment) {
+                    var str_v = media.comment.match(/<i>([^<]*)<\/i>/);
+                    if (str_v) alt_voice = str_v[1].trim();
+                  }
+
+                  if (alt_voice && !voice_name) voice_name = alt_voice;
                   media.season_num = season_num;
                   media.episode_num = episode_num;
+                  media.alt_voice = alt_voice;
                 }
               } else {
                 elem.items = extractItems(elem.file);
@@ -511,19 +522,48 @@
                 }
 
                 if (_episode_num == null) _episode_num = root_count;
+                var _alt_voice = '';
+
+                if (elem.comment) {
+                  var _str_v = elem.comment.match(/<i>([^<]*)<\/i>/);
+
+                  if (_str_v) _alt_voice = _str_v[1].trim();
+                }
+
+                if (_alt_voice && !voice_name) voice_name = _alt_voice;
                 elem.season_num = _season_num;
                 elem.episode_num = _episode_num;
+                elem.alt_voice = _alt_voice;
               }
+            }
+
+            if (!extract.voice.find(function (v) {
+              return v.id == i;
+            })) {
+              extract.voice.push({
+                id: i,
+                name: voice_name
+              });
+              voice_map[i] = voice_name;
             }
           };
 
           for (var i in json) {
-            _loop(i);
+            var _ret = _loop(i);
+
+            if (_ret === "continue") continue;
           }
 
           extract.season_num.sort(function (a, b) {
             return a - b;
           });
+
+          if (extract.voice.length > 1 || extract.season_num.length) {
+            extract.voice.forEach(function (v) {
+              if (!v.name) v.name = v.id == 0 ? 'Перевод' : v.id == 7 ? 'Оригинал' : v.id + '';
+            });
+          }
+
           filter();
           append(filtred());
         } else component.emptyForQuery(select_title);
@@ -641,7 +681,7 @@
                       filtred.push({
                         title: 'S' + media.season_num + ' / ' + Lampa.Lang.translate('torrent_serial_episode') + ' ' + media.episode_num,
                         quality: media.items[0].label,
-                        info: ' / ' + filter_items.voice[choice.voice],
+                        info: ' / ' + (media.alt_voice || filter_items.voice[choice.voice]),
                         season: media.season_num,
                         episode: media.episode_num,
                         media: media
@@ -653,7 +693,7 @@
                     filtred.push({
                       title: 'S' + elem.season_num + ' / ' + Lampa.Lang.translate('torrent_serial_episode') + ' ' + elem.episode_num,
                       quality: elem.items[0].label,
-                      info: ' / ' + filter_items.voice[choice.voice],
+                      info: ' / ' + (elem.alt_voice || filter_items.voice[choice.voice]),
                       season: elem.season_num,
                       episode: elem.episode_num,
                       media: elem
@@ -15374,7 +15414,7 @@
       };
     }
 
-    var mod_version = '06.03.2024';
+    var mod_version = '07.03.2024';
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
     var isIFrame = window.parent !== window;
