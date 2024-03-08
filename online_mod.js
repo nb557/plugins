@@ -1,4 +1,4 @@
-//07.03.2024 - Fix videocdn
+//08.03.2024 - Fix videocdn
 
 (function () {
     'use strict';
@@ -14690,15 +14690,18 @@
           } else callback([]);
         };
 
-        var vcdn_search = function vcdn_search(fail) {
-          var error = fail ? _this2.empty.bind(_this2) : function () {
-            display([]);
-          };
+        var vcdn_search = function vcdn_search(fallback) {
+          if (!fallback) {
+            fallback = function fallback() {
+              display([]);
+            };
+          }
+
           vcdn_search_by_id(function (data) {
             if (data && data.length) display(data);else vcdn_search_by_title(function (data) {
-              if (data && data.length) display(data);else display([]);
-            }, error);
-          }, error);
+              if (data && data.length) display(data);else fallback();
+            }, fallback);
+          }, fallback);
         };
 
         var kp_search_by_title = function kp_search_by_title(callback, error) {
@@ -14715,12 +14718,18 @@
           } else callback([]);
         };
 
-        var kp_search = function kp_search() {
+        var kp_search = function kp_search(fallback) {
+          if (!fallback) {
+            fallback = function fallback() {
+              display([]);
+            };
+          }
+
           kp_search_by_id(function (data) {
             if (data && data.length) display(data);else kp_search_by_title(function (data) {
-              if (data && data.length) display(data);else vcdn_search();
-            }, vcdn_search);
-          }, vcdn_search);
+              if (data && data.length) display(data);else fallback();
+            }, fallback);
+          }, fallback);
         };
 
         var vcdn_search_imdb = function vcdn_search_imdb() {
@@ -14753,7 +14762,9 @@
 
             sources[balanser].search(object);
           } else {
-            if (balanser == 'videocdn' && Lampa.Storage.field('online_mod_skip_kp_search') === true) vcdn_search(true);else kp_search();
+            if (balanser == 'videocdn') {
+              vcdn_search(Lampa.Storage.field('online_mod_skip_kp_search') === true ? null : kp_search);
+            } else kp_search(vcdn_search);
           }
         };
 
@@ -15414,7 +15425,7 @@
       };
     }
 
-    var mod_version = '07.03.2024';
+    var mod_version = '08.03.2024';
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
     var isIFrame = window.parent !== window;
