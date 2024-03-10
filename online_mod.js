@@ -1,4 +1,4 @@
-//08.03.2024 - Fix videocdn
+//10.03.2024 - Fix
 
 (function () {
     'use strict';
@@ -39,7 +39,7 @@
 
     function rezka2Mirror() {
       var url = Lampa.Storage.get('online_mod_rezka2_mirror', '') + '';
-      if (!url) return 'https://hdrezka.la';
+      if (!url) return 'https://rezka.ag';
       if (url.indexOf('://') == -1) url = 'https://' + url;
       if (url.charAt(url.length - 1) === '/') url = url.substring(0, url.length - 1);
       return url;
@@ -1372,7 +1372,7 @@
       var prefer_mp4 = Lampa.Storage.field('online_mod_prefer_mp4') === true;
       var proxy_mirror = Lampa.Storage.field('online_mod_proxy_rezka2_mirror') === true;
       var prox = component.proxy('rezka2');
-      var host = prox && !proxy_mirror ? 'https://hdrezka.la' : Utils.rezka2Mirror();
+      var host = prox && !proxy_mirror ? 'https://rezka.ag' : Utils.rezka2Mirror();
       var logged_in = Lampa.Storage.get('online_mod_rezka2_status', '') === true && !prox;
       var network_call = logged_in ? network.silent : network["native"];
       var headers = Lampa.Platform.is('android') && !logged_in ? {
@@ -15425,7 +15425,7 @@
       };
     }
 
-    var mod_version = '08.03.2024';
+    var mod_version = '10.03.2024';
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
     var isIFrame = window.parent !== window;
@@ -16126,7 +16126,7 @@
     function rezka2FillCookie(success, error) {
       var prox = Utils.proxy('cookie');
       var proxy_mirror = Lampa.Storage.field('online_mod_proxy_rezka2_mirror') === true;
-      var host = !proxy_mirror ? 'https://hdrezka.la' : Utils.rezka2Mirror();
+      var host = !proxy_mirror ? 'https://rezka.ag' : Utils.rezka2Mirror();
       var url = prox + 'get_cookie/param?Cookie=/' + host + '/ajax/login/';
       var postdata = 'login_name=' + encodeURIComponent(Lampa.Storage.get('online_mod_rezka2_name', ''));
       postdata += '&login_password=' + encodeURIComponent(Lampa.Storage.get('online_mod_rezka2_password', ''));
