@@ -1,4 +1,4 @@
-//10.03.2024 - Fix
+//11.03.2024 - Fix
 
 (function () {
     'use strict';
@@ -39,7 +39,7 @@
 
     function rezka2Mirror() {
       var url = Lampa.Storage.get('online_mod_rezka2_mirror', '') + '';
-      if (!url) return 'https://rezka.ag';
+      if (!url) return 'https://hdrezka.la';
       if (url.indexOf('://') == -1) url = 'https://' + url;
       if (url.charAt(url.length - 1) === '/') url = url.substring(0, url.length - 1);
       return url;
@@ -1380,7 +1380,8 @@
         'Referer': host + '/',
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36'
       } : {};
-      var cookie = Lampa.Storage.get('online_mod_rezka2_cookie', '');
+      var cookie = Lampa.Storage.get('online_mod_rezka2_cookie', '') + '';
+      if (cookie.indexOf('PHPSESSID=') == -1) cookie = 'PHPSESSID=' + Lampa.Utils.uid(26) + (cookie ? '; ' + cookie : '');
 
       if (cookie) {
         if (Lampa.Platform.is('android') && !logged_in) {
@@ -15425,7 +15426,7 @@
       };
     }
 
-    var mod_version = '10.03.2024';
+    var mod_version = '11.03.2024';
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
     var isIFrame = window.parent !== window;
