@@ -51,7 +51,10 @@ async function handle(request, connInfo) {
         }
       }
       if (!ip) {
-        ip = connInfo && connInfo.remoteAddr && connInfo.remoteAddr.hostname || "";
+        ip = request.headers.get("X-Real-IP");
+        if (!ip) {
+            ip = connInfo && connInfo.remoteAddr && connInfo.remoteAddr.hostname || "";
+        }
       }
 
       if (!api || !/^https?:\/\/[^\/]/.test(api)) {
