@@ -8,10 +8,13 @@ export default {
 
     async function handleRequest(request) {
       const url = new URL(request.url);
-      let api = url.href.substring(url.origin.length + 1);
-      let ip;
-      let get_cookie;
+      let api_pos = url.origin.length + 1;
+      let api = url.href.substring(api_pos);
+      let ip = "";
+      let redirect = "follow";
+      let get_cookie = false;
       let params = [];
+      let cdn_info = "cdn_X8v8IbU8";
 
       if (api === "headers") {
         let body = "";
@@ -25,22 +28,40 @@ export default {
           let pos = api.indexOf("/");
           if (pos !== -1) {
             ip = api.substring(2, pos);
+            api_pos += pos + 1;
             api = api.substring(pos + 1);
           } else {
             ip = api.substring(2);
+            api_pos += api.length;
+            api = "";
+          }
+        } else if (api.startsWith("redirect=")) {
+          let pos = api.indexOf("/");
+          if (pos !== -1) {
+            redirect = api.substring(9, pos);
+            api_pos += pos + 1;
+            api = api.substring(pos + 1);
+          } else {
+            redirect = api.substring(9);
+            api_pos += api.length;
             api = "";
           }
         } else if (api.startsWith("get_cookie/")) {
           get_cookie = true;
+          api_pos += 11;
           api = api.substring(11);
-        } else if (api.startsWith("param?")) {
+        } else if (api.startsWith("param?") || api.startsWith("param/")) {
+          api_pos += 6;
+          api = api.substring(6);
           let param;
           let pos = api.indexOf("/");
           if (pos !== -1) {
-            param = api.substring(6, pos);
+            param = api.substring(0, pos);
+            api_pos += pos + 1;
             api = api.substring(pos + 1);
           } else {
-            param = api.substring(6);
+            param = api.substring(0);
+            api_pos += api.length;
             api = "";
           }
           params.push(param.split("="));
@@ -49,10 +70,20 @@ export default {
         }
       }
 
+      let proxy = url.href.substring(0, api_pos);
+
+      if (!ip) {
+        let forwarded_for = request.headers.get("X-Forwarded-For");
+        if (forwarded_for) ip = forwarded_for.split(",")[0].trim();
+      }
+      if (!ip) ip = request.headers.get("cf-connecting-ip");
+      if (!ip) ip = request.headers.get("X-Real-IP");
+
       if (!api || !/^https?:\/\/[^\/]/.test(api)) {
-        return new Response(null, {
+        let error = "Malformed URL";
+        return new Response(error + ": " + api, {
           status: 404,
-          statusText: "No Api Url",
+          statusText: error,
         });
       }
       const apiUrl = new URL(api);
@@ -61,6 +92,18 @@ export default {
       // so you can add the correct Origin header to make the API server think
       // that this request is not cross-site.
       request = new Request(api, request);
+
+      let cdn_loop = request.headers.get("CDN-Loop");
+      if (cdn_loop && cdn_loop.indexOf(cdn_info) !== -1) {
+        let error = "CDN-Loop detected";
+        return new Response(error, {
+          status: 403,
+          statusText: error,
+        });
+      } else {
+        request.headers.append("CDN-Loop", cdn_info);
+      }
+
       request.headers.set("Origin", apiUrl.origin);
       request.headers.set("Referer", apiUrl.origin + "/");
       if (true) {
@@ -116,7 +159,9 @@ export default {
           request.headers.set(decodeURIComponent(param[0]), decodeURIComponent(param[1] || ""));
         }
       });
-      let response = await fetch(request);
+      let response = await fetch(request, {
+        redirect: redirect,
+      });
 
       // Recreate the response so you can modify the headers
       response = new Response(response.body, response);
@@ -124,24 +169,29 @@ export default {
       // Set CORS headers
       response.headers.set("Access-Control-Allow-Origin", "*");
 
-      // Fix redirect relative URL
+      // Fix redirect URL
       if (response.status >= 300 && response.status < 400) {
         let target = response.headers.get("Location");
-        if (target && target.startsWith("/")) {
-          response.headers.set("Location", url.origin + "/" + apiUrl.origin + target);
+        if (target) {
+          response.headers.set("Location", proxy + (target.startsWith("/") ? apiUrl.origin : "") + target);
         }
       }
 
       // Append to/Add Vary header so browser will cache response correctly
       response.headers.append("Vary", "Origin");
 
-      if (get_cookie) {
-        let json = {};
-        json.cookie = response.headers.getSetCookie();
-        response = new Response(JSON.stringify(json), response);
-        response.headers.delete("Set-Cookie");
-        response.headers.set("Content-Type", "application/json; charset=utf-8");
+      if (response.status >= 200 && response.status < 300) {
+        if (get_cookie) {
+          let json = {};
+          json.cookie = response.headers.getSetCookie();
+          return new Response(JSON.stringify(json), {
+            headers: {
+              "Content-Type": "application/json; charset=utf-8",
+            },
+          });
+        }
       }
+
       return response;
     }
 
@@ -170,20 +220,29 @@ export default {
       }
     }
 
-    if (request.method === "OPTIONS") {
-      // Handle CORS preflight requests
-      return handleOptions(request);
-    } else if (
-      request.method === "GET" ||
-      request.method === "HEAD" ||
-      request.method === "POST"
-    ) {
-      // Handle requests to the API server
-      return handleRequest(request);
-    } else {
-      return new Response(null, {
-        status: 405,
-        statusText: "Method Not Allowed",
+    try {
+      if (request.method === "OPTIONS") {
+        // Handle CORS preflight requests
+        return await handleOptions(request);
+      } else if (
+        request.method === "GET" ||
+        request.method === "HEAD" ||
+        request.method === "POST"
+      ) {
+        // Handle requests to the API server
+        return await handleRequest(request);
+      } else {
+        let error = "Method Not Allowed";
+        return new Response(error + ": " + request.method, {
+          status: 405,
+          statusText: error,
+        });
+      }
+    } catch (err) {
+      let error = "Internal Server Error";
+      return new Response(error + ": " + err + "\n" + (err.stack || ""), {
+        status: 500,
+        statusText: error,
       });
     }
   },

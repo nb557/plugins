@@ -9,8 +9,9 @@ async function handle(request, connInfo) {
       const url = new URL(request.url);
       let api_pos = url.origin.length + 1;
       let api = url.href.substring(api_pos);
-      let ip;
-      let get_cookie;
+      let ip = "";
+      let redirect = "follow";
+      let get_cookie = false;
       let params = [];
       let cdn_info = "cdn_c8Bc9aMo";
 
@@ -36,19 +37,32 @@ async function handle(request, connInfo) {
             api_pos += api.length;
             api = "";
           }
+        } else if (api.startsWith("redirect=")) {
+          let pos = api.indexOf("/");
+          if (pos !== -1) {
+            redirect = api.substring(9, pos);
+            api_pos += pos + 1;
+            api = api.substring(pos + 1);
+          } else {
+            redirect = api.substring(9);
+            api_pos += api.length;
+            api = "";
+          }
         } else if (api.startsWith("get_cookie/")) {
           get_cookie = true;
           api_pos += 11;
           api = api.substring(11);
-        } else if (api.startsWith("param?")) {
+        } else if (api.startsWith("param?") || api.startsWith("param/")) {
+          api_pos += 6;
+          api = api.substring(6);
           let param;
           let pos = api.indexOf("/");
           if (pos !== -1) {
-            param = api.substring(6, pos);
+            param = api.substring(0, pos);
             api_pos += pos + 1;
             api = api.substring(pos + 1);
           } else {
-            param = api.substring(6);
+            param = api.substring(0);
             api_pos += api.length;
             api = "";
           }
@@ -60,17 +74,17 @@ async function handle(request, connInfo) {
 
       let proxy = url.href.substring(0, api_pos);
 
-      if (!ip) ip = request.headers.get("cf-connecting-ip");
       if (!ip) {
         let forwarded_for = request.headers.get("X-Forwarded-For");
         if (forwarded_for) ip = forwarded_for.split(",")[0].trim();
       }
+      if (!ip) ip = request.headers.get("cf-connecting-ip");
       if (!ip) ip = request.headers.get("X-Real-IP");
       if (!ip) ip = connInfo && connInfo.remoteAddr && connInfo.remoteAddr.hostname || "";
 
       if (!api || !/^https?:\/\/[^\/]/.test(api)) {
         let error = "Malformed URL";
-        return new Response(error, {
+        return new Response(error + ": " + api, {
           status: 404,
           statusText: error,
         });
@@ -148,7 +162,9 @@ async function handle(request, connInfo) {
           request.headers.set(decodeURIComponent(param[0]), decodeURIComponent(param[1] || ""));
         }
       });
-      let response = await fetch(request);
+      let response = await fetch(request, {
+        redirect: redirect,
+      });
 
       // Recreate the response so you can modify the headers
       response = new Response(response.body, response);
@@ -167,14 +183,57 @@ async function handle(request, connInfo) {
       // Append to/Add Vary header so browser will cache response correctly
       response.headers.append("Vary", "Origin");
 
-      if (get_cookie) {
-        let json = {};
-        json.cookie = response.headers.getSetCookie();
-        response = new Response(JSON.stringify(json), response);
-        response.headers.delete("Set-Cookie");
-        response.headers.set("Content-Type", "application/json; charset=utf-8");
+      if (response.status >= 200 && response.status < 300) {
+        if (get_cookie) {
+          let json = {};
+          json.cookie = response.headers.getSetCookie();
+          return new Response(JSON.stringify(json), {
+            headers: {
+              "Content-Type": "application/json; charset=utf-8",
+            },
+          });
+        }
+        let ctype = response.headers.get("Content-Type");
+        if (ctype == "application/x-mpegurl" || ctype == "application/vnd.apple.mpegurl") {
+          let body = edit_m3u8(await response.text(), proxy, api);
+          response.headers.delete("Content-Length");
+          response.headers.delete("Content-Range");
+          response.headers.set("Accept-Ranges", "none");
+          return new Response(body, response);
+        }
       }
+
       return response;
+    }
+
+    function edit_m3u8(m3u8, proxy, url) {
+      try {
+        let base_url = url.substring(0, url.lastIndexOf("/"));
+        return m3u8.split("\n").map(org_line => {
+          let line = org_line.trim();
+          if (line.charAt(0) === "#") {
+            return org_line.replace(/\bURI="([^"]*)"/g, (str, link) => {
+              link = link.trim();
+              if (link) {
+                return 'URI="' + fix_link(link, proxy, base_url) + '"';
+              }
+              return str;
+            });
+          } else if(line) {
+            return fix_link(line, proxy, base_url);
+          }
+          return org_line;
+        }).join("\n");
+      } catch (err) {
+        return m3u8;
+      }
+    }
+
+    function fix_link(link, proxy, base_url) {
+      if (link) {
+        return proxy + (link.indexOf("://") == -1 ? base_url + "/" + (link.startsWith("/") ? link.substring(1) : link) : link);
+      }
+      return link;
     }
 
     async function handleOptions(request, connInfo) {
@@ -205,28 +264,29 @@ async function handle(request, connInfo) {
     try {
       if (request.method === "OPTIONS") {
         // Handle CORS preflight requests
-        return handleOptions(request, connInfo);
+        return await handleOptions(request, connInfo);
       } else if (
         request.method === "GET" ||
         request.method === "HEAD" ||
         request.method === "POST"
       ) {
         // Handle requests to the API server
-        return handleRequest(request, connInfo);
+        return await handleRequest(request, connInfo);
       } else {
-        let error = "Method Not Allowed: " + request.method;
-        return new Response(error, {
+        let error = "Method Not Allowed";
+        return new Response(error + ": " + request.method, {
           status: 405,
           statusText: error,
         });
       }
     } catch (err) {
-      let error = err + "\n" + (err.stack || "");
-      return new Response(error, {
+      let error = "Internal Server Error";
+      return new Response(error + ": " + err + "\n" + (err.stack || ""), {
         status: 500,
         statusText: error,
       });
     }
 }
 
-Deno.serve(handle);
+const port = parseInt(Deno.env.get("PORT") || "8000");
+Deno.serve({port: port}, handle);
