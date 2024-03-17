@@ -1,4 +1,4 @@
-//11.03.2024 - Fix
+//18.03.2024 - Fix
 
 (function () {
     'use strict';
@@ -65,20 +65,21 @@
       var ip = getMyIp();
       var proxy2 = 'https://cors.nb557.workers.dev:8443/';
       var proxy3 = 'https://cors557.deno.dev/';
+      var proxy_apn = (window.location.protocol === 'https:' ? 'https://' : 'http://') + 'wsqhpcvo.deploy.cx/' + (ip ? 'ip' + ip + '/' : '');
       var proxy_other = Lampa.Storage.field('online_mod_proxy_other') === true ? Lampa.Storage.field('online_mod_proxy_other_url') + '' : '';
       var user_proxy2 = (proxy_other || proxy2) + (ip ? 'ip' + ip + '/' : '');
       var user_proxy3 = (proxy_other || proxy3) + (ip ? 'ip' + ip + '/' : '');
       if (name === 'filmix') return window.location.protocol === 'https:' ? user_proxy2 : '';
       if (name === 'filmix_site') return user_proxy2;
       if (name === 'svetacdn') return '';
-      if (name === 'allohacdn') return Lampa.Platform.is('android') ? '' : user_proxy3;
+      if (name === 'allohacdn') return proxy_apn;
       if (name === 'cookie') return user_proxy2;
 
       if (Lampa.Storage.field('online_mod_proxy_' + name) === true) {
         if (name === 'rezka') return user_proxy2;
         if (name === 'rezka2') return user_proxy2;
-        if (name === 'kinobase') return user_proxy3;
-        if (name === 'cdnmovies') return user_proxy3;
+        if (name === 'kinobase') return proxy_apn;
+        if (name === 'cdnmovies') return proxy_apn;
         if (name === 'videodb') return user_proxy2;
         if (name === 'zetflix') return user_proxy2;
         if (name === 'redheadsound') return user_proxy2;
@@ -1387,7 +1388,7 @@
         if (Lampa.Platform.is('android') && !logged_in) {
           headers.Cookie = cookie;
         } else if (prox) {
-          prox += 'param?Cookie=' + encodeURIComponent(cookie) + '/';
+          prox += 'param/Cookie=' + encodeURIComponent(cookie) + '/';
         }
       }
 
@@ -1594,7 +1595,7 @@
       };
 
       function getPage(url) {
-        url = url.indexOf('://') == -1 ? embed + (url.startsWith('/') ? url.substring(1) : url) : prox + url;
+        url = component.fixLink(url, prox, host + '/');
         network.clear();
         network.timeout(10000);
         network_call(url, function (str) {
@@ -2176,6 +2177,7 @@
       var translation = '';
       var prefer_mp4 = Lampa.Storage.field('online_mod_prefer_mp4') === true;
       var prox = component.proxy('kinobase');
+      var stream_prox = prox;
       var host = prox ? 'https://kinobase.org' : Utils.kinobaseMirror();
       var embed = prox + host + '/';
       var filter_items = {};
@@ -2440,7 +2442,7 @@
           var link = item.links[0] || '';
           return {
             label: item.label,
-            url: link
+            url: link ? stream_prox + link : link
           };
         });
         return subtitles.length ? subtitles : false;
@@ -2500,7 +2502,7 @@
 
       function getUrlWithParams(url, params) {
         url = url || '';
-        url = url.indexOf('://') == -1 ? host + '/' + (url.startsWith('/') ? url.substring(1) : url) : url;
+        url = component.fixLink(url, '', host + '/');
 
         if (params) {
           for (var name in params) {
@@ -2513,7 +2515,7 @@
       }
 
       function getPage(url) {
-        url = url.indexOf('://') == -1 ? host + '/' + (url.startsWith('/') ? url.substring(1) : url) : url;
+        url = component.fixLink(url, '', host + '/');
         var cookie = 'player_type=new; file_type=' + (prefer_mp4 ? "mp4" : "hls");
         var headers = Lampa.Platform.is('android') ? {
           'Origin': host,
@@ -2523,9 +2525,10 @@
         var page_prox = prox;
 
         if (page_prox) {
-          page_prox += 'param?Origin=' + encodeURIComponent(host) + '/';
-          page_prox += 'param?Referer=' + encodeURIComponent(url) + '/';
-          page_prox += 'param?Cookie=' + encodeURIComponent(cookie) + '/';
+          page_prox += 'param/Origin=' + encodeURIComponent(host) + '/';
+          page_prox += 'param/Referer=' + encodeURIComponent(url) + '/';
+          stream_prox = page_prox;
+          page_prox += 'param/Cookie=' + encodeURIComponent(cookie) + '/';
         }
 
         network.clear();
@@ -2623,7 +2626,7 @@
               label: item.label,
               voice: item.voice,
               quality: quality ? parseInt(quality[1]) : NaN,
-              file: file
+              file: file ? stream_prox + file : file
             };
           });
           items.sort(function (a, b) {
@@ -3065,9 +3068,31 @@
       var prefer_http = false;
       var prefer_mp4 = false;
       var prox = component.proxy('cdnmovies');
-      var host = 'https://cdnmovies.net';
-      var embed = prox + 'https://skinny-wilderness.cdnmovies-stream.online/';
+      var stream_prox = prox;
       var iframe_proxy = !prox && Lampa.Storage.field('online_mod_iframe_proxy') === true && !window.location.protocol.startsWith('http');
+      var host = 'https://cdnmovies.net';
+      var stream_host = 'https://skinny-wilderness.cdnmovies-stream.online';
+      var user_agent = 'Mozilla/5.0 (Linux; Android 10; K; client) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.6167.178 Mobile Safari/537.36';
+      var headers = Lampa.Platform.is('android') ? {
+        'Origin': host,
+        'Referer': host + '/',
+        'User-Agent': user_agent
+      } : {};
+
+      if (prox) {
+        prox += 'param/Origin=' + encodeURIComponent(host) + '/';
+        prox += 'param/Referer=' + encodeURIComponent(host + '/') + '/';
+        prox += 'param/User-Agent=' + encodeURIComponent(user_agent) + '/';
+      }
+
+      if (stream_prox) {
+        stream_prox += 'param/X-Forwarded-For=/';
+        stream_prox += 'param/X-Forwarded-Proto=/';
+        stream_prox += 'param/X-Real-IP=/';
+        stream_prox += 'param/cf-connecting-ip=/';
+      }
+
+      var embed = prox + stream_host + '/';
       var filter_items = {};
       var choice = {
         season: 0,
@@ -3099,11 +3124,7 @@
             network["native"](embed + api, call_success, call_error, false, {
               dataType: 'text',
               disableH2: true,
-              headers: Lampa.Platform.is('android') ? {
-                'Origin': host,
-                'Referer': host + '/',
-                'User-Agent': 'Mozilla/5.0 (Linux; Android 10; K; client) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.6167.178 Mobile Safari/537.36'
-              } : {}
+              headers: headers
             });
           } finally {
             meta.attr('content', referrer);
@@ -3260,7 +3281,7 @@
             return {
               label: item.label,
               quality: quality ? parseInt(quality[1]) : NaN,
-              file: link
+              file: link ? stream_prox + link : link
             };
           });
           items.sort(function (a, b) {
@@ -3320,7 +3341,7 @@
         url = url.replace('/sundb.coldcdn.xyz/', '/sundb.nl/');
 
         if (url) {
-          element.stream = url;
+          element.stream = stream_prox + url;
           element.qualitys = false;
           call(element);
         } else error();
@@ -3386,7 +3407,7 @@
           link = link.replace('/sundb.coldcdn.xyz/', '/sundb.nl/');
           return {
             label: item.label,
-            url: link
+            url: link ? stream_prox + link : link
           };
         });
         return subtitles.length ? subtitles : false;
@@ -10639,7 +10660,7 @@
       var prox2 = component.proxy('allohacdn');
       var token = 'd317441359e505c343c2063edc97e7';
       var embed = prox + 'https://api.apbugall.org/?token=' + token;
-      var decrypt = Utils.decodeSecret([16, 86, 76, 90, 80, 77, 93, 95, 90, 16, 67, 77, 70, 31, 25, 65, 66, 88, 20, 16, 77, 91, 88, 92, 90, 28, 20, 89, 70, 8, 29, 72, 25, 66, 81, 70, 24, 85, 65, 64, 65, 88, 87, 68, 20, 5, 16, 66, 73, 8, 25, 66, 81, 70, 24, 88, 86, 71, 71, 25, 9, 16, 65, 74, 92, 23, 89, 82, 77, 87, 88, 28, 23, 110, 17, 92, 71, 77, 68, 67, 11, 2, 108, 22, 104, 28, 98, 106, 108, 27, 101, 27, 16, 104, 28, 22, 29, 11, 20, 81, 86, 25, 28, 91, 86, 71, 68, 29, 67, 16, 79, 85, 65, 25, 93, 84, 107, 75, 65, 25, 9, 19, 74, 64, 66, 26, 85, 81, 77, 87, 91, 17, 27, 70, 85, 74, 16, 80, 80, 108, 74, 69, 16, 9, 24, 23, 17, 111, 109, 30, 105, 26, 29, 31, 11, 22, 29, 8, 25, 81, 72, 64, 74, 81, 90, 64, 29, 80, 80, 111, 71, 73, 16, 4, 20, 90, 93, 107, 67, 69, 24, 15, 25, 93, 87, 102, 71, 65, 111, 9, 109, 25, 14, 19, 30, 19, 11, 20, 93, 72, 77, 70, 82, 90, 64, 30, 68, 87, 67, 77, 80, 82, 77, 85, 16, 9, 24, 23, 31, 64, 92, 82, 81, 94, 9, 31, 16, 18, 20, 86, 87, 87, 95, 80, 93, 101, 107, 125, 112, 86, 89, 64, 91, 86, 85, 87, 64, 27, 77, 91, 91, 81, 86, 25, 25, 31, 19, 30, 18, 81, 66, 9, 13, 30, 20, 24, 25, 85, 70, 5, 24, 27, 25, 19, 21, 80, 80, 111, 71, 73, 13, 30, 20, 24, 25, 81, 94, 87, 87, 84, 92, 97, 97, 112, 119, 95, 89, 72, 95, 87, 81, 93, 77, 28, 85, 76, 76, 66, 88, 87, 71, 23, 93, 84, 107, 75, 65, 16, 15, 19, 79, 85, 66, 20, 74, 85, 95, 81, 65, 92, 70, 16, 9, 24, 85, 65, 64, 65, 88, 87, 68, 26, 81, 84, 102, 71, 66, 25, 11, 16, 120, 89, 93, 73, 85, 29, 108, 64, 89, 88, 75, 30, 88, 80, 87, 108, 70, 92, 119, 87, 93, 73, 91, 93, 92, 90, 68, 28, 77, 66, 85, 24, 19, 30, 65, 89, 80, 103, 65, 4, 19, 19, 18, 20, 85, 90, 91, 95, 93, 81, 102, 107, 125, 115, 91, 85, 64, 86, 90, 86, 87, 64, 24, 81, 64, 68, 75, 85, 80, 77, 26, 89, 80, 103, 67, 72, 29, 26, 25, 14, 16, 65, 74, 92, 2, 20, 86, 65, 64, 66, 85, 91, 68, 23, 80, 92, 84, 85, 89, 90, 24, 13, 25, 92, 92, 74, 64, 107, 5, 101, 16, 18, 20, 20, 22, 19, 11, 20, 93, 72, 77, 70, 82, 90, 64, 30, 68, 74, 95, 65, 6, 19, 4, 20, 24, 19, 72, 81, 75, 85, 94, 6, 123, 66, 93, 95, 89, 87, 9, 20, 25, 31, 16, 81, 86, 83, 86, 80, 86, 108, 102, 121, 119, 87, 93, 73, 91, 93, 92, 90, 68, 28, 80, 95, 74, 64, 104, 8, 105, 25, 20, 19, 16, 30, 27, 20, 16, 20, 27, 20, 16, 23, 73, 85, 65, 88, 89, 15, 102, 93, 86, 92, 70, 86, 75, 9, 23, 20, 19, 16, 92, 90, 80, 86, 80, 85, 97, 106, 121, 122, 91, 94, 73, 91, 94, 81, 86, 68, 17, 70, 86, 95, 81, 66, 81, 74, 25, 25, 31, 19, 30, 27, 23, 29, 3, 16, 92, 76, 71, 75, 85, 83, 64, 22, 88, 92, 85, 87, 92, 70, 67, 20, 5, 16, 117, 85, 94, 73, 85, 30, 100, 84, 81, 77, 82, 92, 75, 89, 30, 93, 75, 24, 30, 85, 93, 93, 70, 95, 93, 92, 23, 16, 20, 12, 25, 79, 16, 19, 119, 66, 80, 83, 90, 87, 19, 10, 20, 80, 95, 74, 64, 104, 8, 105, 28, 20, 31, 98, 92, 82, 86, 75, 81, 66, 19, 2, 16, 75, 81, 85, 92, 70, 85, 70, 24, 77, 25, 14, 19, 66, 73, 11, 20, 69, 16, 75, 81, 71, 76, 70, 94, 20, 93, 72, 77, 70, 82, 90, 64, 11, 20, 69, 25, 23, 87, 82, 85, 88, 24, 79, 69, 28]);
+      var decrypt = Utils.decodeSecret([16, 86, 76, 90, 80, 77, 93, 95, 90, 16, 67, 77, 70, 31, 25, 65, 66, 88, 20, 16, 77, 91, 88, 92, 90, 28, 20, 89, 70, 8, 29, 72, 25, 66, 81, 70, 24, 85, 65, 64, 65, 88, 87, 68, 20, 5, 16, 66, 73, 8, 25, 66, 81, 70, 24, 88, 86, 71, 71, 25, 9, 16, 65, 74, 92, 23, 89, 82, 77, 87, 88, 28, 23, 110, 17, 92, 71, 77, 68, 67, 11, 2, 108, 22, 104, 28, 98, 106, 108, 27, 101, 27, 16, 104, 28, 22, 29, 11, 20, 81, 86, 25, 28, 91, 86, 71, 68, 29, 67, 16, 79, 85, 65, 25, 93, 84, 107, 75, 65, 25, 9, 19, 74, 64, 66, 26, 85, 81, 77, 87, 91, 17, 27, 70, 85, 74, 16, 80, 80, 108, 74, 69, 16, 9, 24, 23, 17, 111, 109, 30, 105, 26, 29, 31, 11, 22, 29, 8, 25, 81, 72, 64, 74, 81, 90, 64, 29, 80, 80, 111, 71, 73, 16, 4, 20, 90, 93, 107, 67, 69, 24, 15, 25, 93, 87, 102, 71, 65, 111, 9, 109, 25, 14, 19, 30, 19, 11, 20, 93, 72, 77, 70, 82, 90, 64, 30, 68, 87, 67, 77, 80, 82, 77, 85, 16, 9, 24, 23, 31, 64, 92, 82, 81, 94, 9, 31, 16, 18, 20, 86, 87, 87, 95, 80, 93, 101, 107, 125, 112, 86, 89, 64, 91, 86, 85, 87, 64, 27, 77, 91, 91, 81, 86, 25, 25, 31, 19, 30, 18, 81, 66, 9, 13, 30, 20, 24, 25, 85, 70, 5, 24, 27, 25, 19, 21, 80, 80, 111, 71, 73, 13, 30, 20, 24, 25, 81, 94, 87, 87, 84, 92, 97, 97, 112, 119, 95, 89, 72, 95, 87, 81, 93, 77, 28, 85, 76, 76, 66, 88, 87, 71, 23, 93, 84, 107, 75, 65, 16, 15, 19, 79, 85, 66, 20, 74, 85, 95, 81, 65, 92, 70, 16, 9, 24, 85, 65, 64, 65, 88, 87, 68, 26, 81, 84, 102, 71, 66, 25, 11, 16, 120, 89, 93, 73, 85, 29, 108, 64, 89, 88, 75, 30, 88, 80, 87, 108, 70, 92, 119, 87, 93, 73, 91, 93, 92, 90, 68, 28, 77, 66, 85, 24, 19, 30, 65, 89, 80, 103, 65, 4, 19, 19, 18, 20, 85, 90, 91, 95, 93, 81, 102, 107, 125, 115, 91, 85, 64, 86, 90, 86, 87, 64, 24, 81, 64, 68, 75, 85, 80, 77, 26, 89, 80, 103, 67, 72, 29, 26, 25, 14, 16, 65, 74, 92, 2, 20, 86, 65, 64, 66, 85, 91, 68, 23, 80, 92, 84, 85, 89, 90, 24, 13, 25, 92, 92, 74, 64, 107, 5, 101, 16, 18, 20, 20, 22, 19, 11, 20, 93, 72, 77, 70, 82, 90, 64, 30, 68, 74, 95, 65, 6, 19, 4, 20, 24, 19, 72, 81, 75, 85, 94, 22, 123, 66, 93, 95, 89, 87, 9, 20, 25, 31, 16, 81, 86, 83, 86, 80, 86, 108, 102, 121, 119, 87, 93, 73, 91, 93, 92, 90, 68, 28, 80, 95, 74, 64, 104, 8, 105, 25, 20, 19, 16, 30, 27, 20, 16, 20, 27, 20, 16, 23, 73, 85, 65, 88, 89, 31, 102, 93, 86, 92, 70, 86, 75, 9, 23, 20, 19, 16, 92, 90, 80, 86, 80, 85, 97, 106, 121, 122, 91, 94, 73, 91, 94, 81, 86, 68, 17, 70, 86, 95, 81, 66, 81, 74, 25, 25, 31, 19, 30, 27, 23, 29, 3, 16, 92, 76, 71, 75, 85, 83, 64, 22, 88, 92, 85, 87, 92, 70, 67, 20, 5, 16, 117, 85, 94, 73, 85, 30, 100, 84, 81, 77, 82, 92, 75, 89, 30, 93, 75, 24, 30, 85, 93, 93, 70, 95, 93, 92, 23, 16, 20, 12, 25, 79, 16, 19, 119, 66, 80, 83, 90, 87, 19, 10, 20, 80, 95, 74, 64, 104, 8, 105, 28, 20, 31, 98, 92, 82, 86, 75, 81, 66, 19, 2, 16, 75, 81, 85, 92, 70, 85, 70, 24, 77, 25, 14, 19, 66, 73, 11, 20, 69, 16, 75, 81, 71, 76, 70, 94, 20, 93, 72, 77, 70, 82, 90, 64, 11, 20, 69, 25, 23, 87, 82, 85, 88, 24, 79, 69, 28]);
       var decrypt2 = Utils.decodeSecret([16, 86, 76, 90, 80, 77, 93, 95, 90, 16, 67, 90, 70, 90, 73, 64, 28, 20, 76, 95, 82, 81, 93, 21, 20, 89, 80, 17, 75, 25, 66, 82, 75, 20, 71, 93, 86, 84, 86, 67, 19, 4, 20, 75, 73, 20, 16, 29, 20, 14, 25, 79, 77, 15, 24, 70, 88, 70, 19, 97, 121, 124, 124, 76, 68, 73, 102, 86, 72, 65, 85, 71, 76, 16, 4, 20, 85, 76, 90, 83, 64, 81, 95, 87, 20, 107, 116, 120, 120, 64, 76, 64, 107, 81, 66, 76, 81, 67, 64, 16, 25, 66, 20, 71, 81, 93, 67, 26, 87, 64, 92, 90, 19, 4, 20, 86, 65, 86, 83, 77, 93, 92, 87, 28, 25, 79, 69, 11, 25, 64, 91, 80, 71, 30, 71, 93, 68, 107, 81, 66, 76, 81, 67, 64, 112, 85, 88, 80, 86, 75, 20, 13, 20, 94, 69, 87, 87, 71, 80, 91, 94, 28, 17, 75, 68, 15, 19, 77, 92, 89, 71, 22, 67, 92, 90, 87, 25, 9, 16, 82, 77, 94, 90, 64, 90, 86, 90, 24, 29, 67, 77, 2, 20, 78, 2, 20, 70, 85, 74, 16, 97, 112, 92, 84, 85, 89, 90, 106, 85, 72, 65, 86, 74, 64, 16, 9, 24, 104, 116, 120, 123, 77, 64, 64, 102, 93, 65, 76, 81, 64, 77, 15, 16, 64, 74, 73, 25, 79, 19, 92, 66, 81, 88, 16, 67, 90, 70, 90, 73, 64, 25, 15, 24, 77, 25, 87, 82, 77, 87, 88, 20, 16, 85, 16, 79, 78, 25, 70, 85, 64, 77, 66, 87, 20, 72, 25, 69, 69, 81, 74, 73, 3, 20, 17, 6, 87, 88, 65, 72, 81, 90, 92, 70, 73, 71, 13, 22, 24, 27, 25, 81, 93, 90, 91, 84, 81, 109, 98, 112, 119, 92, 84, 68, 95, 90, 93, 94, 77, 28, 73, 65, 66, 81, 71, 92, 81, 74, 80, 82, 74, 66, 81, 71, 92, 87, 88, 71, 85, 79, 80, 25, 24, 24, 64, 86, 71, 71, 93, 85, 68, 85, 2, 16, 27, 89, 70, 93, 93, 92, 85, 90, 81, 93, 83, 86, 64, 9, 18, 20, 19, 16, 92, 90, 80, 86, 80, 85, 97, 106, 121, 122, 91, 94, 73, 91, 94, 81, 86, 68, 17, 64, 92, 82, 81, 94, 29, 24, 27, 25, 22, 21, 87, 81, 71, 89, 77, 84, 80, 88, 82, 91, 85, 84, 9, 26, 16, 18, 20, 86, 87, 87, 95, 80, 93, 101, 107, 125, 112, 86, 89, 64, 91, 86, 85, 87, 64, 27, 80, 80, 25, 20, 19, 16, 27, 18, 92, 85, 80, 93, 65, 92, 89, 85, 85, 81, 88, 80, 13, 22, 24, 27, 25, 81, 93, 90, 91, 84, 81, 109, 98, 112, 119, 92, 84, 68, 95, 90, 93, 94, 77, 28, 70, 76, 69, 25, 24, 24, 70, 10, 14, 19, 74, 71, 28, 20, 78, 1, 3, 20, 64, 77, 86, 16, 73, 3, 16, 68, 29, 29, 90, 85, 92, 88, 16, 75, 68, 24]);
       var filter_items = {};
       var choice = {
@@ -10681,7 +10702,7 @@
       function getPage(data) {
         network.clear();
         network.timeout(10000);
-        network["native"](prox + data.iframe, function (str) {
+        network["native"](prox2 + data.iframe, function (str) {
           parse(str, data.iframe);
         }, function (a, c) {
           component.empty(network.errorDecode(a, c));
@@ -10774,7 +10795,7 @@
           var link = item.links[0] || '';
           return {
             label: item.label,
-            url: link
+            url: link ? (prox2 ? prox2 + extract.prox2 : prox) + link : link
           };
         });
         return subtitles.length ? subtitles : false;
@@ -10835,7 +10856,7 @@
                 extract.translations.push({
                   id: t.id,
                   title: (t.title !== select_title ? t.title + ' / ' : '') + v.label,
-                  stream: v.file,
+                  stream: v.file ? (prox2 ? prox2 + extract.prox2 : prox) + v.file : v.file,
                   qualitys: false,
                   subtitles: element.subtitles
                 });
@@ -10844,7 +10865,7 @@
               extract.translations.push({
                 id: t.id,
                 title: t.title,
-                stream: element.stream,
+                stream: element.stream ? (prox2 ? prox2 + extract.prox2 : prox) + element.stream : element.stream,
                 qualitys: element.qualitys,
                 subtitles: element.subtitles
               });
@@ -11047,7 +11068,7 @@
           if (element.parsed || !file.endsWith('.m3u8')) return call(element);
           network.clear();
           network.timeout(10000);
-          network["native"]((prox2 ? prox2 + extract.prox2 : prox) + file, function (str) {
+          network["native"](file, function (str) {
             var items = extractQuality(str, file);
             items = items.filter(function (elem) {
               return elem.quality > 0;
@@ -11084,29 +11105,18 @@
         if (!str) return [];
 
         try {
-          var base_url = url.substring(0, url.lastIndexOf('/'));
           var items = component.parseM3U(str).filter(function (item) {
             return item.xstream;
           }).map(function (item) {
             var link = item.link;
             var quality = item.height;
             if (quality > 1440 && quality <= 2160) quality = 2160;else if (quality > 1080 && quality <= 1440) quality = 1440;else if (quality > 720 && quality <= 1080) quality = 1080;else if (quality > 480 && quality <= 720) quality = 720;else if (quality > 360 && quality <= 480) quality = 480;else if (quality > 240 && quality <= 360) quality = 360;
-
-            if (!quality) {
-              var alt_quality = link.match(/\b(\d\d\d+)\b/);
-
-              if (alt_quality) {
-                var alt_height = parseInt(alt_quality[1]);
-                if (alt_height > quality && alt_height <= 4320) quality = alt_height;
-              }
-            }
-
             return {
               label: quality ? quality + 'p' : '360p ~ 1080p',
               quality: quality,
               bandwidth: item.bandwidth,
               codecs: item.codecs,
-              file: link.indexOf('://') == -1 ? base_url + '/' + (link.startsWith('/') ? link.substring(1) : link) : link
+              file: component.fixLink(link, '', url)
             };
           });
           items.sort(function (a, b) {
@@ -11155,10 +11165,18 @@
                   file = items[0].file;
                   var voices = {};
                   items.forEach(function (item) {
-                    voices[item.label] = item.file;
+                    voices[item.label] = item;
                   });
-                  if (voices[json.default_audio]) file = voices[json.default_audio];
+
+                  if (voices[json.default_audio]) {
+                    element.voices = [voices[json.default_audio]];
+                    file = voices[json.default_audio].file;
+                  }
                 } else file = '';
+              } else if (file) {
+                file = file.split(' or ').filter(function (link) {
+                  return link;
+                })[0] || '';
               }
 
               if (file) {
@@ -11317,7 +11335,8 @@
       var select_title = '';
       var page_title = '';
       var prox = component.proxy('redheadsound');
-      var embed = prox + 'https://redheadsound.studio/';
+      var host = 'https://redheadsound.studio';
+      var embed = prox + host + '/';
       var filter_items = {};
       var choice = {
         season: 0,
@@ -11464,7 +11483,7 @@
       function getPage(card) {
         page_title = card.title || card.orig_title || select_title;
         var url = card.link;
-        url = url.indexOf('://') == -1 ? embed + (url.startsWith('/') ? url.substring(1) : url) : prox + url;
+        url = component.fixLink(url, prox, host + '/');
         network.clear();
         network.timeout(10000);
         network["native"](url, function (str) {
@@ -11475,7 +11494,7 @@
             network.clear();
             network.timeout(10000);
             network["native"](prox + player[1], function (str) {
-              parse(str, player[2]);
+              parse(str, player[1]);
             }, function (a, c) {
               component.empty(network.errorDecode(a, c));
             }, false, {
@@ -11538,7 +11557,7 @@
        */
 
 
-      function extractItems(str, base_url) {
+      function extractItems(str, url) {
         if (!str) return [];
 
         try {
@@ -11548,7 +11567,7 @@
             return {
               label: item.label,
               quality: quality ? parseInt(quality[1]) : NaN,
-              file: link.indexOf('://') == -1 ? base_url + '/' + (link.startsWith('/') ? link.substring(1) : link) : link
+              file: component.fixLink(link, '', url)
             };
           });
           items.sort(function (a, b) {
@@ -11564,19 +11583,19 @@
         return [];
       }
 
-      function parseSubs(str, base_url) {
+      function parseSubs(str, url) {
         if (!str) return false;
         var subtitles = component.parsePlaylist(str).map(function (item) {
           var link = item.links[0] || '';
           return {
             label: item.label,
-            url: link.indexOf('://') == -1 ? base_url + '/' + (link.startsWith('/') ? link.substring(1) : link) : link
+            url: component.fixLink(link, '', url)
           };
         });
         return subtitles.length ? subtitles : false;
       }
 
-      function parse(str, base_url) {
+      function parse(str, url) {
         component.loading(false);
         str = str.replace(/\n/g, '');
         var find = str.match('Playerjs\\(({.*?})\\);');
@@ -11590,8 +11609,8 @@
           extract = typeof json.file === 'string' ? [json] : json.file;
           extract.forEach(function (data) {
             data.media = {
-              items: extractItems(data.file, base_url),
-              subtitles: parseSubs(data.subtitle, base_url)
+              items: extractItems(data.file, url),
+              subtitles: parseSubs(data.subtitle, url)
             };
           });
           filter();
@@ -14377,10 +14396,10 @@
       var filter_sources = ['videocdn', 'rezka', 'rezka2', 'kinobase', 'collaps', 'cdnmovies', 'filmix', 'redheadsound', 'cdnvideohub', 'anilibria', 'kodik'];
 
       if (Utils.isDebug()) {
-        filter_sources.push('kinopub');
-        filter_sources.push('filmix2');
-        filter_sources.push('alloha');
-        filter_sources.push('hdvb');
+        //filter_sources.push('kinopub')
+        //filter_sources.push('filmix2')
+        filter_sources.push('alloha'); //filter_sources.push('hdvb')
+
         filter_sources.push('videodb');
         filter_sources.push('zetflix');
       } // шаловливые ручки
@@ -14885,6 +14904,21 @@
         } catch (e) {}
 
         return pl;
+      };
+
+      this.fixLink = function (link, proxy, referrer) {
+        if (link) {
+          if (link.indexOf('://') !== -1) return proxy + link;
+          var url = new URL(referrer);
+          if (link.startsWith('//')) return proxy + url.protocol + link;
+          if (link.startsWith('/')) return proxy + url.origin + link;
+          if (link.startsWith('?')) return proxy + url.origin + url.pathname + link;
+          if (link.startsWith('#')) return proxy + url.origin + url.pathname + url.search + link;
+          var base = url.href.substring(0, url.href.lastIndexOf('/') + 1);
+          return proxy + base + link;
+        }
+
+        return link;
       };
 
       this.proxyUrlCall = function (proxy_url, method, url, timeout, post_data, call_success, call_fail, withCredentials) {
@@ -15426,7 +15460,7 @@
       };
     }
 
-    var mod_version = '11.03.2024';
+    var mod_version = '18.03.2024';
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
     var isIFrame = window.parent !== window;
@@ -15435,10 +15469,14 @@
     console.log('App', 'is Tizen:', isTizen);
     console.log('App', 'is iframe:', isIFrame);
     console.log('App', 'is local:', isLocal);
+
+    if (!Utils.isDebug()) {
+      Lampa.Storage.set('online_mod_proxy_kinobase', 'false');
+      Lampa.Storage.set('online_mod_proxy_cdnmovies', 'false');
+    }
+
     Lampa.Storage.set('online_mod_proxy_videocdn', 'false');
-    Lampa.Storage.set('online_mod_proxy_kinobase', 'false');
     Lampa.Storage.set('online_mod_proxy_collaps', 'false');
-    Lampa.Storage.set('online_mod_proxy_cdnmovies', 'false');
     Lampa.Storage.set('online_mod_proxy_kinopub', 'true');
     Lampa.Storage.set('online_mod_proxy_alloha', 'false');
     Lampa.Storage.set('online_mod_proxy_hdvb', 'false');
@@ -16128,7 +16166,7 @@
       var prox = Utils.proxy('cookie');
       var proxy_mirror = Lampa.Storage.field('online_mod_proxy_rezka2_mirror') === true;
       var host = !proxy_mirror ? 'https://rezka.ag' : Utils.rezka2Mirror();
-      var url = prox + 'get_cookie/param?Cookie=/' + host + '/ajax/login/';
+      var url = prox + 'get_cookie/param/Cookie=/' + host + '/ajax/login/';
       var postdata = 'login_name=' + encodeURIComponent(Lampa.Storage.get('online_mod_rezka2_name', ''));
       postdata += '&login_password=' + encodeURIComponent(Lampa.Storage.get('online_mod_rezka2_password', ''));
       postdata += '&login_not_save=0';
