@@ -87,6 +87,7 @@ export default {
         });
       }
       const apiUrl = new URL(api);
+      let apiBase = apiUrl.href.substring(0, apiUrl.href.lastIndexOf("/") + 1);
 
       // Rewrite request to point to API URL. This also makes the request mutable
       // so you can add the correct Origin header to make the API server think
@@ -156,7 +157,11 @@ export default {
       }
       params.forEach(param => {
         if (param[0]) {
-          request.headers.set(decodeURIComponent(param[0]), decodeURIComponent(param[1] || ""));
+          if (param[1]) {
+            request.headers.set(decodeURIComponent(param[0]), decodeURIComponent(param[1] || ""));
+          } else {
+            request.headers.delete(decodeURIComponent(param[0]));
+          }
         }
       });
       let response = await fetch(request, {
@@ -173,7 +178,7 @@ export default {
       if (response.status >= 300 && response.status < 400) {
         let target = response.headers.get("Location");
         if (target) {
-          response.headers.set("Location", proxy + (target.startsWith("/") ? apiUrl.origin : "") + target);
+          response.headers.set("Location", fixLink(target, proxy, apiUrl, apiBase));
         }
       }
 
@@ -193,6 +198,18 @@ export default {
       }
 
       return response;
+    }
+
+    function fixLink(link, proxy, url, base) {
+      if (link) {
+        if (link.indexOf("://") !== -1) return proxy + link;
+        if (link.startsWith("//")) return proxy + url.protocol + link;
+        if (link.startsWith("/")) return proxy + url.origin + link;
+        if (link.startsWith("?")) return proxy + url.origin + url.pathname + link;
+        if (link.startsWith("#")) return proxy + url.origin + url.pathname + url.search + link;
+        return proxy + base + link;
+      }
+      return link;
     }
 
     async function handleOptions(request) {

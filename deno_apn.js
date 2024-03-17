@@ -90,6 +90,7 @@ async function handle(request, connInfo) {
         });
       }
       const apiUrl = new URL(api);
+      let apiBase = apiUrl.href.substring(0, apiUrl.href.lastIndexOf("/") + 1);
 
       // Rewrite request to point to API URL. This also makes the request mutable
       // so you can add the correct Origin header to make the API server think
@@ -159,7 +160,11 @@ async function handle(request, connInfo) {
       }
       params.forEach(param => {
         if (param[0]) {
-          request.headers.set(decodeURIComponent(param[0]), decodeURIComponent(param[1] || ""));
+          if (param[1]) {
+            request.headers.set(decodeURIComponent(param[0]), decodeURIComponent(param[1] || ""));
+          } else {
+            request.headers.delete(decodeURIComponent(param[0]));
+          }
         }
       });
       let response = await fetch(request, {
@@ -176,7 +181,7 @@ async function handle(request, connInfo) {
       if (response.status >= 300 && response.status < 400) {
         let target = response.headers.get("Location");
         if (target) {
-          response.headers.set("Location", proxy + (target.startsWith("/") ? apiUrl.origin : "") + target);
+          response.headers.set("Location", fixLink(target, proxy, apiUrl, apiBase));
         }
       }
 
@@ -195,7 +200,7 @@ async function handle(request, connInfo) {
         }
         let ctype = response.headers.get("Content-Type");
         if (ctype == "application/x-mpegurl" || ctype == "application/vnd.apple.mpegurl") {
-          let body = edit_m3u8(await response.text(), proxy, api);
+          let body = edit_m3u8(await response.text(), proxy, apiUrl, apiBase);
           response.headers.delete("Content-Length");
           response.headers.delete("Content-Range");
           response.headers.set("Accept-Ranges", "none");
@@ -206,34 +211,38 @@ async function handle(request, connInfo) {
       return response;
     }
 
-    function edit_m3u8(m3u8, proxy, url) {
+    function fixLink(link, proxy, url, base) {
+      if (link) {
+        if (link.indexOf("://") !== -1) return proxy + link;
+        if (link.startsWith("//")) return proxy + url.protocol + link;
+        if (link.startsWith("/")) return proxy + url.origin + link;
+        if (link.startsWith("?")) return proxy + url.origin + url.pathname + link;
+        if (link.startsWith("#")) return proxy + url.origin + url.pathname + url.search + link;
+        return proxy + base + link;
+      }
+      return link;
+    }
+
+    function edit_m3u8(m3u8, proxy, url, base) {
       try {
-        let base_url = url.substring(0, url.lastIndexOf("/"));
         return m3u8.split("\n").map(org_line => {
           let line = org_line.trim();
           if (line.charAt(0) === "#") {
             return org_line.replace(/\bURI="([^"]*)"/g, (str, link) => {
               link = link.trim();
               if (link) {
-                return 'URI="' + fix_link(link, proxy, base_url) + '"';
+                return 'URI="' + fixLink(link, proxy, url, base) + '"';
               }
               return str;
             });
           } else if(line) {
-            return fix_link(line, proxy, base_url);
+            return fixLink(line, proxy, url, base);
           }
           return org_line;
         }).join("\n");
       } catch (err) {
         return m3u8;
       }
-    }
-
-    function fix_link(link, proxy, base_url) {
-      if (link) {
-        return proxy + (link.indexOf("://") == -1 ? base_url + "/" + (link.startsWith("/") ? link.substring(1) : link) : link);
-      }
-      return link;
     }
 
     async function handleOptions(request, connInfo) {
