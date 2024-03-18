@@ -1,4 +1,4 @@
-//18.03.2024 - Fix
+//19.03.2024 - Fix
 
 (function () {
     'use strict';
@@ -63,12 +63,13 @@
 
     function proxy(name) {
       var ip = getMyIp();
+      var param_ip = ip ? 'ip' + ip + '/' : '';
       var proxy2 = 'https://cors.nb557.workers.dev:8443/';
       var proxy3 = 'https://cors557.deno.dev/';
-      var proxy_apn = (window.location.protocol === 'https:' ? 'https://' : 'http://') + 'wsqhpcvo.deploy.cx/' + (ip ? 'ip' + ip + '/' : '');
+      var proxy_apn = (window.location.protocol === 'https:' ? 'https://' : 'http://') + 'wsqhpcvo.deploy.cx/' + param_ip;
       var proxy_other = Lampa.Storage.field('online_mod_proxy_other') === true ? Lampa.Storage.field('online_mod_proxy_other_url') + '' : '';
-      var user_proxy2 = (proxy_other || proxy2) + (ip ? 'ip' + ip + '/' : '');
-      var user_proxy3 = (proxy_other || proxy3) + (ip ? 'ip' + ip + '/' : '');
+      var user_proxy2 = (proxy_other || proxy2) + param_ip;
+      var user_proxy3 = (proxy_other || proxy3) + param_ip;
       if (name === 'filmix') return window.location.protocol === 'https:' ? user_proxy2 : '';
       if (name === 'filmix_site') return user_proxy2;
       if (name === 'svetacdn') return '';
@@ -259,6 +260,7 @@
       var prox = component.proxy('videocdn');
       var prox2 = component.proxy('svetacdn');
       var host = (prefer_http || prox ? 'http:' : 'https:') + '//videocdn.tv';
+      var ref = host + '/';
       var embed = '//93703.svetacdn.in/0HlZgU1l1mw5';
       var filter_items = {};
       var choice = {
@@ -295,7 +297,7 @@
               dataType: 'text',
               headers: Lampa.Platform.is('android') ? {
                 'Origin': host,
-                'Referer': host + '/'
+                'Referer': ref
               } : {}
             });
           } finally {
@@ -1374,11 +1376,12 @@
       var proxy_mirror = Lampa.Storage.field('online_mod_proxy_rezka2_mirror') === true;
       var prox = component.proxy('rezka2');
       var host = prox && !proxy_mirror ? 'https://rezka.ag' : Utils.rezka2Mirror();
+      var ref = host + '/';
       var logged_in = Lampa.Storage.get('online_mod_rezka2_status', '') === true && !prox;
       var network_call = logged_in ? network.silent : network["native"];
       var headers = Lampa.Platform.is('android') && !logged_in ? {
         'Origin': host,
-        'Referer': host + '/',
+        'Referer': ref,
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36'
       } : {};
       var cookie = Lampa.Storage.get('online_mod_rezka2_cookie', '') + '';
@@ -1392,7 +1395,7 @@
         }
       }
 
-      var embed = prox + host + '/';
+      var embed = prox + ref;
       var filter_items = {};
       var choice = {
         season: 0,
@@ -1595,7 +1598,7 @@
       };
 
       function getPage(url) {
-        url = component.fixLink(url, prox, host + '/');
+        url = component.fixLink(url, prox, ref);
         network.clear();
         network.timeout(10000);
         network_call(url, function (str) {
@@ -2179,7 +2182,8 @@
       var prox = component.proxy('kinobase');
       var stream_prox = prox;
       var host = prox ? 'https://kinobase.org' : Utils.kinobaseMirror();
-      var embed = prox + host + '/';
+      var ref = host + '/';
+      var embed = prox + ref;
       var filter_items = {};
       var choice = {
         season: 0,
@@ -2288,7 +2292,7 @@
           withCredentials: !prox,
           headers: Lampa.Platform.is('android') ? {
             'Origin': host,
-            'Referer': host + '/'
+            'Referer': ref
           } : {}
         });
       };
@@ -2442,7 +2446,7 @@
           var link = item.links[0] || '';
           return {
             label: item.label,
-            url: link ? stream_prox + link : link
+            url: component.fixLink(link, stream_prox)
           };
         });
         return subtitles.length ? subtitles : false;
@@ -2502,7 +2506,7 @@
 
       function getUrlWithParams(url, params) {
         url = url || '';
-        url = component.fixLink(url, '', host + '/');
+        url = component.fixLink(url, '', ref);
 
         if (params) {
           for (var name in params) {
@@ -2515,7 +2519,7 @@
       }
 
       function getPage(url) {
-        url = component.fixLink(url, '', host + '/');
+        url = component.fixLink(url, '', ref);
         var cookie = 'player_type=new; file_type=' + (prefer_mp4 ? "mp4" : "hls");
         var headers = Lampa.Platform.is('android') ? {
           'Origin': host,
@@ -2587,7 +2591,7 @@
           withCredentials: !prox,
           headers: Lampa.Platform.is('android') ? {
             'Origin': host,
-            'Referer': host + '/'
+            'Referer': ref
           } : {}
         });
       }
@@ -2626,7 +2630,7 @@
               label: item.label,
               voice: item.voice,
               quality: quality ? parseInt(quality[1]) : NaN,
-              file: file ? stream_prox + file : file
+              file: component.fixLink(file, stream_prox)
             };
           });
           items.sort(function (a, b) {
@@ -3071,17 +3075,17 @@
       var stream_prox = prox;
       var iframe_proxy = !prox && Lampa.Storage.field('online_mod_iframe_proxy') === true && !window.location.protocol.startsWith('http');
       var host = 'https://cdnmovies.net';
-      var stream_host = 'https://skinny-wilderness.cdnmovies-stream.online';
+      var ref = host + '/';
       var user_agent = 'Mozilla/5.0 (Linux; Android 10; K; client) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.6167.178 Mobile Safari/537.36';
       var headers = Lampa.Platform.is('android') ? {
         'Origin': host,
-        'Referer': host + '/',
+        'Referer': ref,
         'User-Agent': user_agent
       } : {};
 
       if (prox) {
         prox += 'param/Origin=' + encodeURIComponent(host) + '/';
-        prox += 'param/Referer=' + encodeURIComponent(host + '/') + '/';
+        prox += 'param/Referer=' + encodeURIComponent(ref) + '/';
         prox += 'param/User-Agent=' + encodeURIComponent(user_agent) + '/';
       }
 
@@ -3092,7 +3096,7 @@
         stream_prox += 'param/cf-connecting-ip=/';
       }
 
-      var embed = prox + stream_host + '/';
+      var embed = prox + 'https://skinny-wilderness.cdnmovies-stream.online/';
       var filter_items = {};
       var choice = {
         season: 0,
@@ -3281,7 +3285,7 @@
             return {
               label: item.label,
               quality: quality ? parseInt(quality[1]) : NaN,
-              file: link ? stream_prox + link : link
+              file: component.fixLink(link, stream_prox)
             };
           });
           items.sort(function (a, b) {
@@ -3341,7 +3345,7 @@
         url = url.replace('/sundb.coldcdn.xyz/', '/sundb.nl/');
 
         if (url) {
-          element.stream = stream_prox + url;
+          element.stream = component.fixLink(url, stream_prox);
           element.qualitys = false;
           call(element);
         } else error();
@@ -3407,7 +3411,7 @@
           link = link.replace('/sundb.coldcdn.xyz/', '/sundb.nl/');
           return {
             label: item.label,
-            url: link ? stream_prox + link : link
+            url: component.fixLink(link, stream_prox)
           };
         });
         return subtitles.length ? subtitles : false;
@@ -4201,7 +4205,8 @@
       var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true;
       var prox = component.proxy('videodb');
       var host = 'https://kinoplay2.site';
-      var embed = prox + host + '/iplayer/videodb.php';
+      var ref = host + '/';
+      var embed = prox + ref + 'iplayer/videodb.php';
       var iframe_proxy = !prox && Lampa.Storage.field('online_mod_iframe_proxy') === true && !window.location.protocol.startsWith('http');
       var logged_in = !prox;
       var filter_items = {};
@@ -4251,7 +4256,7 @@
               withCredentials: logged_in,
               headers: Lampa.Platform.is('android') ? {
                 'Origin': host,
-                'Referer': host + '/'
+                'Referer': ref
               } : {}
             });
           } finally {
@@ -4595,7 +4600,8 @@
       var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true;
       var prox = component.proxy('zetflix');
       var host = 'https://zeflix.online';
-      var embed = prox + host + '/iplayer/videodb.php';
+      var ref = host + '/';
+      var embed = prox + ref + 'iplayer/videodb.php';
       var iframe_proxy = !prox && Lampa.Storage.field('online_mod_iframe_proxy') === true && !window.location.protocol.startsWith('http');
       var logged_in = !prox;
       var filter_items = {};
@@ -4660,7 +4666,7 @@
               withCredentials: logged_in,
               headers: Lampa.Platform.is('android') ? {
                 'Origin': host,
-                'Referer': host + '/'
+                'Referer': ref
               } : {}
             });
           } finally {
@@ -10780,7 +10786,7 @@
             return {
               label: item.voice,
               quality: NaN,
-              file: link
+              file: component.fixLink(link, prox2 ? prox2 + extract.prox2 : prox)
             };
           });
           return items;
@@ -10795,7 +10801,7 @@
           var link = item.links[0] || '';
           return {
             label: item.label,
-            url: link ? (prox2 ? prox2 + extract.prox2 : prox) + link : link
+            url: component.fixLink(link, prox2 ? prox2 + extract.prox2 : prox)
           };
         });
         return subtitles.length ? subtitles : false;
@@ -10835,51 +10841,18 @@
             }];
           }
 
-          extract.translations = [];
-          getTranslations(translations, function () {
+          {
+            extract.translations = translations.map(function (t) {
+              return {
+                id: t.id,
+                title: t.title
+              };
+            });
             component.loading(false);
             filter();
             append(filtred());
-          });
+          }
         } else component.emptyForQuery(select_title);
-      }
-
-      function getTranslations(translations, call) {
-        if (translations && translations.length) {
-          var t = translations.shift();
-          var element = {
-            media: t
-          };
-          getBaseStream(element, function (element) {
-            if (element.voices) {
-              element.voices.forEach(function (v) {
-                extract.translations.push({
-                  id: t.id,
-                  title: (t.title !== select_title ? t.title + ' / ' : '') + v.label,
-                  stream: v.file ? (prox2 ? prox2 + extract.prox2 : prox) + v.file : v.file,
-                  qualitys: false,
-                  subtitles: element.subtitles
-                });
-              });
-            } else {
-              extract.translations.push({
-                id: t.id,
-                title: t.title,
-                stream: element.stream ? (prox2 ? prox2 + extract.prox2 : prox) + element.stream : element.stream,
-                qualitys: element.qualitys,
-                subtitles: element.subtitles
-              });
-            }
-
-            getTranslations(translations, call);
-          }, function () {
-            extract.translations.push({
-              id: t.id,
-              title: t.title
-            });
-            getTranslations(translations, call);
-          });
-        } else call();
       }
 
       function decode(data, aes) {
@@ -11177,6 +11150,7 @@
                 file = file.split(' or ').filter(function (link) {
                   return link;
                 })[0] || '';
+                file = component.fixLink(file, prox2 ? prox2 + extract.prox2 : prox);
               }
 
               if (file) {
@@ -11336,7 +11310,8 @@
       var page_title = '';
       var prox = component.proxy('redheadsound');
       var host = 'https://redheadsound.studio';
-      var embed = prox + host + '/';
+      var ref = host + '/';
+      var embed = prox + ref;
       var filter_items = {};
       var choice = {
         season: 0,
@@ -11483,7 +11458,7 @@
       function getPage(card) {
         page_title = card.title || card.orig_title || select_title;
         var url = card.link;
-        url = component.fixLink(url, prox, host + '/');
+        url = component.fixLink(url, prox, ref);
         network.clear();
         network.timeout(10000);
         network["native"](url, function (str) {
@@ -11760,7 +11735,8 @@
       Lampa.Storage.field('online_mod_prefer_http') === true;
       var prox = component.proxy('cdnvideohub');
       var host = 'https://player.cdnvideohub.com';
-      var embed = prox + host + '/playerjs';
+      var ref = host + '/';
+      var embed = prox + ref + 'playerjs';
       var filter_items = {};
       var choice = {
         season: 0,
@@ -14908,7 +14884,7 @@
 
       this.fixLink = function (link, proxy, referrer) {
         if (link) {
-          if (link.indexOf('://') !== -1) return proxy + link;
+          if (!referrer || link.indexOf('://') !== -1) return proxy + link;
           var url = new URL(referrer);
           if (link.startsWith('//')) return proxy + url.protocol + link;
           if (link.startsWith('/')) return proxy + url.origin + link;
@@ -15460,7 +15436,7 @@
       };
     }
 
-    var mod_version = '18.03.2024';
+    var mod_version = '19.03.2024';
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
     var isIFrame = window.parent !== window;
