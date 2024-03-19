@@ -1,7 +1,12 @@
 async function handle(request, connInfo) {
     const corsHeaders = {
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+      },
+    };
+    const corsOptionsHeaders = {
       "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "GET,HEAD,POST,OPTIONS",
+      "Access-Control-Allow-Methods": "GET, HEAD, POST, OPTIONS",
       "Access-Control-Max-Age": "86400",
     };
 
@@ -21,7 +26,7 @@ async function handle(request, connInfo) {
         if (connInfo && connInfo.remoteAddr) {
           body += "connInfo" + " = " + JSON.stringify(connInfo.remoteAddr) + "\n";
         }
-        return new Response(body);
+        return new Response(body, corsHeaders);
       }
 
       let next_param = true;
@@ -85,6 +90,7 @@ async function handle(request, connInfo) {
       if (!api || !/^https?:\/\/[^\/]/.test(api)) {
         let error = "Malformed URL";
         return new Response(error + ": " + api, {
+          ...corsHeaders,
           status: 404,
           statusText: error,
         });
@@ -101,6 +107,7 @@ async function handle(request, connInfo) {
       if (cdn_loop && cdn_loop.indexOf(cdn_info) !== -1) {
         let error = "CDN-Loop detected";
         return new Response(error, {
+          ...corsHeaders,
           status: 403,
           statusText: error,
         });
@@ -177,14 +184,6 @@ async function handle(request, connInfo) {
       // Set CORS headers
       response.headers.set("Access-Control-Allow-Origin", "*");
 
-      // Fix redirect URL
-      if (response.status >= 300 && response.status < 400) {
-        let target = response.headers.get("Location");
-        if (target) {
-          response.headers.set("Location", fixLink(target, proxy, apiUrl, apiBase));
-        }
-      }
-
       // Append to/Add Vary header so browser will cache response correctly
       response.headers.append("Vary", "Origin");
 
@@ -194,6 +193,8 @@ async function handle(request, connInfo) {
           json.cookie = response.headers.getSetCookie();
           return new Response(JSON.stringify(json), {
             headers: {
+              "Access-Control-Allow-Origin": "*",
+              "Vary": "Origin",
               "Content-Type": "application/json; charset=utf-8",
             },
           });
@@ -205,6 +206,14 @@ async function handle(request, connInfo) {
           response.headers.delete("Content-Range");
           response.headers.set("Accept-Ranges", "none");
           return new Response(body, response);
+        }
+      }
+
+      // Fix redirect URL
+      if (response.status >= 300 && response.status < 400) {
+        let target = response.headers.get("Location");
+        if (target) {
+          response.headers.set("Location", fixLink(target, proxy, apiUrl, apiBase));
         }
       }
 
@@ -254,7 +263,7 @@ async function handle(request, connInfo) {
         // Handle CORS preflight requests.
         return new Response(null, {
           headers: {
-            ...corsHeaders,
+            ...corsOptionsHeaders,
             "Access-Control-Allow-Headers": request.headers.get(
               "Access-Control-Request-Headers"
             ),
@@ -284,6 +293,7 @@ async function handle(request, connInfo) {
       } else {
         let error = "Method Not Allowed";
         return new Response(error + ": " + request.method, {
+          ...corsHeaders,
           status: 405,
           statusText: error,
         });
@@ -291,6 +301,7 @@ async function handle(request, connInfo) {
     } catch (err) {
       let error = "Internal Server Error";
       return new Response(error + ": " + err + "\n" + (err.stack || ""), {
+          ...corsHeaders,
         status: 500,
         statusText: error,
       });

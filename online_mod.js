@@ -66,7 +66,7 @@
       var param_ip = ip ? 'ip' + ip + '/' : '';
       var proxy2 = 'https://cors.nb557.workers.dev:8443/';
       var proxy3 = 'https://cors557.deno.dev/';
-      var proxy_apn = (window.location.protocol === 'https:' ? 'https://' : 'http://') + 'wsqhpcvo.deploy.cx/' + param_ip;
+      var proxy_apn = (window.location.protocol === 'https:' ? 'https://' : 'http://') + 'adusjete.deploy.cx/' + param_ip;
       var proxy_other = Lampa.Storage.field('online_mod_proxy_other') === true ? Lampa.Storage.field('online_mod_proxy_other_url') + '' : '';
       var user_proxy2 = (proxy_other || proxy2) + param_ip;
       var user_proxy3 = (proxy_other || proxy3) + param_ip;
