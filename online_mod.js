@@ -1,4 +1,4 @@
-//19.03.2024 - Fix
+//08.04.2024 - Fix
 
 (function () {
     'use strict';
@@ -66,7 +66,7 @@
       var param_ip = ip ? 'ip' + ip + '/' : '';
       var proxy2 = 'https://cors.nb557.workers.dev:8443/';
       var proxy3 = 'https://cors557.deno.dev/';
-      var proxy_apn = (window.location.protocol === 'https:' ? 'https://' : 'http://') + 'adusjete.deploy.cx/' + param_ip;
+      var proxy_apn = (window.location.protocol === 'https:' ? 'https://' : 'http://') + 'byzkhkgr.deploy.cx/' + param_ip;
       var proxy_other = Lampa.Storage.field('online_mod_proxy_other') === true ? Lampa.Storage.field('online_mod_proxy_other_url') + '' : '';
       var user_proxy2 = (proxy_other || proxy2) + param_ip;
       var user_proxy3 = (proxy_other || proxy3) + param_ip;
@@ -415,7 +415,7 @@
 
       function parse(str) {
         component.loading(false);
-        str = str.replace(/\n/g, '');
+        str = (str || '').replace(/\n/g, '');
         var voices = str.match(/<div class="translations">\s*(<select>.*?<\/select>)/);
         var fs = str.match(/id="fs" value='([^']*)'/);
 
@@ -814,7 +814,7 @@
       var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true;
       var prefer_mp4 = Lampa.Storage.field('online_mod_prefer_mp4') === true;
       var prox = component.proxy('rezka');
-      var embed = prox + 'https://voidboost.org/';
+      var embed = prox + (prox || window.location.protocol === 'https:' ? 'https://voidboost.net/' : 'http://voidboost.tv/');
       var iframe_proxy = !prox && Lampa.Storage.field('online_mod_iframe_proxy') === true && window.location.protocol.startsWith('http') && !Lampa.Platform.is('android');
       var filter_items = {};
       var choice = {
@@ -1193,7 +1193,7 @@
         extract.voice = [];
         extract.season = [];
         extract.episode = [];
-        str = str.replace(/\n/g, '');
+        str = (str || '').replace(/\n/g, '');
         var voices = str.match('<select name="translator"[^>]+>(.*?)</select>');
         var sesons = str.match('<select name="season"[^>]+>(.*?)</select>');
         var episod = str.match('<select name="episode"[^>]+>(.*?)</select>');
@@ -1521,7 +1521,7 @@
           network.clear();
           network.timeout(10000);
           network_call(url, function (str) {
-            str = str.replace(/\n/g, '');
+            str = (str || '').replace(/\n/g, '');
             var links = str.match(/<li><a href=.*?<\/li>/g);
             if (links && links.length) data = data.concat(links);
             if (callback) callback(data);
@@ -1635,7 +1635,7 @@
         extract.is_series = false;
         extract.film_id = '';
         extract.favs = '';
-        str = str.replace(/\n/g, '');
+        str = (str || '').replace(/\n/g, '');
         var translation = str.match(/<h2>В переводе<\/h2>:<\/td>\s*(<td>.*?<\/td>)/);
         var cdnSeries = str.match(/\.initCDNSeriesEvents\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,/);
         var cdnMovie = str.match(/\.initCDNMoviesEvents\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,/);
@@ -2205,7 +2205,7 @@
         network.clear();
         network.timeout(1000 * 10);
         network["native"](url, function (str) {
-          str = str.replace(/\n/g, '');
+          str = (str || '').replace(/\n/g, '');
           var links = object.movie.number_of_seasons ? str.match(/<div class="title"><a href="\/(serial|tv_show)\/([^"]*)"[^>]*>(.*?)<\/a><\/div>/g) : str.match(/<div class="title"><a href="\/film\/([^"]*)"[^>]*>(.*?)<\/a><\/div>/g);
           var search_date = object.search_date || !object.clarification && (object.movie.release_date || object.movie.first_air_date || object.movie.last_air_date) || '0000';
           var search_year = parseInt((search_date + '').slice(0, 4));
@@ -2538,7 +2538,7 @@
         network.clear();
         network.timeout(1000 * 10);
         network["native"](page_prox + url, function (str) {
-          str = str.replace(/\n/g, '');
+          str = (str || '').replace(/\n/g, '');
           var MOVIE_ID = str.match('var MOVIE_ID = (\\d+);');
           var PLAYER_CUID = str.match('var PLAYER_CUID = "([^"]+)";');
           var IDENTIFIER = str.match('var IDENTIFIER = "([^"]+)";');
@@ -2844,7 +2844,7 @@
 
       function parse(str) {
         component.loading(false);
-        str = str.replace(/\n/g, '');
+        str = (str || '').replace(/\n/g, '');
         var find = str.match('makePlayer\\(({.*?})\\);');
         var json;
 
@@ -3209,7 +3209,7 @@
       };
 
       function parse(str, empty) {
-        str = str.replace(/\n/g, '');
+        str = (str || '').replace(/\n/g, '');
         var video;
         var app = str.match(/(<div id="app" data-page=[^>]*>)/);
 
@@ -4359,7 +4359,7 @@
 
       function parse(str) {
         component.loading(false);
-        str = str.replace(/\n/g, '');
+        str = (str || '').replace(/\n/g, '');
         var find = str.match('var config = ({.*?});');
         var json;
 
@@ -4756,7 +4756,7 @@
 
       function parse(str) {
         component.loading(false);
-        str = str.replace(/\n/g, '');
+        str = (str || '').replace(/\n/g, '');
         var find = str.match('Playerjs\\(({.*?})\\);');
         var json;
 
@@ -10808,7 +10808,7 @@
       }
 
       function parse(str, url) {
-        str = str.replace(/\n/g, '');
+        str = (str || '').replace(/\n/g, '');
         var serial = str.match(/var serial = '(\{.*\})';/);
         var buttons = str.match(/<button\b[^>]*\bdata-id-file=.*?<\/button>/g);
         var id = str.match(/var id = (\d+);/);
@@ -11427,7 +11427,7 @@
           network.clear();
           network.timeout(10000);
           network["native"](url, function (str) {
-            str = str.replace(/\n/g, '');
+            str = (str || '').replace(/\n/g, '');
             var links = str.match(/<article class="card d-flex">.*?<\/article>/g);
             if (links && links.length) data = data.concat(links);
             if (callback) callback(data);
@@ -11462,7 +11462,7 @@
         network.clear();
         network.timeout(10000);
         network["native"](url, function (str) {
-          str = str.replace(/\n/g, '');
+          str = (str || '').replace(/\n/g, '');
           var player = str.match(/<iframe data-src="((https?:\/\/redheadsound[^"\/]*)\/[^"]*)"/);
 
           if (player) {
@@ -11572,7 +11572,7 @@
 
       function parse(str, url) {
         component.loading(false);
-        str = str.replace(/\n/g, '');
+        str = (str || '').replace(/\n/g, '');
         var find = str.match('Playerjs\\(({.*?})\\);');
         var json;
 
@@ -11816,7 +11816,7 @@
 
       function parse(str) {
         component.loading(false);
-        str = str.replace(/\n/g, '');
+        str = (str || '').replace(/\n/g, '');
         var find = str.match('Playerjs\\(({.*?})\\);');
         var json;
 
@@ -12808,7 +12808,7 @@
         network.clear();
         network.timeout(10000);
         network["native"](url, function (str) {
-          str = str.replace(/\n/g, '');
+          str = (str || '').replace(/\n/g, '');
           var urlParams = str.match(/\burlParams = '([^']+)'/);
           var type = str.match(/\bvideoInfo\.type = '([^']+)'/);
           var hash = str.match(/\bvideoInfo\.hash = '([^']+)'/);
@@ -12872,7 +12872,7 @@
               network.clear();
               network.timeout(10000);
               network["native"](player_url, function (str) {
-                str = str.replace(/\n/g, '');
+                str = (str || '').replace(/\n/g, '');
                 var info_match = str.match(/\$\.ajax\({type: *"POST", *url: *atob\("([^"]+)"\)/);
                 var info;
 
@@ -14369,17 +14369,55 @@
         voice: Lampa.Lang.translate('torrent_parser_voice'),
         source: Lampa.Lang.translate('settings_rest_source')
       };
-      var filter_sources = ['videocdn', 'rezka', 'rezka2', 'kinobase', 'collaps', 'cdnmovies', 'filmix', 'redheadsound', 'cdnvideohub', 'anilibria', 'kodik'];
+      var obj_filter_sources = [{
+        name: 'videocdn',
+        title: 'VideoCDN'
+      }, {
+        name: 'rezka',
+        title: 'Voidboost'
+      }, {
+        name: 'rezka2',
+        title: 'HDrezka'
+      }, {
+        name: 'kinobase',
+        title: 'Kinobase'
+      }, {
+        name: 'collaps',
+        title: 'Collaps'
+      }, {
+        name: 'cdnmovies',
+        title: 'CDNMovies'
+      }, {
+        name: 'filmix',
+        title: 'Filmix'
+      }, {
+        name: 'redheadsound',
+        title: 'RedHeadSound'
+      }, {
+        name: 'cdnvideohub',
+        title: 'CDNVideoHub'
+      }, {
+        name: 'anilibria',
+        title: 'AniLibria'
+      }, {
+        name: 'kodik',
+        title: 'Kodik'
+      }];
 
       if (Utils.isDebug()) {
-        //filter_sources.push('kinopub')
-        //filter_sources.push('filmix2')
-        filter_sources.push('alloha'); //filter_sources.push('hdvb')
+        //obj_filter_sources.push({name: 'kinopub', title: 'KinoPub'})
+        //obj_filter_sources.push({name: 'filmix2', title: 'Filmix 4K'})
+        obj_filter_sources.push({
+          name: 'alloha',
+          title: 'Alloha'
+        }); //obj_filter_sources.push({name: 'hdvb', title: 'HDVB'})
+        //obj_filter_sources.push({name: 'videodb', title: 'VideoDB'})
+        //obj_filter_sources.push({name: 'zetflix', title: 'Zetflix'})
+      }
 
-        filter_sources.push('videodb');
-        filter_sources.push('zetflix');
-      } // шаловливые ручки
-
+      var filter_sources = obj_filter_sources.map(function (s) {
+        return s.name;
+      }); // шаловливые ручки
 
       if (filter_sources.indexOf(balanser) == -1) {
         balanser = 'videocdn';
@@ -14424,21 +14462,13 @@
           if (type == 'filter') {
             if (a.reset) {
               if (extended) sources[balanser].reset();else _this.start();
+            } else if (a.stype == 'source') {
+              _this.changeBalanser(filter_sources[b.index]);
             } else {
               sources[balanser].filter(type, a, b);
             }
           } else if (type == 'sort') {
-            balanser = a.source;
-            Lampa.Storage.set('online_mod_balanser', balanser);
-            last_bls[object.movie.id] = balanser;
-
-            if (Lampa.Storage.field('online_mod_save_last_balanser') === true) {
-              Lampa.Storage.set('online_mod_last_balanser', last_bls);
-            }
-
-            _this.search();
-
-            setTimeout(Lampa.Select.close, 10);
+            _this.changeBalanser(a.source);
           }
         };
 
@@ -14448,6 +14478,19 @@
         scroll.append(filter.render());
         this.search();
         return this.render();
+      };
+
+      this.changeBalanser = function (balanser_name) {
+        balanser = balanser_name;
+        Lampa.Storage.set('online_mod_balanser', balanser);
+        last_bls[object.movie.id] = balanser;
+
+        if (Lampa.Storage.field('online_mod_save_last_balanser') === true) {
+          Lampa.Storage.set('online_mod_last_balanser', last_bls);
+        }
+
+        this.search();
+        setTimeout(this.closeFilter, 10);
       };
       /**
        * Начать поиск
@@ -15105,21 +15148,24 @@
           });
         };
 
-        filter_items.source = filter_sources;
         choice.source = filter_sources.indexOf(balanser);
+        Lampa.Storage.set('online_mod_filter', choice);
         select.push({
           title: Lampa.Lang.translate('torrent_parser_reset'),
           reset: true
         });
-        Lampa.Storage.set('online_mod_filter', choice);
+        filter_items.source = obj_filter_sources.map(function (s) {
+          return s.title;
+        });
+        add('source', Lampa.Lang.translate('online_mod_balanser'));
         if (filter_items.voice && filter_items.voice.length) add('voice', Lampa.Lang.translate('torrent_parser_voice'));
         if (filter_items.season && filter_items.season.length) add('season', Lampa.Lang.translate('torrent_serial_season'));
         filter.set('filter', select);
-        filter.set('sort', filter_sources.map(function (e) {
+        filter.set('sort', obj_filter_sources.map(function (e) {
           return {
-            title: e,
-            source: e,
-            selected: e == balanser
+            source: e.name,
+            title: e.title,
+            selected: e.name === balanser
           };
         }));
         this.selected(filter_items);
@@ -15142,19 +15188,16 @@
             select = [];
 
         for (var i in need) {
-          if (filter_items[i] && filter_items[i].length) {
-            if (i == 'voice') {
-              select.push(filter_translate[i] + ': ' + filter_items[i][need[i]]);
-            } else if (i !== 'source') {
-              if (filter_items.season.length >= 1) {
-                select.push(filter_translate.season + ': ' + filter_items[i][need[i]]);
-              }
-            }
+          if (i !== 'source' && filter_translate[i] && filter_items[i] && filter_items[i].length > 1) {
+            select.push(filter_translate[i] + ': ' + filter_items[i][need[i]]);
           }
         }
 
+        var source_obj = obj_filter_sources.find(function (e) {
+          return e.name === balanser;
+        });
         filter.chosen('filter', select);
-        filter.chosen('sort', [balanser]);
+        filter.chosen('sort', [source_obj ? source_obj.title : balanser]);
       };
       /**
        * Добавить файл
@@ -15436,7 +15479,7 @@
       };
     }
 
-    var mod_version = '19.03.2024';
+    var mod_version = '08.04.2024';
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
     var isIFrame = window.parent !== window;
@@ -15729,74 +15772,74 @@
         zh: '清除平衡器的历史记录'
       },
       online_mod_kinobase_mirror: {
-        ru: 'Зеркало для kinobase',
-        uk: 'Дзеркало для kinobase',
-        be: 'Люстэрка для kinobase',
-        en: 'Mirror for kinobase',
-        zh: 'kinobase的镜子'
+        ru: 'Зеркало для Kinobase',
+        uk: 'Дзеркало для Kinobase',
+        be: 'Люстэрка для Kinobase',
+        en: 'Mirror for Kinobase',
+        zh: 'Kinobase的镜子'
       },
       online_mod_kinobase_token: {
-        ru: 'ТОКЕН от kinobase',
-        uk: 'ТОКЕН від kinobase',
-        be: 'ТОКЕН ад kinobase',
-        en: 'TOKEN from kinobase',
-        zh: 'TOKEN 来自 kinobase'
+        ru: 'ТОКЕН от Kinobase',
+        uk: 'ТОКЕН від Kinobase',
+        be: 'ТОКЕН ад Kinobase',
+        en: 'TOKEN from Kinobase',
+        zh: 'TOKEN 来自 Kinobase'
       },
       online_mod_rezka2_mirror: {
-        ru: 'Зеркало для rezka2',
-        uk: 'Дзеркало для rezka2',
-        be: 'Люстэрка для rezka2',
-        en: 'Mirror for rezka2',
-        zh: 'rezka2的镜子'
+        ru: 'Зеркало для HDrezka',
+        uk: 'Дзеркало для HDrezka',
+        be: 'Люстэрка для HDrezka',
+        en: 'Mirror for HDrezka',
+        zh: 'HDrezka的镜子'
       },
       online_mod_proxy_rezka2_mirror: {
-        ru: 'Проксировать зеркало rezka2',
-        uk: 'Проксирувати дзеркало rezka2',
-        be: 'Праксіраваць люстэрка rezka2',
-        en: 'Proxy rezka2 mirror',
-        zh: '代理rezka2镜子'
+        ru: 'Проксировать зеркало HDrezka',
+        uk: 'Проксирувати дзеркало HDrezka',
+        be: 'Праксіраваць люстэрка HDrezka',
+        en: 'Proxy HDrezka mirror',
+        zh: '代理HDrezka镜子'
       },
       online_mod_rezka2_name: {
-        ru: 'Логин или email для rezka2',
-        uk: 'Логін чи email для rezka2',
-        be: 'Лагін ці email для rezka2',
-        en: 'Login or email for rezka2',
-        zh: 'rezka2的登录或电子邮件'
+        ru: 'Логин или email для HDrezka',
+        uk: 'Логін чи email для HDrezka',
+        be: 'Лагін ці email для HDrezka',
+        en: 'Login or email for HDrezka',
+        zh: 'HDrezka的登录或电子邮件'
       },
       online_mod_rezka2_password: {
-        ru: 'Пароль для rezka2',
-        uk: 'Пароль для rezka2',
-        be: 'Пароль для rezka2',
-        en: 'Password for rezka2',
-        zh: 'rezka2的密码'
+        ru: 'Пароль для HDrezka',
+        uk: 'Пароль для HDrezka',
+        be: 'Пароль для HDrezka',
+        en: 'Password for HDrezka',
+        zh: 'HDrezka的密码'
       },
       online_mod_rezka2_login: {
-        ru: 'Войти в rezka2',
-        uk: 'Увійти до rezka2',
-        be: 'Увайсці ў rezka2',
-        en: 'Log in to rezka2',
-        zh: '登录rezka2'
+        ru: 'Войти в HDrezka',
+        uk: 'Увійти до HDrezka',
+        be: 'Увайсці ў HDrezka',
+        en: 'Log in to HDrezka',
+        zh: '登录HDrezka'
       },
       online_mod_rezka2_logout: {
-        ru: 'Выйти из rezka2',
-        uk: 'Вийти з rezka2',
-        be: 'Выйсці з rezka2',
-        en: 'Log out of rezka2',
-        zh: '注销rezka2'
+        ru: 'Выйти из HDrezka',
+        uk: 'Вийти з HDrezka',
+        be: 'Выйсці з HDrezka',
+        en: 'Log out of HDrezka',
+        zh: '注销HDrezka'
       },
       online_mod_rezka2_cookie: {
-        ru: 'Куки для rezka2',
-        uk: 'Кукі для rezka2',
-        be: 'Кукі для rezka2',
-        en: 'Cookie for rezka2',
-        zh: 'rezka2 的 Cookie'
+        ru: 'Куки для HDrezka',
+        uk: 'Кукі для HDrezka',
+        be: 'Кукі для HDrezka',
+        en: 'Cookie for HDrezka',
+        zh: 'HDrezka 的 Cookie'
       },
       online_mod_rezka2_fill_cookie: {
-        ru: 'Заполнить куки для rezka2',
-        uk: 'Заповнити кукі для rezka2',
-        be: 'Запоўніць кукі для rezka2',
-        en: 'Fill cookie for rezka2',
-        zh: '为rezka2填充Cookie'
+        ru: 'Заполнить куки для HDrezka',
+        uk: 'Заповнити кукі для HDrezka',
+        be: 'Запоўніць кукі для HDrezka',
+        en: 'Fill cookie for HDrezka',
+        zh: '为HDrezka填充Cookie'
       },
       online_mod_secret_password: {
         ru: 'Секретный пароль',
@@ -16200,16 +16243,14 @@
     } ///////Онлайн Мод/////////
 
 
-    var template = "<div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_rezka\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} rezka</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_rezka2\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} rezka2</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
+    var template = "<div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_rezka\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} Voidboost</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_rezka2\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} HDrezka</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
 
     if (Utils.isDebug()) {
-      template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_kinobase\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} kinobase</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
-      template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_cdnmovies\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} cdnmovies</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
-      template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_videodb\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} videodb</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
-      template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_zetflix\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} zetflix</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
+      template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_kinobase\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} Kinobase</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
+      template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_cdnmovies\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} CDNMovies</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
     }
 
-    template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_redheadsound\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} redheadsound</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_anilibria\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} anilibria</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_kodik\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} kodik</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_skip_kp_search\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_skip_kp_search}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_iframe_proxy\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_iframe_proxy}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_prefer_http\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_prefer_http}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_prefer_mp4\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_prefer_mp4}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_prefer_dash\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_prefer_dash}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_save_last_balanser\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_save_last_balanser}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_clear_last_balanser\" data-static=\"true\">\n        <div class=\"settings-param__name\">#{online_mod_clear_last_balanser}</div>\n        <div class=\"settings-param__status\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_kinobase_mirror\" data-type=\"input\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{online_mod_kinobase_mirror}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
+    template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_redheadsound\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} RedHeadSound</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_anilibria\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} AniLibria</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_kodik\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} Kodik</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_skip_kp_search\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_skip_kp_search}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_iframe_proxy\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_iframe_proxy}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_prefer_http\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_prefer_http}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_prefer_mp4\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_prefer_mp4}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_prefer_dash\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_prefer_dash}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_save_last_balanser\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_save_last_balanser}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_clear_last_balanser\" data-static=\"true\">\n        <div class=\"settings-param__name\">#{online_mod_clear_last_balanser}</div>\n        <div class=\"settings-param__status\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_kinobase_mirror\" data-type=\"input\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{online_mod_kinobase_mirror}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
 
     template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_rezka2_mirror\" data-type=\"input\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{online_mod_rezka2_mirror}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_rezka2_mirror\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_rezka2_mirror}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_rezka2_name\" data-type=\"input\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{online_mod_rezka2_name}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_rezka2_password\" data-type=\"input\" data-string=\"true\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{online_mod_rezka2_password}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_rezka2_login\" data-static=\"true\">\n        <div class=\"settings-param__name\">#{online_mod_rezka2_login}</div>\n        <div class=\"settings-param__status\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_rezka2_logout\" data-static=\"true\">\n        <div class=\"settings-param__name\">#{online_mod_rezka2_logout}</div>\n        <div class=\"settings-param__status\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_rezka2_cookie\" data-type=\"input\" data-string=\"true\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{online_mod_rezka2_cookie}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_rezka2_fill_cookie\" data-static=\"true\">\n        <div class=\"settings-param__name\">#{online_mod_rezka2_fill_cookie}</div>\n        <div class=\"settings-param__status\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_use_stream_proxy\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_use_stream_proxy}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_find_ip\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_find_ip}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_other\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_other}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_other_url\" data-type=\"input\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_other_url}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_secret_password\" data-type=\"input\" data-string=\"true\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{online_mod_secret_password}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
 
