@@ -12411,7 +12411,7 @@
       var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true;
       var prefer_mp4 = false;
       var prox = component.proxy('kodik');
-      var embed = prox + (prefer_http || prox ? 'http:' : 'https:') + '//kodikapi.com/search';
+      var embed = prox + 'https://kodikapi.com/search';
       var token = atob('NDVjNTM1NzhmMTFlY2ZiNzRlMzEyNjdiNjM0Y2M2YTg=');
       var last_player = '';
       var last_info = '';
