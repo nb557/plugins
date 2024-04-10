@@ -1,4 +1,4 @@
-//09.04.2024 - Fix
+//11.04.2024 - Fix
 
 (function () {
     'use strict';
@@ -14329,7 +14329,7 @@
         mask: true,
         over: true
       });
-      var files = new Lampa.Files(object);
+      var files = new Lampa.Explorer(object);
       var filter = new Lampa.Filter(object);
       var balanser = Lampa.Storage.get('online_mod_balanser', 'videocdn');
       var last_bls = Lampa.Storage.field('online_mod_save_last_balanser') === true ? Lampa.Storage.cache('online_mod_last_balanser', 200, {}) : {};
@@ -14374,7 +14374,6 @@
         hdvb: new hdvb(this, object)
       };
       var last;
-      var last_filter;
       var extended;
       var selected_id;
       var filter_translate = {
@@ -14438,13 +14437,7 @@
       }
 
       scroll.body().addClass('torrent-list');
-
-      function minus() {
-        scroll.minus(window.innerWidth > 580 ? false : files.render().find('.files__left'));
-      }
-
-      window.addEventListener('resize', minus, false);
-      minus();
+      scroll.minus(files.render().find('.explorer__files-head'));
       /**
        * Подготовка
        */
@@ -14466,11 +14459,6 @@
           _this.start();
         };
 
-        filter.render().find('.selector').on('hover:focus', function (e) {
-          last_filter = e.target;
-          scroll.update($(e.target), true);
-        });
-
         filter.onSelect = function (type, a, b) {
           if (type == 'filter') {
             if (a.reset) {
@@ -14486,9 +14474,8 @@
         };
 
         filter.render().find('.filter--sort span').text(Lampa.Lang.translate('online_mod_balanser'));
-        filter.render();
-        files.append(scroll.render());
-        scroll.append(filter.render());
+        files.appendHead(filter.render());
+        files.appendFiles(scroll.render());
         this.search();
         return this.render();
       };
@@ -15116,11 +15103,10 @@
 
       this.reset = function () {
         contextmenu_all = [];
-        last = false;
+        last = filter.render().find('.selector').eq(0)[0];
         scroll.render().find('.empty').remove();
-        filter.render().detach();
         scroll.clear();
-        scroll.append(filter.render());
+        scroll.reset();
       };
       /**
        * Загрузка
@@ -15130,7 +15116,7 @@
       this.loading = function (status) {
         if (status) this.activity.loader(true);else {
           this.activity.loader(false);
-          if (Lampa.Controller.enabled().name === 'content') this.activity.toggle();
+          if (Lampa.Activity.active().activity === this.activity) this.activity.toggle();
         }
       };
       /**
@@ -15424,7 +15410,7 @@
 
         if (first_select) {
           var last_views = scroll.render().find('.selector.online').find('.torrent-item__viewed').parent().last();
-          if (object.movie.number_of_seasons && last_views.length) last = last_views.eq(0)[0];else last = scroll.render().find('.selector').eq(3)[0];
+          if (object.movie.number_of_seasons && last_views.length) last = last_views.eq(0)[0];else last = scroll.render().find('.selector').eq(0)[0];
         }
 
         Lampa.Background.immediately(Lampa.Utils.cardImgBackground(object.movie));
@@ -15435,9 +15421,7 @@
           },
           up: function up() {
             if (Navigator.canmove('up')) {
-              if (scroll.render().find('.selector').slice(3).index(last) == 0 && last_filter) {
-                Lampa.Controller.collectionFocus(last_filter, scroll.render());
-              } else Navigator.move('up');
+              Navigator.move('up');
             } else Lampa.Controller.toggle('head');
           },
           down: function down() {
@@ -15488,11 +15472,10 @@
         sources.kinopub.destroy();
         sources.filmix2.destroy();
         sources.hdvb.destroy();
-        window.removeEventListener('resize', minus);
       };
     }
 
-    var mod_version = '09.04.2024';
+    var mod_version = '11.04.2024';
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
     var isIFrame = window.parent !== window;
