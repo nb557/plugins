@@ -14374,10 +14374,8 @@
       var obj_filter_sources = [{
         name: 'videocdn',
         title: 'VideoCDN'
-      }, {
-        name: 'rezka',
-        title: 'Voidboost'
-      }, {
+      }, //{name: 'rezka',        title: 'Voidboost'},
+      {
         name: 'rezka2',
         title: 'HDrezka'
       }, {
