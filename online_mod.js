@@ -1,4 +1,4 @@
-//11.04.2024 - Fix
+//13.04.2024 - Zetflix
 
 (function () {
     'use strict';
@@ -4611,12 +4611,8 @@
       var select_title = '';
       var select_id = '';
       var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true;
-      var prox = component.proxy('zetflix');
-      var host = 'https://zeflix.online';
-      var ref = host + '/';
-      var embed = prox + ref + 'iplayer/videodb.php';
-      var iframe_proxy = !prox && Lampa.Storage.field('online_mod_iframe_proxy') === true && !window.location.protocol.startsWith('http');
-      var logged_in = !prox;
+      component.proxy('zetflix');
+      var embed = (prefer_http ? 'http://bwa-cloud.cfhttp.top/' : 'https://bwa-cloud.apn.monster/') + 'lite/zetflix';
       var filter_items = {};
       var choice = {
         season: 0,
@@ -4653,8 +4649,9 @@
           return;
         }
 
-        var url = Lampa.Utils.addUrlComponent(embed, 'kp=' + select_id);
-        if (s) url = Lampa.Utils.addUrlComponent(url, 'season=' + s);
+        var url = Lampa.Utils.addUrlComponent(embed, 'kinopoisk_id=' + select_id);
+        if (s) url = Lampa.Utils.addUrlComponent(url, 's=' + s);
+        url = Lampa.Utils.addUrlComponent(url, 'origsource=true');
 
         var call_success = function call_success(str) {
           parse(str);
@@ -4664,9 +4661,7 @@
           component.empty(network.errorDecode(a, c));
         };
 
-        if (iframe_proxy) {
-          component.proxyCall3('GET', url, 10000, null, call_success, call_error, logged_in);
-        } else {
+        {
           var meta = $('head meta[name="referrer"]');
           var referrer = meta.attr('content') || 'never';
           meta.attr('content', 'origin');
@@ -4674,13 +4669,8 @@
           try {
             network.clear();
             network.timeout(10000);
-            network["native"](url, call_success, call_error, false, {
-              dataType: 'text',
-              withCredentials: logged_in,
-              headers: Lampa.Platform.is('android') ? {
-                'Origin': host,
-                'Referer': ref
-              } : {}
+            network.silent(url, call_success, call_error, false, {
+              dataType: 'text'
             });
           } finally {
             meta.attr('content', referrer);
@@ -14403,6 +14393,9 @@
         name: 'filmix',
         title: 'Filmix'
       }, {
+        name: 'zetflix',
+        title: 'Zetflix'
+      }, {
         name: 'redheadsound',
         title: 'RedHeadSound'
       }, {
@@ -14424,7 +14417,6 @@
           title: 'Alloha'
         }); //obj_filter_sources.push({name: 'hdvb', title: 'HDVB'})
         //obj_filter_sources.push({name: 'videodb', title: 'VideoDB'})
-        //obj_filter_sources.push({name: 'zetflix', title: 'Zetflix'})
       }
 
       var filter_sources = obj_filter_sources.map(function (s) {
@@ -15475,7 +15467,7 @@
       };
     }
 
-    var mod_version = '11.04.2024';
+    var mod_version = '13.04.2024';
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
     var isIFrame = window.parent !== window;
@@ -15493,6 +15485,8 @@
 
     Lampa.Storage.set('online_mod_proxy_videocdn', 'false');
     Lampa.Storage.set('online_mod_proxy_collaps', 'false');
+    Lampa.Storage.set('online_mod_proxy_videodb', 'false');
+    Lampa.Storage.set('online_mod_proxy_zetflix', 'false');
     Lampa.Storage.set('online_mod_proxy_kinopub', 'true');
     Lampa.Storage.set('online_mod_proxy_alloha', 'false');
     Lampa.Storage.set('online_mod_proxy_hdvb', 'false');
