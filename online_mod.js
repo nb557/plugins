@@ -1,4 +1,4 @@
-//20.04.2024 - FanCDN
+//24.04.2024 - Fix proxyStream
 
 (function () {
     'use strict';
@@ -13909,7 +13909,7 @@
 
       this.proxyStream = function (url, name) {
         if (url && use_stream_proxy) {
-          if (name === 'rezka2') return url.replace('//stream.voidboost.cc/', '//prx-ams.ukrtelcdn.net/');
+          if (name === 'rezka2') return url.replace('//stream.voidboost.cc/', '//prx-ams.ukrtelcdn.net/').replace('//stream.voidboost.top/', '//prx-ams.ukrtelcdn.net/');
           return (prefer_http ? 'http://apn.cfhttp.top/' : 'https://apn.watch/') + url;
         }
 
@@ -15103,7 +15103,7 @@
       };
     }
 
-    var mod_version = '20.04.2024';
+    var mod_version = '24.04.2024';
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
     var isIFrame = window.parent !== window;
