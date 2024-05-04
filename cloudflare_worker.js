@@ -24,6 +24,7 @@ export default {
       if (api === "headers") {
         let body = "";
         request.headers.forEach((value, key) => body += key + " = " + value + "\n");
+        body += "worker_version = 1.01\n";
         return new Response(body, corsHeaders);
       }
 

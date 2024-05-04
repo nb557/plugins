@@ -26,6 +26,7 @@ async function handle(request, connInfo) {
         if (connInfo && connInfo.remoteAddr) {
           body += "connInfo" + " = " + JSON.stringify(connInfo.remoteAddr) + "\n";
         }
+        body += "worker_version = 1.01\n";
         return new Response(body, corsHeaders);
       }
 
