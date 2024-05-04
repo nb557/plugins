@@ -165,6 +165,9 @@ async function handle(request, connInfo) {
       if (apiUrl.hostname === "kinoplay.site" || apiUrl.hostname === "kinoplay1.site" || apiUrl.hostname === "kinoplay2.site") {
         request.headers.set("Cookie", "invite=a246a3f46c82fe439a45c3dbbbb24ad5");
       }
+      if (apiUrl.pathname.endsWith(".m3u8") || apiUrl.pathname.endsWith(".m3u") || apiUrl.pathname.endsWith(".M3U8") || apiUrl.pathname.endsWith(".M3U")) {
+        request.headers.delete("Range");
+      }
       params.forEach(param => {
         if (param[0]) {
           if (param[1]) {
