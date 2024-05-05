@@ -1,4 +1,4 @@
-//24.04.2024 - Fix proxyStream
+//05.05.2024 - Fix
 
 (function () {
     'use strict';
@@ -68,24 +68,25 @@
       var proxy3 = 'https://cors557.deno.dev/';
       var proxy_apn = (window.location.protocol === 'https:' ? 'https://' : 'http://') + 'byzkhkgr.deploy.cx/' + param_ip;
       var proxy_secret = decodeSecret([80, 68, 77, 68, 64, 3, 27, 31, 85, 72, 94, 20, 89, 81, 12, 1, 6, 26, 83, 95, 64, 81, 81, 23, 85, 64, 68, 23]) + param_ip;
-      var proxy_other = Lampa.Storage.field('online_mod_proxy_other') === true ? Lampa.Storage.field('online_mod_proxy_other_url') + '' : '';
-      var user_proxy2 = (proxy_other || proxy2) + param_ip;
-      var user_proxy3 = (proxy_other || proxy3) + param_ip;
+      var proxy_other = Lampa.Storage.field('online_mod_proxy_other') === true;
+      var proxy_other_url = proxy_other ? Lampa.Storage.field('online_mod_proxy_other_url') + '' : '';
+      var user_proxy2 = (proxy_other_url || proxy2) + param_ip;
+      var user_proxy3 = (proxy_other_url || proxy3) + param_ip;
       if (name === 'filmix') return window.location.protocol === 'https:' ? user_proxy2 : '';
       if (name === 'filmix_site') return user_proxy2;
       if (name === 'svetacdn') return '';
-      if (name === 'allohacdn') return proxy_secret;
+      if (name === 'allohacdn') return proxy_other ? proxy_secret : proxy_apn;
       if (name === 'cookie') return user_proxy2;
 
       if (Lampa.Storage.field('online_mod_proxy_' + name) === true) {
         if (name === 'rezka') return user_proxy2;
         if (name === 'rezka2') return user_proxy2;
         if (name === 'kinobase') return proxy_apn;
-        if (name === 'cdnmovies') return proxy_apn;
+        if (name === 'cdnmovies') return proxy_other ? proxy_secret : proxy_apn;
         if (name === 'videodb') return user_proxy2;
         if (name === 'zetflix') return user_proxy2;
         if (name === 'fancdn') return user_proxy2;
-        if (name === 'redheadsound') return proxy_apn;
+        if (name === 'redheadsound') return proxy_other ? proxy_secret : proxy_apn;
         if (name === 'anilibria') return user_proxy2;
         if (name === 'kodik') return user_proxy3;
         if (name === 'kinopub') return user_proxy2;
@@ -3608,7 +3609,7 @@
           return;
         }
 
-        if (secret_part) secret = '$1/s/' + secret_part + Lampa.Utils.uid(3) + '/';
+        if (secret_part) secret = '$1/s/' + secret_part + '/';
         var timestamp = new Date().getTime();
         var cache_timestamp = timestamp - 1000 * 60 * 10;
 
@@ -3617,7 +3618,7 @@
           return;
         }
 
-        var url = Utils.decodeSecret([80, 68, 77, 68, 64, 3, 27, 31, 86, 79, 81, 23, 64, 92, 22, 64, 85, 89, 72, 31, 81, 85, 64, 81, 82, 89, 89, 81, 72, 23, 64, 75, 77]);
+        var url = 'https://api.filmix.tv/api-fx/post/171042/video-links';
 
         if (!url.startsWith('http')) {
           if (callback) callback();
@@ -3628,9 +3629,12 @@
         network.clear();
         network.timeout(10000);
         network.silent(url, function (str) {
-          if (str) {
-            secret_part = str;
-            secret = '$1/s/' + secret_part + Lampa.Utils.uid(3) + '/';
+          str = (str || '').replace(/\n/g, '');
+          var found = str.match(/https?:\\\/\\\/[^\/]+\\\/s\\\/([^\/]*)\\\//);
+
+          if (found) {
+            secret_part = found[1];
+            secret = '$1/s/' + secret_part + '/';
             secret_url = '';
             secret_timestamp = timestamp;
           }
@@ -3639,7 +3643,10 @@
         }, function (a, c) {
           if (callback) callback();
         }, false, {
-          dataType: 'text'
+          dataType: 'text',
+          headers: {
+            'Authorization': 'Bearer <token>'
+          }
         });
       }
 
@@ -13909,7 +13916,7 @@
 
       this.proxyStream = function (url, name) {
         if (url && use_stream_proxy) {
-          if (name === 'rezka2') return url.replace('//stream.voidboost.cc/', '//prx-ams.ukrtelcdn.net/').replace('//stream.voidboost.top/', '//prx-ams.ukrtelcdn.net/');
+          if (name === 'rezka2') return url.replace(/\/\/stream\.voidboost\.(cc|top|link)\//, '//prx-ams.ukrtelcdn.net/');
           return (prefer_http ? 'http://apn.cfhttp.top/' : 'https://apn.watch/') + url;
         }
 
@@ -15103,7 +15110,7 @@
       };
     }
 
-    var mod_version = '24.04.2024';
+    var mod_version = '05.05.2024';
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
     var isIFrame = window.parent !== window;
