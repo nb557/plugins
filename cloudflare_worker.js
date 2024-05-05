@@ -16,7 +16,7 @@ export default {
       let api_pos = url.origin.length + 1;
       let api = url.href.substring(api_pos);
       let ip = "";
-      let redirect = "follow";
+      let redirect = request.method === "POST" ? "manual" : "follow";
       let get_cookie = false;
       let params = [];
       let cdn_info = "cdn_X8v8IbU8";
@@ -24,7 +24,7 @@ export default {
       if (api === "headers") {
         let body = "";
         request.headers.forEach((value, key) => body += key + " = " + value + "\n");
-        body += "worker_version = 1.01\n";
+        body += "worker_version = 1.02\n";
         return new Response(body, corsHeaders);
       }
 

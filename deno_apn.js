@@ -15,7 +15,7 @@ async function handle(request, connInfo) {
       let api_pos = url.origin.length + 1;
       let api = url.href.substring(api_pos);
       let ip = "";
-      let redirect = "follow";
+      let redirect = request.method === "POST" ? "manual" : "follow";
       let get_cookie = false;
       let params = [];
       let cdn_info = "cdn_c8Bc9aMo";
@@ -26,7 +26,7 @@ async function handle(request, connInfo) {
         if (connInfo && connInfo.remoteAddr) {
           body += "connInfo" + " = " + JSON.stringify(connInfo.remoteAddr) + "\n";
         }
-        body += "apn_version = 1.01\n";
+        body += "apn_version = 1.02\n";
         return new Response(body, corsHeaders);
       }
 
