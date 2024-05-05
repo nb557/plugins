@@ -1,4 +1,4 @@
-//05.05.2024 - Fix
+//05.05.2024 - Fix videocdn
 
 (function () {
     'use strict';
@@ -420,7 +420,7 @@
         component.loading(false);
         str = (str || '').replace(/\n/g, '');
         var voices = str.match(/<div class="translations">\s*(<select>.*?<\/select>)/);
-        var fs = str.match(/id="fs" value='([^']*)'/);
+        var fs = str.match(/id="(?:fs|ury)" value='([^']*)'/);
 
         if (fs) {
           var files = {};
