@@ -26,7 +26,8 @@ async function handle(request, connInfo) {
         if (connInfo && connInfo.remoteAddr) {
           body += "connInfo" + " = " + JSON.stringify(connInfo.remoteAddr) + "\n";
         }
-        body += "worker_version = 1.02\n";
+        body += "request_url" + " = " + request.url + "\n";
+        body += "worker_version = 1.03\n";
         return new Response(body, corsHeaders);
       }
 
@@ -79,6 +80,10 @@ async function handle(request, connInfo) {
       }
 
       let proxy = url.href.substring(0, api_pos);
+
+      let forwarded_proto = request.headers.get("X-Forwarded-Proto");
+      if (forwarded_proto) forwarded_proto = forwarded_proto.split(",")[0].trim();
+      if (forwarded_proto === "https") proxy = proxy.replace('http://', 'https://');
 
       if (!ip) {
         let forwarded_for = request.headers.get("X-Forwarded-For");
