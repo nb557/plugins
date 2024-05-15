@@ -1,7 +1,17 @@
-//09.05.2024 - Fix
+//15.05.2024 - Fix old Chrome
 
 (function () {
     'use strict';
+
+    function startsWith(str, searchString) {
+      return str.lastIndexOf(searchString, 0) === 0;
+    }
+
+    function endsWith(str, searchString) {
+      var start = str.length - searchString.length;
+      if (start < 0) return false;
+      return str.indexOf(searchString, start) === start;
+    }
 
     var myIp = '';
 
@@ -816,7 +826,7 @@
       var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true;
       var prefer_mp4 = Lampa.Storage.field('online_mod_prefer_mp4') === true;
       var prox = component.proxy('rezka');
-      var iframe_proxy = !prox && Lampa.Storage.field('online_mod_iframe_proxy') === true && window.location.protocol.startsWith('http') && !Lampa.Platform.is('android');
+      var iframe_proxy = !prox && Lampa.Storage.field('online_mod_iframe_proxy') === true && startsWith(window.location.protocol, 'http') && !Lampa.Platform.is('android');
       var embed = prox + (prox || iframe_proxy || window.location.protocol === 'https:' ? 'https://voidboost.net/' : 'http://voidboost.tv/');
       var filter_items = {};
       var choice = {
@@ -1157,7 +1167,7 @@
       }
 
       function decode(data) {
-        if (!data.startsWith('#')) return data;
+        if (!startsWith(data, '#')) return data;
 
         var enc = function enc(str) {
           return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, function (match, p1) {
@@ -1925,7 +1935,7 @@
       }
 
       function decode(data) {
-        if (!data.startsWith('#')) return data;
+        if (!startsWith(data, '#')) return data;
 
         var enc = function enc(str) {
           return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, function (match, p1) {
@@ -3088,7 +3098,7 @@
       var prefer_mp4 = false;
       var prox = component.proxy('cdnmovies');
       var stream_prox = prox;
-      var iframe_proxy = !prox && Lampa.Storage.field('online_mod_iframe_proxy') === true && !window.location.protocol.startsWith('http');
+      var iframe_proxy = !prox && Lampa.Storage.field('online_mod_iframe_proxy') === true && !startsWith(window.location.protocol, 'http');
       var host = 'https://cdnmovies.net';
       var ref = host + '/';
       var user_agent = 'Mozilla/5.0 (Linux; Android 10; K; client) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.6167.178 Mobile Safari/537.36';
@@ -3248,7 +3258,7 @@
       }
 
       function decode(data) {
-        if (!data.startsWith('#')) return data;
+        if (!startsWith(data, '#')) return data;
 
         var enc = function enc(str) {
           return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, function (match, p1) {
@@ -3348,7 +3358,7 @@
         if (element.stream) return call(element);
         var url = element.file || '';
 
-        if (url.startsWith('[')) {
+        if (startsWith(url, '[')) {
           parseStream(element, call, error, extractItemsPlaylist, url, '');
           return;
         }
@@ -3619,7 +3629,7 @@
 
         var url = 'https://api.filmix.tv/api-fx/post/171042/video-links';
 
-        if (!url.startsWith('http')) {
+        if (!startsWith(url, 'http')) {
           if (callback) callback();
           return;
         }
@@ -4813,7 +4823,7 @@
         if (element.stream) return call(element);
         var url = element.media.file || '';
 
-        if (url.startsWith('[')) {
+        if (startsWith(url, '[')) {
           parseStream(element, call, error, extractItemsPlaylist, url, '');
           return;
         }
@@ -10933,8 +10943,8 @@
       }
 
       function decode(data, aes) {
-        if (data.startsWith('#9')) return decodeAES(data.substring(2), aes);
-        if (data.startsWith('#7')) return decodeTrash(data.substring(2));
+        if (startsWith(data, '#9')) return decodeAES(data.substring(2), aes);
+        if (startsWith(data, '#7')) return decodeTrash(data.substring(2));
         return data;
       }
 
@@ -11115,7 +11125,7 @@
       function getStream(element, call, error) {
         getBaseStream(element, function (element) {
           var file = element.stream || '';
-          if (element.qualitys || element.parsed || !file.endsWith('.m3u8')) return call(element);
+          if (element.qualitys || element.parsed || !endsWith(file, '.m3u8')) return call(element);
           network.clear();
           network.timeout(10000);
           network["native"](file, function (str) {
@@ -11208,8 +11218,8 @@
                 file = file.replace(/\{v1\}/g, element.params.v1);
               }
 
-              if (file.startsWith('[') || file.startsWith('{')) {
-                var items = extractItems((file.startsWith('{') ? '[]' : '') + file);
+              if (startsWith(file, '[') || startsWith(file, '{')) {
+                var items = extractItems((startsWith(file, '{') ? '[]' : '') + file);
 
                 if (items && items.length) {
                   var voice_list = [];
@@ -11271,10 +11281,10 @@
                 element.subtitles = false;
                 var subtitle = decode(json.subtitle || '', aes);
 
-                if (subtitle.startsWith('[')) {
+                if (startsWith(subtitle, '[')) {
                   element.subtitles = parseSubs(subtitle);
                   call(element);
-                } else if (subtitle.endsWith('index.php')) {
+                } else if (endsWith(subtitle, 'index.php')) {
                   network.clear();
                   network.timeout(10000);
                   network["native"]((prox2 ? prox2 + extract.prox2 : '') + subtitle, function (str) {
@@ -12995,7 +13005,7 @@
                   info = info_match && atob(info_match[1]);
                 } catch (e) {}
 
-                if (info && info.startsWith('/')) {
+                if (info && startsWith(info, '/')) {
                   last_info = link_origin + info;
                   last_player = player_url;
                   getLinks();
@@ -13017,7 +13027,7 @@
             var obj = playlists[key];
             var quality = parseInt(key);
             var link = decode(obj && obj[0] && obj[0].src || '');
-            if (link.startsWith('//')) link = (prefer_http ? 'http:' : 'https:') + link;
+            if (startsWith(link, '//')) link = (prefer_http ? 'http:' : 'https:') + link;
             if (prefer_mp4) ;
             items.push({
               label: quality ? quality + 'p' : '360p ~ 1080p',
@@ -13185,7 +13195,7 @@
 
         var url = Utils.decodeSecret([80, 68, 77, 68, 64, 3, 27, 31, 86, 79, 81, 23, 64, 92, 22, 64, 85, 89, 72, 31, 82, 93, 93, 86, 68, 69, 86, 76, 91, 23, 64, 75, 77]);
 
-        if (!url.startsWith('http')) {
+        if (!startsWith(url, 'http')) {
           if (callback) callback();
           return;
         }
@@ -13434,7 +13444,7 @@
               var base = file.url.http.match(/^(.*)\/demo\/demo\.mp4(.*)$/);
 
               if (!base) {
-                var pos = file.url.http.indexOf((file.file.startsWith('/') ? '' : '/') + file.file);
+                var pos = file.url.http.indexOf((startsWith(file.file, '/') ? '' : '/') + file.file);
                 if (pos !== -1) base = [file.url.http, file.url.http.substring(0, pos)];
               }
 
@@ -13455,7 +13465,7 @@
                   subtitles = media.subtitles.map(function (sub) {
                     return {
                       label: sub.lang + (sub.forced ? ' - forced' : ''),
-                      url: sub.file ? base_url + '/subtitles' + (sub.file.startsWith('/') ? '' : '/') + sub.file + '?loc=' + server : ''
+                      url: sub.file ? base_url + '/subtitles' + (startsWith(sub.file, '/') ? '' : '/') + sub.file + '?loc=' + server : ''
                     };
                   });
                   if (!subtitles.length) subtitles = false;
@@ -13468,7 +13478,7 @@
                   codec: file.codec,
                   type: 'http',
                   params: base[2],
-                  file: base_url + (file.file.startsWith('/') ? '' : '/') + file.file,
+                  file: base_url + (startsWith(file.file, '/') ? '' : '/') + file.file,
                   subtitles: subtitles
                 });
               }
@@ -13548,7 +13558,7 @@
               var _base3 = file.url.hls.match(/^(.*)\/demo\/master-v1a1\.m3u8(.*)$/);
 
               if (!_base3) {
-                var _pos3 = file.url.hls.indexOf((file.file.startsWith('/') ? '' : '/') + file.file);
+                var _pos3 = file.url.hls.indexOf((startsWith(file.file, '/') ? '' : '/') + file.file);
 
                 if (_pos3 !== -1) _base3 = [file.url.hls, file.url.hls.substring(0, _pos3)];
               }
@@ -13573,7 +13583,7 @@
                   codec: file.codec,
                   type: 'hls',
                   params: _base3[2],
-                  file: _base_url3 + (file.file.startsWith('/') ? '' : '/') + file.file,
+                  file: _base_url3 + (startsWith(file.file, '/') ? '' : '/') + file.file,
                   subtitles: subtitles
                 });
               }
@@ -14521,9 +14531,9 @@
         var pl = [];
 
         try {
-          if (str.startsWith('[')) {
+          if (startsWith(str, '[')) {
             str.substring(1).split(',[').forEach(function (item) {
-              if (item.endsWith(',')) item = item.substring(0, item.length - 1);
+              if (endsWith(item, ',')) item = item.substring(0, item.length - 1);
               var label_end = item.indexOf(']');
 
               if (label_end >= 0) {
@@ -14531,7 +14541,7 @@
 
                 if (item.charAt(label_end + 1) === '{') {
                   item.substring(label_end + 2).split(';{').forEach(function (voice_item) {
-                    if (voice_item.endsWith(';')) voice_item = voice_item.substring(0, voice_item.length - 1);
+                    if (endsWith(voice_item, ';')) voice_item = voice_item.substring(0, voice_item.length - 1);
                     var voice_end = voice_item.indexOf('}');
 
                     if (voice_end >= 0) {
@@ -14576,8 +14586,8 @@
           str.split('\n').forEach(function (line) {
             line = line.trim();
 
-            if (line.startsWith('#')) {
-              if (line.startsWith('#EXT-X-STREAM-INF')) {
+            if (startsWith(line, '#')) {
+              if (startsWith(line, '#EXT-X-STREAM-INF')) {
                 xstream = true;
                 var BANDWIDTH = line.match(/\bBANDWIDTH=(\d+)\b/);
 
@@ -14623,10 +14633,10 @@
         if (link) {
           if (!referrer || link.indexOf('://') !== -1) return proxy + link;
           var url = new URL(referrer);
-          if (link.startsWith('//')) return proxy + url.protocol + link;
-          if (link.startsWith('/')) return proxy + url.origin + link;
-          if (link.startsWith('?')) return proxy + url.origin + url.pathname + link;
-          if (link.startsWith('#')) return proxy + url.origin + url.pathname + url.search + link;
+          if (startsWith(link, '//')) return proxy + url.protocol + link;
+          if (startsWith(link, '/')) return proxy + url.origin + link;
+          if (startsWith(link, '?')) return proxy + url.origin + url.pathname + link;
+          if (startsWith(link, '#')) return proxy + url.origin + url.pathname + url.search + link;
           var base = url.href.substring(0, url.href.lastIndexOf('/') + 1);
           return proxy + base + link;
         }
@@ -15155,11 +15165,12 @@
       };
     }
 
-    var mod_version = '09.05.2024';
+    var mod_version = '15.05.2024';
+    console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
     var isIFrame = window.parent !== window;
-    var isLocal = !window.location.protocol.startsWith('http');
+    var isLocal = !startsWith(window.location.protocol, 'http');
     console.log('App', 'is MSX:', isMSX);
     console.log('App', 'is Tizen:', isTizen);
     console.log('App', 'is iframe:', isIFrame);
