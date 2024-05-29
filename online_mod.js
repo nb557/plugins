@@ -1,4 +1,4 @@
-//16.05.2024 - Fix
+//29.05.2024 - Fix collaps
 
 (function () {
     'use strict';
@@ -2784,7 +2784,8 @@
       var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true;
       var prefer_dash = Lampa.Storage.field('online_mod_prefer_dash') === true;
       var prox = component.proxy('collaps');
-      var embed = prox + (prefer_http ? 'http:' : 'https:') + '//api.linktodo.ws/embed/';
+      var embed = prox + (prefer_http ? 'http:' : 'https:') + '//api.insertunit.ws/embed/';
+      var embed2 = prox + (prefer_http ? 'http:' : 'https:') + '//api.kinogram.best/embed/';
       var filter_items = {};
       var choice = {
         season: 0,
@@ -2797,9 +2798,21 @@
         network.silent(embed + api, function (str) {
           if (callback) callback(str || '');
         }, function (a, c) {
-          if (a.status == 404 && a.responseText && a.responseText.indexOf('видео недоступно') !== -1 || a.status == 0 && a.statusText !== 'timeout') {
+          if (a.status == 404 && a.responseText && a.responseText.indexOf('видео недоступно') !== -1) {
             if (callback) callback('');
-          } else if (error) error(network.errorDecode(a, c));
+          } else {
+            network.clear();
+            network.timeout(10000);
+            network.silent(embed2 + api, function (str) {
+              if (callback) callback(str || '');
+            }, function (a, c) {
+              if (a.status == 404 && a.responseText && a.responseText.indexOf('видео недоступно') !== -1 || a.status == 0 && a.statusText !== 'timeout') {
+                if (callback) callback('');
+              } else if (error) error(network.errorDecode(a, c));
+            }, false, {
+              dataType: 'text'
+            });
+          }
         }, false, {
           dataType: 'text'
         });
@@ -15163,7 +15176,7 @@
       };
     }
 
-    var mod_version = '16.05.2024';
+    var mod_version = '29.05.2024';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
