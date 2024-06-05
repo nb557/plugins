@@ -1,4 +1,4 @@
-//29.05.2024 - Fix collaps
+//05.06.2024 - Fix
 
 (function () {
     'use strict';
@@ -1429,8 +1429,79 @@
         var search_year = parseInt((search_date + '').slice(0, 4));
         var orig = object.movie.original_title || object.movie.original_name;
         var url = embed + 'engine/ajax/search.php';
+        var more_url = embed + 'search/?do=search&subaction=search';
 
-        var display = function display(links) {
+        var query_more = function query_more(query, page, data, callback) {
+          var url = more_url + '&q=' + encodeURIComponent(query) + '&page=' + encodeURIComponent(page);
+          network.clear();
+          network.timeout(10000);
+          network_call(url, function (str) {
+            str = (str || '').replace(/\n/g, '');
+            var links = str.match(/<div class="b-content__inline_item-link">\s*<a [^>]*>[^<]*<\/a>\s*<div>[^<]*<\/div>\s*<\/div>/g);
+            var have_more = !!str.match(/<a [^>]*>\s*<span class="b-navigation__next\b/);
+
+            if (links && links.length) {
+              var items = links.map(function (l) {
+                var li = $(l);
+                var link = $('a', li);
+                var info_div = $('div', li);
+                var titl = link.text().trim() || '';
+                var info = info_div.text().trim() || '';
+                var orig_title = '';
+                var year;
+                var found = info.match(/^(\d{4})\b/);
+
+                if (found) {
+                  year = parseInt(found[1]);
+                }
+
+                return {
+                  year: year,
+                  title: titl,
+                  orig_title: orig_title,
+                  link: link.attr('href') || ''
+                };
+              });
+              data = data.concat(items);
+            }
+
+            if (callback) callback(data, have_more);
+          }, function (a, c) {
+            component.empty(network.errorDecode(a, c));
+          }, false, {
+            dataType: 'text',
+            withCredentials: logged_in,
+            headers: headers
+          });
+        };
+
+        var search_more = function search_more(params) {
+          var items = params.items || [];
+          var query = params.query || '';
+          var page = params.page || 1;
+          query_more(query, page, items, function (items, have_more) {
+            if (items && items.length) {
+              _this.wait_similars = true;
+              items.forEach(function (c) {
+                c.is_similars = true;
+              });
+
+              if (have_more) {
+                component.similars(items, search_more, {
+                  items: [],
+                  query: query,
+                  page: page + 1
+                });
+              } else {
+                component.similars(items);
+              }
+
+              component.loading(false);
+            } else component.emptyForQuery(select_title);
+          });
+        };
+
+        var display = function display(links, have_more, query) {
           if (links && links.length) {
             var is_sure = false;
             var items = links.map(function (l) {
@@ -1522,7 +1593,17 @@
               items.forEach(function (c) {
                 c.is_similars = true;
               });
-              component.similars(items);
+
+              if (have_more) {
+                component.similars(items, search_more, {
+                  items: [],
+                  query: query,
+                  page: 1
+                });
+              } else {
+                component.similars(items);
+              }
+
               component.loading(false);
             } else component.emptyForQuery(select_title);
           } else component.emptyForQuery(select_title);
@@ -1535,8 +1616,9 @@
           network_call(url, function (str) {
             str = (str || '').replace(/\n/g, '');
             var links = str.match(/<li><a href=.*?<\/li>/g);
+            var have_more = str.indexOf('<a class="b-search__live_all"') !== -1;
             if (links && links.length) data = data.concat(links);
-            if (callback) callback(data);
+            if (callback) callback(data, have_more, query);
           }, function (a, c) {
             component.empty(network.errorDecode(a, c));
           }, postdata, {
@@ -1547,20 +1629,12 @@
         };
 
         var query_title_search = function query_title_search() {
-          query_search(component.cleanTitle(select_title), [], function (data) {
-            if (data && data.length) display(data);else display([]);
+          query_search(component.cleanTitle(select_title), [], function (data, have_more, query) {
+            if (data && data.length) display(data, have_more, query);else display([]);
           });
         };
 
-        if (!object.clarification && (object.movie.imdb_id || +object.movie.kinopoisk_id)) {
-          query_search('+' + (object.movie.imdb_id || +object.movie.kinopoisk_id), [], function (data) {
-            if (data && data.length) display(data);else if (object.movie.imdb_id && +object.movie.kinopoisk_id) {
-              query_search('+' + +object.movie.kinopoisk_id, [], function (data) {
-                if (data && data.length) display(data);else query_title_search();
-              });
-            } else query_title_search();
-          });
-        } else query_title_search();
+        query_title_search();
       };
 
       this.extendChoice = function (saved) {
@@ -2784,7 +2858,7 @@
       var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true;
       var prefer_dash = Lampa.Storage.field('online_mod_prefer_dash') === true;
       var prox = component.proxy('collaps');
-      var embed = prox + (prefer_http ? 'http:' : 'https:') + '//api.insertunit.ws/embed/';
+      var embed = prox + (prefer_http ? 'http:' : 'https:') + '//api.tobaco.ws/embed/';
       var embed2 = prox + (prefer_http ? 'http:' : 'https:') + '//api.kinogram.best/embed/';
       var filter_items = {};
       var choice = {
@@ -14779,7 +14853,7 @@
        */
 
 
-      this.similars = function (json) {
+      this.similars = function (json, search_more, more_params) {
         var _this3 = this;
 
         json.forEach(function (elem) {
@@ -14810,6 +14884,23 @@
 
           _this3.append(item);
         });
+
+        if (search_more) {
+          var elem = {
+            title: Lampa.Lang.translate('online_mod_show_more'),
+            quality: '...',
+            info: ''
+          };
+          var item = Lampa.Template.get('online_mod_folder', elem);
+          item.on('hover:enter', function () {
+            _this3.activity.loader(true);
+
+            _this3.reset();
+
+            search_more(more_params);
+          });
+          this.append(item);
+        }
       };
       /**
        * Очистить список файлов
@@ -15176,7 +15267,7 @@
       };
     }
 
-    var mod_version = '29.05.2024';
+    var mod_version = '05.06.2024';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
@@ -15571,6 +15662,13 @@
         be: 'Эпізодаў',
         en: 'Episodes',
         zh: '集'
+      },
+      online_mod_show_more: {
+        ru: 'Показать ещё',
+        uk: 'Показати ще',
+        be: 'Паказаць яшчэ',
+        en: 'Show more',
+        zh: '展示更多'
       },
       online_mod_filmix_param_add_title: {
         ru: 'Добавить ТОКЕН от Filmix',
