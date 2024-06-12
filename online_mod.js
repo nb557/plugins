@@ -1,4 +1,4 @@
-//05.06.2024 - Fix
+//12.06.2024 - Fix
 
 (function () {
     'use strict';
@@ -11348,7 +11348,7 @@
                   if (items.length > 1) {
                     quality = {};
                     items.forEach(function (item) {
-                      quality[item.label] = item.file;
+                      if (!quality[item.label]) quality[item.label] = item.file;
                     });
                     var preferably = Lampa.Storage.get('video_quality_default', '1080') + 'p';
                     if (quality[preferably]) file = quality[preferably];
@@ -15267,7 +15267,7 @@
       };
     }
 
-    var mod_version = '05.06.2024';
+    var mod_version = '12.06.2024';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
