@@ -1,4 +1,4 @@
-//12.06.2024 - Fix
+//26.06.2024 - Fix
 
 (function () {
     'use strict';
@@ -446,7 +446,7 @@
               var name = $(this).text();
               if (name) name = name.trim();
 
-              if (id && name && !extract.voice.find(function (v) {
+              if (id && name && !extract.voice.some(function (v) {
                 return v.id == id;
               })) {
                 extract.voice.push({
@@ -552,7 +552,7 @@
               }
             }
 
-            if (!extract.voice.find(function (v) {
+            if (!extract.voice.some(function (v) {
               return v.id == i;
             })) {
               extract.voice.push({
@@ -655,9 +655,9 @@
           var inx = -1;
 
           if (choice.voice_id) {
-            var voice = filter_items.voice_info.find(function (v) {
+            var voice = filter_items.voice_info.filter(function (v) {
               return v.id == choice.voice_id;
-            });
+            })[0];
             if (voice) inx = filter_items.voice_info.indexOf(voice);
           }
 
@@ -1014,8 +1014,8 @@
 
       function filter() {
         filter_items = {
-          season: extract.season.map(function (v) {
-            return v.name;
+          season: extract.season.map(function (s) {
+            return s.name;
           }),
           voice: extract.season.length ? extract.voice.map(function (v) {
             return v.name;
@@ -1412,7 +1412,8 @@
       var choice = {
         season: 0,
         voice: 0,
-        voice_name: ''
+        voice_name: '',
+        season_id: ''
       };
       /**
        * Поиск
@@ -1650,7 +1651,8 @@
         choice = {
           season: 0,
           voice: 0,
-          voice_name: ''
+          voice_name: '',
+          season_id: ''
         };
         component.loading(true);
         getEpisodes(success);
@@ -1667,6 +1669,7 @@
       this.filter = function (type, a, b) {
         choice[a.stype] = b.index;
         if (a.stype == 'voice') choice.voice_name = filter_items.voice[b.index];
+        if (a.stype == 'season') choice.season_id = filter_items.season_id[b.index];
         component.reset();
         component.loading(true);
         getEpisodes(success);
@@ -1918,8 +1921,11 @@
 
       function filter() {
         filter_items = {
-          season: extract.season.map(function (v) {
-            return v.name;
+          season: extract.season.map(function (s) {
+            return s.name;
+          }),
+          season_id: extract.season.map(function (s) {
+            return s.id;
           }),
           voice: extract.is_series ? extract.voice.map(function (v) {
             return v.name;
@@ -1932,6 +1938,14 @@
           var inx = filter_items.voice.indexOf(choice.voice_name);
           if (inx == -1) choice.voice = 0;else if (inx !== choice.voice) {
             choice.voice = inx;
+          }
+        }
+
+        if (choice.season_id) {
+          var _inx = filter_items.season_id.indexOf(choice.season_id);
+
+          if (_inx == -1) choice.season = 0;else if (_inx !== choice.season) {
+            choice.season = _inx;
           }
         }
 
@@ -11128,7 +11142,7 @@
             var translations = episodes[e_num] || {};
 
             var _loop = function _loop(v_id) {
-              if (!filter_items.voice_info.find(function (v) {
+              if (!filter_items.voice_info.some(function (v) {
                 return v.id == v_id;
               })) {
                 filter_items.voice.push(translations[v_id].translation);
@@ -12045,7 +12059,7 @@
               var str_s = data.title.match(/(Season|Сезон) (\d+)/i);
               if (str_s) data.season = parseInt(str_s[2]);else data.season = season_count;
 
-              if (!seasons.find(function (s) {
+              if (!seasons.some(function (s) {
                 return s.id === data.season;
               })) {
                 seasons.push({
@@ -12070,7 +12084,7 @@
                 data.season = parseInt(str_s_e[1]);
                 data.episode = parseInt(str_s_e[2]);
 
-                if (!seasons.find(function (s) {
+                if (!seasons.some(function (s) {
                   return s.id === data.season;
                 })) {
                   seasons.push({
@@ -12890,7 +12904,7 @@
               var season = c.seasons[season_id];
 
               if (season) {
-                if (!seasons.find(function (s) {
+                if (!seasons.some(function (s) {
                   return s.id === season_id;
                 })) {
                   seasons.push({
@@ -12934,7 +12948,7 @@
           extract.items.forEach(function (c) {
             if (!(c.seasons && c.seasons[season_id])) return;
 
-            if (c.translation && !filter_items.voice_info.find(function (v) {
+            if (c.translation && !filter_items.voice_info.some(function (v) {
               return v.id == c.translation.id;
             })) {
               filter_items.voice.push(c.translation.title);
@@ -12967,9 +12981,9 @@
           var season_id = extract.seasons[choice.season] && extract.seasons[choice.season].id;
           var voice_name = filter_items.voice[choice.voice];
           var voice_id = filter_items.voice_info[choice.voice] && filter_items.voice_info[choice.voice].id;
-          var translation = extract.items.find(function (c) {
+          var translation = extract.items.filter(function (c) {
             return c.seasons && c.seasons[season_id] && c.translation && c.translation.id == voice_id;
-          });
+          })[0];
 
           if (translation) {
             var episodes = translation.seasons[season_id] && translation.seasons[season_id].episodes || {};
@@ -14998,9 +15012,9 @@
           }
         }
 
-        var source_obj = obj_filter_sources.find(function (e) {
+        var source_obj = obj_filter_sources.filter(function (e) {
           return e.name === balanser;
-        });
+        })[0];
         filter.chosen('filter', select);
         filter.chosen('sort', [source_obj ? source_obj.title : balanser]);
       };
@@ -15267,7 +15281,7 @@
       };
     }
 
-    var mod_version = '12.06.2024';
+    var mod_version = '26.06.2024';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
