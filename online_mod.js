@@ -1,4 +1,4 @@
-//26.06.2024 - Fix
+//30.06.2024 - Fix
 
 (function () {
     'use strict';
@@ -74,8 +74,13 @@
     function proxy(name) {
       var ip = getMyIp();
       var param_ip = ip ? 'ip' + ip + '/' : '';
-      var proxy2 = 'https://cors.nb557.workers.dev:8443/';
-      var proxy3 = 'https://cors557.deno.dev/';
+      /*
+          let proxy2 = 'https://cors.nb557.workers.dev:8443/'
+          let proxy3 = 'https://cors557.deno.dev/'
+      */
+
+      var proxy2 = (window.location.protocol === 'https:' ? 'https://' : 'http://') + 'iqslgbok.deploy.cx/';
+      var proxy3 = proxy2;
       var proxy_apn = (window.location.protocol === 'https:' ? 'https://' : 'http://') + 'byzkhkgr.deploy.cx/' + param_ip;
       var proxy_secret = decodeSecret([80, 68, 77, 68, 64, 3, 27, 31, 85, 72, 94, 20, 89, 81, 12, 1, 6, 26, 83, 95, 64, 81, 81, 23, 85, 64, 68, 23]) + param_ip;
       var proxy_other = Lampa.Storage.field('online_mod_proxy_other') === true;
@@ -14127,7 +14132,8 @@
         source: new cdnmovies(this, object),
         search: false,
         kp: true,
-        imdb: true
+        imdb: true,
+        disabled: true
       }, {
         name: 'filmix',
         title: 'Filmix',
@@ -15281,7 +15287,7 @@
       };
     }
 
-    var mod_version = '26.06.2024';
+    var mod_version = '30.06.2024';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
@@ -16071,7 +16077,6 @@
 
     if (Utils.isDebug()) {
       template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_kinobase\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} Kinobase</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
-      template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_cdnmovies\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} CDNMovies</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
     }
 
     template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_fancdn\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} FanCDN</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
