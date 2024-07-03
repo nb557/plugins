@@ -25,8 +25,13 @@ export default {
         let body = "";
         request.headers.forEach((value, key) => body += key + " = " + value + "\n");
         body += "request_url" + " = " + request.url + "\n";
-        body += "worker_version = 1.03\n";
+        body += "worker_version = 1.04\n";
         return new Response(body, corsHeaders);
+      }
+
+      if (api.startsWith("?")) {
+        api_pos += 1;
+        api = api.substring(1);
       }
 
       let next_param = true;
