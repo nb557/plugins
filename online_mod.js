@@ -1,4 +1,4 @@
-//30.06.2024 - Fix
+//03.07.2024 - Fix proxy
 
 (function () {
     'use strict';
@@ -79,9 +79,9 @@
           let proxy3 = 'https://cors557.deno.dev/'
       */
 
-      var proxy2 = (window.location.protocol === 'https:' ? 'https://' : 'http://') + 'iqslgbok.deploy.cx/';
+      var proxy2 = (window.location.protocol === 'https:' ? 'https://' : 'http://') + 'iqslgbok.deploy.cx/?';
       var proxy3 = proxy2;
-      var proxy_apn = (window.location.protocol === 'https:' ? 'https://' : 'http://') + 'byzkhkgr.deploy.cx/' + param_ip;
+      var proxy_apn = (window.location.protocol === 'https:' ? 'https://' : 'http://') + 'byzkhkgr.deploy.cx/?' + param_ip;
       var proxy_secret = decodeSecret([80, 68, 77, 68, 64, 3, 27, 31, 85, 72, 94, 20, 89, 81, 12, 1, 6, 26, 83, 95, 64, 81, 81, 23, 85, 64, 68, 23]) + param_ip;
       var proxy_other = Lampa.Storage.field('online_mod_proxy_other') === true;
       var proxy_other_url = proxy_other ? Lampa.Storage.field('online_mod_proxy_other_url') + '' : '';
@@ -15287,7 +15287,7 @@
       };
     }
 
-    var mod_version = '30.06.2024';
+    var mod_version = '03.07.2024';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
