@@ -1,4 +1,4 @@
-//03.07.2024 - Fix proxy
+//11.07.2024 - Fix
 
 (function () {
     'use strict';
@@ -296,13 +296,7 @@
           } else if (error) error(network.errorDecode(a, c));
         };
 
-        if (prox && window.location.protocol !== 'http:') {
-          network.clear();
-          network.timeout(20000);
-          network.silent(prox + url, callback, error_check, false, {
-            dataType: 'text'
-          });
-        } else {
+        {
           var meta = $('head meta[name="referrer"]');
           var referrer = meta.attr('content') || 'never';
           meta.attr('content', 'origin');
@@ -310,7 +304,7 @@
           try {
             network.clear();
             network.timeout(20000);
-            network["native"](url, callback, error_check, false, {
+            network["native"](prox + url, callback, error_check, false, {
               dataType: 'text',
               headers: Lampa.Platform.is('android') ? {
                 'Origin': host,
@@ -616,8 +610,6 @@
             items.forEach(function (item) {
               quality[item.label] = item.file;
             });
-            var preferably = Lampa.Storage.get('video_quality_default', '1080') + 'p';
-            if (quality[preferably]) file = quality[preferably];
           }
         }
 
@@ -775,8 +767,8 @@
             if (extra.file) {
               var playlist = [];
               var first = {
-                url: extra.file,
-                quality: extra.quality,
+                url: component.getDefaultQuality(extra.quality, extra.file),
+                quality: component.renameQualityMap(extra.quality),
                 timeline: element.timeline,
                 title: element.season ? element.title : select_title + (element.title == select_title ? '' : ' / ' + element.title)
               };
@@ -785,8 +777,8 @@
                 items.forEach(function (elem) {
                   var ex = getFile(elem, elem.max_quality);
                   playlist.push({
-                    url: ex.file,
-                    quality: ex.quality,
+                    url: component.getDefaultQuality(ex.quality, ex.file),
+                    quality: component.renameQualityMap(ex.quality),
                     timeline: elem.timeline,
                     title: elem.title
                   });
@@ -832,7 +824,7 @@
       var prefer_mp4 = Lampa.Storage.field('online_mod_prefer_mp4') === true;
       var prox = component.proxy('rezka');
       var iframe_proxy = !prox && Lampa.Storage.field('online_mod_iframe_proxy') === true && startsWith(window.location.protocol, 'http') && !Lampa.Platform.is('android');
-      var embed = prox + (prox || iframe_proxy || window.location.protocol === 'https:' ? 'https://voidboost.net/' : 'http://voidboost.tv/');
+      var embed = prox || iframe_proxy || window.location.protocol === 'https:' ? 'https://voidboost.net/' : 'http://voidboost.tv/';
       var filter_items = {};
       var choice = {
         season: 0,
@@ -913,7 +905,7 @@
         if (voice.d) url += '&d=' + encodeURIComponent(voice.d);
         network.clear();
         network.timeout(10000);
-        network["native"](url, function (str) {
+        network["native"](prox + url, function (str) {
           extractData(str);
           call();
         }, function (a, c) {
@@ -942,7 +934,7 @@
       function getFirstTranlate(id, call) {
         network.clear();
         network.timeout(10000);
-        network["native"](embed + 'embed/' + id, function (str) {
+        network["native"](prox + embed + 'embed/' + id, function (str) {
           extractData(str);
 
           if (extract.voice.length) {
@@ -963,7 +955,7 @@
       function getEmbed(url) {
         network.clear();
         network.timeout(10000);
-        network["native"](url, function (str) {
+        network["native"](prox + url, function (str) {
           component.loading(false);
           extractData(str);
           filter();
@@ -1147,8 +1139,6 @@
               items.forEach(function (item) {
                 quality[item.label] = item.file;
               });
-              var preferably = Lampa.Storage.get('video_quality_default', '1080') + 'p';
-              if (quality[preferably]) file = quality[preferably];
             }
 
             if (file) {
@@ -1165,7 +1155,7 @@
         } else {
           network.clear();
           network.timeout(5000);
-          network["native"](url, call_success, error, false, {
+          network["native"](prox + url, call_success, error, false, {
             dataType: 'text'
           });
         }
@@ -1313,8 +1303,8 @@
             getStream(element, function (element) {
               element.loading = false;
               var first = {
-                url: element.stream,
-                quality: element.qualitys,
+                url: component.getDefaultQuality(element.qualitys, element.stream),
+                quality: component.renameQualityMap(element.qualitys),
                 subtitles: element.subtitles,
                 timeline: element.timeline,
                 title: element.season ? element.title : select_title + (element.title == select_title ? '' : ' / ' + element.title)
@@ -1330,8 +1320,8 @@
                     var cell = {
                       url: function url(call) {
                         getStream(elem, function (elem) {
-                          cell.url = elem.stream;
-                          cell.quality = elem.qualitys;
+                          cell.url = component.getDefaultQuality(elem.qualitys, elem.stream);
+                          cell.quality = component.renameQualityMap(elem.qualitys);
                           cell.subtitles = elem.subtitles;
                           call();
                         }, function () {
@@ -1412,7 +1402,7 @@
         }
       }
 
-      var embed = prox + ref;
+      var embed = ref;
       var filter_items = {};
       var choice = {
         season: 0,
@@ -1441,7 +1431,7 @@
           var url = more_url + '&q=' + encodeURIComponent(query) + '&page=' + encodeURIComponent(page);
           network.clear();
           network.timeout(10000);
-          network_call(url, function (str) {
+          network_call(prox + url, function (str) {
             str = (str || '').replace(/\n/g, '');
             var links = str.match(/<div class="b-content__inline_item-link">\s*<a [^>]*>[^<]*<\/a>\s*<div>[^<]*<\/div>\s*<\/div>/g);
             var have_more = !!str.match(/<a [^>]*>\s*<span class="b-navigation__next\b/);
@@ -1619,7 +1609,7 @@
           var postdata = 'q=' + encodeURIComponent(query);
           network.clear();
           network.timeout(10000);
-          network_call(url, function (str) {
+          network_call(prox + url, function (str) {
             str = (str || '').replace(/\n/g, '');
             var links = str.match(/<li><a href=.*?<\/li>/g);
             var have_more = str.indexOf('<a class="b-search__live_all"') !== -1;
@@ -1855,7 +1845,7 @@
               postdata += '&action=get_episodes';
               network.clear();
               network.timeout(10000);
-              network_call(url, function (json) {
+              network_call(prox + url, function (json) {
                 extractEpisodes(json, translator_id);
                 call();
               }, function (a, c) {
@@ -1984,7 +1974,7 @@
 
         network.clear();
         network.timeout(10000);
-        network_call(url, function (json) {
+        network_call(prox + url, function (json) {
           if (json.url) {
             var video = decode(json.url),
                 file = '',
@@ -2009,9 +1999,6 @@
                 error('Перевод доступен только с HDrezka Premium');
                 return;
               }
-
-              var preferably = Lampa.Storage.get('video_quality_default', '1080') + 'p';
-              if (quality[preferably]) file = quality[preferably];else if (preferably === '1440p' && quality['2K']) file = quality['2K'];else if (preferably === '2160p' && quality['4K']) file = quality['4K'];
             }
 
             if (file) {
@@ -2218,8 +2205,8 @@
             getStream(element, function (element) {
               element.loading = false;
               var first = {
-                url: element.stream,
-                quality: element.qualitys,
+                url: component.getDefaultQuality(element.qualitys, element.stream),
+                quality: component.renameQualityMap(element.qualitys),
                 subtitles: element.subtitles,
                 timeline: element.timeline,
                 title: element.season ? element.title : select_title + (element.title == select_title ? '' : ' / ' + element.title)
@@ -2235,8 +2222,8 @@
                     var cell = {
                       url: function url(call) {
                         getStream(elem, function (elem) {
-                          cell.url = elem.stream;
-                          cell.quality = elem.qualitys;
+                          cell.url = component.getDefaultQuality(elem.qualitys, elem.stream);
+                          cell.quality = component.renameQualityMap(elem.qualitys);
                           cell.subtitles = elem.subtitles;
                           call();
                         }, function () {
@@ -2301,7 +2288,7 @@
       var stream_prox = prox;
       var host = prox ? 'https://kinobase.org' : Utils.kinobaseMirror();
       var ref = host + '/';
-      var embed = prox + ref;
+      var embed = ref;
       var filter_items = {};
       var choice = {
         season: 0,
@@ -2322,7 +2309,7 @@
         var url = embed + "search?query=" + encodeURIComponent(component.cleanTitle(select_title));
         network.clear();
         network.timeout(1000 * 10);
-        network["native"](url, function (str) {
+        network["native"](prox + url, function (str) {
           str = (str || '').replace(/\n/g, '');
           var links = object.movie.number_of_seasons ? str.match(/<div class="title"><a href="\/(serial|tv_show)\/([^"]*)"[^>]*>(.*?)<\/a><\/div>/g) : str.match(/<div class="title"><a href="\/film\/([^"]*)"[^>]*>(.*?)<\/a><\/div>/g);
           var search_date = object.search_date || !object.clarification && (object.movie.release_date || object.movie.first_air_date || object.movie.last_air_date) || '0000';
@@ -2662,7 +2649,7 @@
           var IDENTIFIER = str.match(/var IDENTIFIER = "([^"]+)";/);
 
           if (MOVIE_ID && PLAYER_CUID && IDENTIFIER) {
-            var user_url = page_prox + getUrlWithParams('/user_data', {
+            var user_url = getUrlWithParams('/user_data', {
               page: 'movie',
               movie_id: MOVIE_ID[1],
               cuid: PLAYER_CUID[1],
@@ -2670,9 +2657,9 @@
             });
             network.clear();
             network.timeout(1000 * 10);
-            network["native"](user_url, function (data) {
+            network["native"](page_prox + user_url, function (data) {
               if (data && data.vod_hash2 != null && data.vod_time2 != null) {
-                var vod_url = page_prox + getUrlWithParams('/vod/' + MOVIE_ID[1], {
+                var vod_url = getUrlWithParams('/vod/' + MOVIE_ID[1], {
                   'identifier': IDENTIFIER[1],
                   'player_type': 'new',
                   'file_type': prefer_mp4 ? "mp4" : "hls",
@@ -2682,7 +2669,7 @@
                 });
                 network.clear();
                 network.timeout(1000 * 10);
-                network["native"](vod_url, function (files) {
+                network["native"](page_prox + vod_url, function (files) {
                   component.loading(false);
                   extractData(files, str);
                   filter();
@@ -2775,8 +2762,6 @@
           items.forEach(function (item) {
             quality[item.label] = item.file;
           });
-          var preferably = Lampa.Storage.get('video_quality_default', '1080') + 'p';
-          if (quality[preferably]) file = quality[preferably];
         }
 
         element.stream = file;
@@ -2820,8 +2805,8 @@
             if (element.stream) {
               var playlist = [];
               var first = {
-                url: element.stream,
-                quality: element.qualitys,
+                url: component.getDefaultQuality(element.qualitys, element.stream),
+                quality: component.renameQualityMap(element.qualitys),
                 subtitles: element.subtitles,
                 timeline: element.timeline,
                 title: element.season ? element.title : select_title + (element.title == select_title ? '' : ' / ' + element.title)
@@ -2831,8 +2816,8 @@
                 items.forEach(function (elem) {
                   getStream(elem);
                   playlist.push({
-                    url: elem.stream,
-                    quality: elem.qualitys,
+                    url: component.getDefaultQuality(elem.qualitys, elem.stream),
+                    quality: component.renameQualityMap(elem.qualitys),
                     subtitles: elem.subtitles,
                     timeline: elem.timeline,
                     title: elem.title
@@ -2877,8 +2862,8 @@
       var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true;
       var prefer_dash = Lampa.Storage.field('online_mod_prefer_dash') === true;
       var prox = component.proxy('collaps');
-      var embed = prox + (prefer_http ? 'http:' : 'https:') + '//api.tobaco.ws/embed/';
-      var embed2 = prox + (prefer_http ? 'http:' : 'https:') + '//api.kinogram.best/embed/';
+      var embed = (prefer_http ? 'http:' : 'https:') + '//api.tobaco.ws/embed/';
+      var embed2 = (prefer_http ? 'http:' : 'https:') + '//api.kinogram.best/embed/';
       var filter_items = {};
       var choice = {
         season: 0,
@@ -2888,7 +2873,7 @@
       function collaps_api_search(api, callback, error) {
         network.clear();
         network.timeout(10000);
-        network.silent(embed + api, function (str) {
+        network.silent(prox + embed + api, function (str) {
           if (callback) callback(str || '');
         }, function (a, c) {
           if (a.status == 404 && a.responseText && a.responseText.indexOf('видео недоступно') !== -1) {
@@ -2896,7 +2881,7 @@
           } else {
             network.clear();
             network.timeout(10000);
-            network.silent(embed2 + api, function (str) {
+            network.silent(prox + embed2 + api, function (str) {
               if (callback) callback(str || '');
             }, function (a, c) {
               if (a.status == 404 && a.responseText && a.responseText.indexOf('видео недоступно') !== -1 || a.status == 0 && a.statusText !== 'timeout') {
@@ -3227,7 +3212,7 @@
         stream_prox += 'param/cf-connecting-ip=/';
       }
 
-      var embed = prox + 'https://cdnmovies-stream.online/';
+      var embed = 'https://cdnmovies-stream.online/';
       var filter_items = {};
       var choice = {
         season: 0,
@@ -3256,7 +3241,7 @@
           try {
             network.clear();
             network.timeout(10000);
-            network["native"](embed + api, call_success, call_error, false, {
+            network["native"](prox + embed + api, call_success, call_error, false, {
               dataType: 'text',
               headers: headers
             });
@@ -3443,8 +3428,6 @@
           items.forEach(function (item) {
             quality[item.label] = item.file;
           });
-          var preferably = Lampa.Storage.get('video_quality_default', '1080') + 'p';
-          if (quality[preferably]) file = quality[preferably];
         }
 
         if (file) {
@@ -3625,8 +3608,8 @@
             getStream(element, function (element) {
               element.loading = false;
               var first = {
-                url: element.stream,
-                quality: element.qualitys,
+                url: component.getDefaultQuality(element.qualitys, element.stream),
+                quality: component.renameQualityMap(element.qualitys),
                 subtitles: element.subtitles,
                 timeline: element.timeline,
                 title: element.season ? element.title : select_title + (element.title == select_title ? '' : ' / ' + element.title)
@@ -3642,8 +3625,8 @@
                     var cell = {
                       url: function url(call) {
                         getStream(elem, function (elem) {
-                          cell.url = elem.stream;
-                          cell.quality = elem.qualitys;
+                          cell.url = component.getDefaultQuality(elem.qualitys, elem.stream);
+                          cell.quality = component.renameQualityMap(elem.qualitys);
                           cell.subtitles = elem.subtitles;
                           call();
                         }, function () {
@@ -3702,8 +3685,8 @@
       var debug = _debug;
       var prox = component.proxy('filmix');
       var prox2 = component.proxy('filmix_site');
-      var embed = prox + 'http://filmixapp.cyou/api/v2/';
-      var site = prox2 + 'https://filmix.biz/';
+      var embed = 'http://filmixapp.cyou/api/v2/';
+      var site = 'https://filmix.biz/';
       var select_title = '';
       var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true;
       var filter_items = {};
@@ -3875,7 +3858,7 @@
           var url = site + 'api/v2/suggestions?search_word=' + encodeURIComponent(clean_title);
           network.clear();
           network.timeout(10000);
-          network.silent(url, function (json) {
+          network.silent(prox2 + url, function (json) {
             display(json.posts || []);
           }, function (a, c) {
             component.empty(network.errorDecode(a, c));
@@ -3891,7 +3874,7 @@
           url = Lampa.Utils.addUrlComponent(url, 'story=' + encodeURIComponent(clean_title));
           network.clear();
           network.timeout(10000);
-          network.silent(url, function (json) {
+          network.silent(prox + url, function (json) {
             if (json.length) display(json);else siteSearch();
           }, function (a, c) {
             siteSearch();
@@ -3906,7 +3889,7 @@
           window.mod_filmix.is_max_qualitie = true;
           network.clear();
           network.timeout(10000);
-          network.silent(url + 'user_profile' + dev_token, function (found) {
+          network.silent(prox + url + 'user_profile' + dev_token, function (found) {
             if (found && found.user_data) {
               if (found.user_data.is_pro) window.mod_filmix.max_qualitie = 1080;
               if (found.user_data.is_pro_plus) window.mod_filmix.max_qualitie = 2160;
@@ -3919,7 +3902,7 @@
         function end_search(filmix_id) {
           network.clear();
           network.timeout(10000);
-          network.silent(url + 'post/' + filmix_id + (abuse ? abuse_token : dev_token), function (found) {
+          network.silent(prox + url + 'post/' + filmix_id + (abuse ? abuse_token : dev_token), function (found) {
             if (found && Object.keys(found).length) {
               if (!abuse && checkAbuse(found)) find(filmix_id, true);else success(found);
             } else component.emptyForQuery(select_title);
@@ -4168,9 +4151,6 @@
             });
             file = file.replace(/%s(\.mp4)/i, media.qualities[0] + '$1');
           }
-
-          var preferably = Lampa.Storage.get('video_quality_default', '1080') + 'p';
-          if (quality[preferably]) file = quality[preferably];
         }
 
         return {
@@ -4282,8 +4262,8 @@
             if (extra.file) {
               var playlist = [];
               var first = {
-                url: extra.file,
-                quality: extra.quality,
+                url: component.getDefaultQuality(extra.quality, extra.file),
+                quality: component.renameQualityMap(extra.quality),
                 timeline: element.timeline,
                 title: element.season ? element.title : select_title + (element.title == select_title ? '' : ' / ' + element.title)
               };
@@ -4292,8 +4272,8 @@
                 items.forEach(function (elem) {
                   var ex = getFile(elem);
                   playlist.push({
-                    url: ex.file,
-                    quality: ex.quality,
+                    url: component.getDefaultQuality(ex.quality, ex.file),
+                    quality: component.renameQualityMap(ex.quality),
                     timeline: elem.timeline,
                     title: elem.title
                   });
@@ -4394,7 +4374,9 @@
           try {
             network.clear();
             network.timeout(10000);
-            network.silent(url, call_success, call_error, false, {
+            network.silent(
+            /*prox +*/
+            url, call_success, call_error, false, {
               dataType: 'text'
             });
           } finally {
@@ -4613,8 +4595,6 @@
           items.forEach(function (item) {
             quality[item.label] = item.file;
           });
-          var preferably = Lampa.Storage.get('video_quality_default', '1080') + 'p';
-          if (quality[preferably]) file = quality[preferably];
         }
 
         return {
@@ -4656,8 +4636,8 @@
             if (extra.file) {
               var playlist = [];
               var first = {
-                url: extra.file,
-                quality: extra.quality,
+                url: component.getDefaultQuality(extra.quality, extra.file),
+                quality: component.renameQualityMap(extra.quality),
                 timeline: element.timeline,
                 title: element.season ? element.title : select_title + (element.title == select_title ? '' : ' / ' + element.title)
               };
@@ -4666,8 +4646,8 @@
                 items.forEach(function (elem) {
                   var ex = getFile(elem);
                   playlist.push({
-                    url: ex.file,
-                    quality: ex.quality,
+                    url: component.getDefaultQuality(ex.quality, ex.file),
+                    quality: component.renameQualityMap(ex.quality),
                     timeline: elem.timeline,
                     title: elem.title
                   });
@@ -4710,7 +4690,7 @@
       var select_title = '';
       var prefer_http = false;
       var prox = component.proxy('fancdn');
-      var embed = prox + ('https:') + '//fancdn.net/ember/';
+      var embed = ('https:') + '//fancdn.net/ember/';
       var filter_items = {};
       var choice = {
         season: 0,
@@ -4736,7 +4716,7 @@
 
         network.clear();
         network.timeout(10000);
-        network["native"](url, function (str) {
+        network["native"](prox + url, function (str) {
           parse(str);
         }, function (a, c) {
           component.empty(network.errorDecode(a, c));
@@ -4878,8 +4858,6 @@
           items.forEach(function (item) {
             quality[item.label] = item.file;
           });
-          var preferably = Lampa.Storage.get('video_quality_default', '1080') + 'p';
-          if (quality[preferably]) file = quality[preferably];
         }
 
         if (file) {
@@ -5094,8 +5072,8 @@
             getStream(element, function (element) {
               element.loading = false;
               var first = {
-                url: element.stream,
-                quality: element.qualitys,
+                url: component.getDefaultQuality(element.qualitys, element.stream),
+                quality: component.renameQualityMap(element.qualitys),
                 subtitles: element.subtitles,
                 timeline: element.timeline,
                 title: element.season ? element.title : select_title + (element.title == select_title ? '' : ' / ' + element.title)
@@ -5111,8 +5089,8 @@
                     var cell = {
                       url: function url(call) {
                         getStream(elem, function (elem) {
-                          cell.url = elem.stream;
-                          cell.quality = elem.qualitys;
+                          cell.url = component.getDefaultQuality(elem.qualitys, elem.stream);
+                          cell.quality = component.renameQualityMap(elem.qualitys);
                           cell.subtitles = elem.subtitles;
                           call();
                         }, function () {
@@ -10854,7 +10832,7 @@
       var prox = component.proxy('alloha');
       var prox2 = component.proxy('allohacdn');
       var token = 'd317441359e505c343c2063edc97e7';
-      var embed = prox + 'https://api.apbugall.org/?token=' + token;
+      var embed = 'https://api.apbugall.org/?token=' + token;
       var decrypt = Utils.decodeSecret([16, 86, 76, 90, 80, 77, 93, 95, 90, 16, 67, 77, 70, 31, 25, 65, 66, 88, 20, 16, 77, 91, 88, 92, 90, 28, 20, 89, 70, 8, 29, 72, 25, 66, 81, 70, 24, 85, 65, 64, 65, 88, 87, 68, 20, 5, 16, 66, 73, 8, 25, 66, 81, 70, 24, 88, 86, 71, 71, 25, 9, 16, 65, 74, 92, 23, 89, 82, 77, 87, 88, 28, 23, 110, 17, 92, 71, 77, 68, 67, 11, 2, 108, 22, 104, 28, 98, 106, 108, 27, 101, 27, 16, 104, 28, 22, 29, 11, 20, 81, 86, 25, 28, 91, 86, 71, 68, 29, 67, 16, 79, 85, 65, 25, 93, 84, 107, 75, 65, 25, 9, 19, 74, 64, 66, 26, 85, 81, 77, 87, 91, 17, 27, 70, 85, 74, 16, 80, 80, 108, 74, 69, 16, 9, 24, 23, 17, 111, 109, 30, 105, 26, 29, 31, 11, 22, 29, 8, 25, 81, 72, 64, 74, 81, 90, 64, 29, 80, 80, 111, 71, 73, 16, 4, 20, 90, 93, 107, 67, 69, 24, 15, 25, 93, 87, 102, 71, 65, 111, 9, 109, 25, 14, 19, 30, 19, 11, 20, 93, 72, 77, 70, 82, 90, 64, 30, 68, 87, 67, 77, 80, 82, 77, 85, 16, 9, 24, 23, 31, 64, 92, 82, 81, 94, 9, 31, 16, 18, 20, 86, 87, 87, 95, 80, 93, 101, 107, 125, 112, 86, 89, 64, 91, 86, 85, 87, 64, 27, 77, 91, 91, 81, 86, 25, 25, 31, 19, 30, 18, 81, 66, 9, 13, 30, 20, 24, 25, 85, 70, 5, 24, 27, 25, 19, 21, 80, 80, 111, 71, 73, 13, 30, 20, 24, 25, 81, 94, 87, 87, 84, 92, 97, 97, 112, 119, 95, 89, 72, 95, 87, 81, 93, 77, 28, 85, 76, 76, 66, 88, 87, 71, 23, 93, 84, 107, 75, 65, 16, 15, 19, 79, 85, 66, 20, 74, 85, 95, 81, 65, 92, 70, 16, 9, 24, 85, 65, 64, 65, 88, 87, 68, 26, 81, 84, 102, 71, 66, 25, 11, 16, 120, 89, 93, 73, 85, 29, 108, 64, 89, 88, 75, 30, 88, 80, 87, 108, 70, 92, 119, 87, 93, 73, 91, 93, 92, 90, 68, 28, 77, 66, 85, 24, 19, 30, 65, 89, 80, 103, 65, 4, 19, 19, 18, 20, 85, 90, 91, 95, 93, 81, 102, 107, 125, 115, 91, 85, 64, 86, 90, 86, 87, 64, 24, 81, 64, 68, 75, 85, 80, 77, 26, 89, 80, 103, 67, 72, 29, 26, 25, 14, 16, 65, 74, 92, 2, 20, 86, 65, 64, 66, 85, 91, 68, 23, 80, 92, 84, 85, 89, 90, 24, 13, 25, 92, 92, 74, 64, 107, 5, 101, 16, 18, 20, 20, 22, 19, 11, 20, 93, 72, 77, 70, 82, 90, 64, 30, 68, 74, 95, 65, 6, 19, 4, 20, 24, 19, 72, 81, 75, 85, 94, 22, 123, 66, 93, 95, 89, 87, 9, 20, 25, 31, 16, 81, 86, 83, 86, 80, 86, 108, 102, 121, 119, 87, 93, 73, 91, 93, 92, 90, 68, 28, 80, 95, 74, 64, 104, 8, 105, 25, 20, 19, 16, 30, 27, 20, 16, 20, 27, 20, 16, 23, 73, 85, 65, 88, 89, 31, 102, 93, 86, 92, 70, 86, 75, 9, 23, 20, 19, 16, 92, 90, 80, 86, 80, 85, 97, 106, 121, 122, 91, 94, 73, 91, 94, 81, 86, 68, 17, 70, 86, 95, 81, 66, 81, 74, 25, 25, 31, 19, 30, 27, 23, 29, 3, 16, 92, 76, 71, 75, 85, 83, 64, 22, 88, 92, 85, 87, 92, 70, 67, 20, 5, 16, 117, 85, 94, 73, 85, 30, 100, 84, 81, 77, 82, 92, 75, 89, 30, 93, 75, 24, 30, 85, 93, 93, 70, 95, 93, 92, 23, 16, 20, 12, 25, 79, 16, 19, 119, 66, 80, 83, 90, 87, 19, 10, 20, 80, 95, 74, 64, 104, 8, 105, 28, 20, 31, 98, 92, 82, 86, 75, 81, 66, 19, 2, 16, 75, 81, 85, 92, 70, 85, 70, 24, 77, 25, 14, 19, 66, 73, 11, 20, 69, 16, 75, 81, 71, 76, 70, 94, 20, 93, 72, 77, 70, 82, 90, 64, 11, 20, 69, 25, 23, 87, 82, 85, 88, 24, 79, 69, 28]);
       var decrypt2 = Utils.decodeSecret([16, 86, 76, 90, 80, 77, 93, 95, 90, 16, 67, 90, 70, 90, 73, 64, 28, 20, 76, 95, 82, 81, 93, 21, 20, 89, 80, 17, 75, 25, 66, 82, 75, 20, 71, 93, 86, 84, 86, 67, 19, 4, 20, 75, 73, 20, 16, 29, 20, 14, 25, 79, 77, 15, 24, 70, 88, 70, 19, 97, 121, 124, 124, 76, 68, 73, 102, 86, 72, 65, 85, 71, 76, 16, 4, 20, 85, 76, 90, 83, 64, 81, 95, 87, 20, 107, 116, 120, 120, 64, 76, 64, 107, 81, 66, 76, 81, 67, 64, 16, 25, 66, 20, 71, 81, 93, 67, 26, 87, 64, 92, 90, 19, 4, 20, 86, 65, 86, 83, 77, 93, 92, 87, 28, 25, 79, 69, 11, 25, 64, 91, 80, 71, 30, 71, 93, 68, 107, 81, 66, 76, 81, 67, 64, 112, 85, 88, 80, 86, 75, 20, 13, 20, 94, 69, 87, 87, 71, 80, 91, 94, 28, 17, 75, 68, 15, 19, 77, 92, 89, 71, 22, 67, 92, 90, 87, 25, 9, 16, 82, 77, 94, 90, 64, 90, 86, 90, 24, 29, 67, 77, 2, 20, 78, 2, 20, 70, 85, 74, 16, 97, 112, 92, 84, 85, 89, 90, 106, 85, 72, 65, 86, 74, 64, 16, 9, 24, 104, 116, 120, 123, 77, 64, 64, 102, 93, 65, 76, 81, 64, 77, 15, 16, 64, 74, 73, 25, 79, 19, 92, 66, 81, 88, 16, 67, 90, 70, 90, 73, 64, 25, 15, 24, 77, 25, 87, 82, 77, 87, 88, 20, 16, 85, 16, 79, 78, 25, 70, 85, 64, 77, 66, 87, 20, 72, 25, 69, 69, 81, 74, 73, 3, 20, 17, 6, 87, 88, 65, 72, 81, 90, 92, 70, 73, 71, 13, 22, 24, 27, 25, 81, 93, 90, 91, 84, 81, 109, 98, 112, 119, 92, 84, 68, 95, 90, 93, 94, 77, 28, 73, 65, 66, 81, 71, 92, 81, 74, 80, 82, 74, 66, 81, 71, 92, 87, 88, 71, 85, 79, 80, 25, 24, 24, 64, 86, 71, 71, 93, 85, 68, 85, 2, 16, 27, 89, 70, 93, 93, 92, 85, 90, 81, 93, 83, 86, 64, 9, 18, 20, 19, 16, 92, 90, 80, 86, 80, 85, 97, 106, 121, 122, 91, 94, 73, 91, 94, 81, 86, 68, 17, 64, 92, 82, 81, 94, 29, 24, 27, 25, 22, 21, 87, 81, 71, 89, 77, 84, 80, 88, 82, 91, 85, 84, 9, 26, 16, 18, 20, 86, 87, 87, 95, 80, 93, 101, 107, 125, 112, 86, 89, 64, 91, 86, 85, 87, 64, 27, 80, 80, 25, 20, 19, 16, 27, 18, 92, 85, 80, 93, 65, 92, 89, 85, 85, 81, 88, 80, 13, 22, 24, 27, 25, 81, 93, 90, 91, 84, 81, 109, 98, 112, 119, 92, 84, 68, 95, 90, 93, 94, 77, 28, 70, 76, 69, 25, 24, 24, 81, 92, 71, 9, 25, 65, 69, 69, 20, 16, 79, 7, 9, 25, 71, 67, 24, 24, 70, 8, 14, 19, 74, 64, 82, 20, 69, 11, 25, 73, 26, 23, 87, 81, 88, 84, 24, 66, 73, 31]);
       var filter_items = {};
@@ -10867,7 +10845,7 @@
       function alloha_api_search(api, callback, error) {
         network.clear();
         network.timeout(10000);
-        network["native"](embed + '&' + api, function (json) {
+        network["native"](prox + embed + '&' + api, function (json) {
           if (callback) callback(json);
         }, function (a, c) {
           if (error) error(network.errorDecode(a, c));
@@ -11249,8 +11227,6 @@
               items.forEach(function (item) {
                 if (!quality[item.label]) quality[item.label] = item.file;
               });
-              var preferably = Lampa.Storage.get('video_quality_default', '1080') + 'p';
-              if (quality[preferably]) file = quality[preferably];
               element.stream = file;
               element.qualitys = quality;
             }
@@ -11369,8 +11345,6 @@
                     items.forEach(function (item) {
                       if (!quality[item.label]) quality[item.label] = item.file;
                     });
-                    var preferably = Lampa.Storage.get('video_quality_default', '1080') + 'p';
-                    if (quality[preferably]) file = quality[preferably];
                   }
                 } else file = '';
               } else if (file) {
@@ -11461,8 +11435,8 @@
             getStream(element, function (element) {
               element.loading = false;
               var first = {
-                url: element.stream,
-                quality: element.qualitys,
+                url: component.getDefaultQuality(element.qualitys, element.stream),
+                quality: component.renameQualityMap(element.qualitys),
                 subtitles: element.subtitles,
                 timeline: element.timeline,
                 title: element.season ? element.title : select_title + (element.title == select_title ? '' : ' / ' + element.title)
@@ -11478,8 +11452,8 @@
                     var cell = {
                       url: function url(call) {
                         getStream(elem, function (elem) {
-                          cell.url = elem.stream;
-                          cell.quality = elem.qualitys;
+                          cell.url = component.getDefaultQuality(elem.qualitys, elem.stream);
+                          cell.quality = component.renameQualityMap(elem.qualitys);
                           cell.subtitles = elem.subtitles;
                           call();
                         }, function () {
@@ -11540,7 +11514,7 @@
       var prox = component.proxy('redheadsound');
       var host = 'https://redheadsound.studio';
       var ref = host + '/';
-      var embed = prox + ref;
+      var embed = ref;
       var filter_items = {};
       var choice = {
         season: 0,
@@ -11655,7 +11629,7 @@
           postdata += '&story=' + encodeURIComponent(query);
           network.clear();
           network.timeout(10000);
-          network["native"](url, function (str) {
+          network["native"](prox + url, function (str) {
             str = (str || '').replace(/\n/g, '');
             var links = str.match(/<article class="card d-flex">.*?<\/article>/g);
             if (links && links.length) data = data.concat(links);
@@ -11870,8 +11844,6 @@
           items.forEach(function (item) {
             quality[item.label] = item.file;
           });
-          var preferably = Lampa.Storage.get('video_quality_default', '1080') + 'p';
-          if (quality[preferably]) file = quality[preferably];
         }
 
         return {
@@ -11908,8 +11880,8 @@
             if (extra.file) {
               var playlist = [];
               var first = {
-                url: extra.file,
-                quality: extra.quality,
+                url: component.getDefaultQuality(extra.quality, extra.file),
+                quality: component.renameQualityMap(extra.quality),
                 subtitles: extra.subtitles,
                 timeline: element.timeline,
                 title: items.length > 1 ? element.title : select_title + (element.title == select_title ? '' : ' / ' + element.title)
@@ -11919,8 +11891,8 @@
                 items.forEach(function (elem) {
                   var ex = getFile(elem);
                   playlist.push({
-                    url: ex.file,
-                    quality: ex.quality,
+                    url: component.getDefaultQuality(ex.quality, ex.file),
+                    quality: component.renameQualityMap(ex.quality),
                     subtitles: ex.subtitles,
                     timeline: elem.timeline,
                     title: elem.title
@@ -11965,7 +11937,7 @@
       var prox = component.proxy('cdnvideohub');
       var host = 'https://player.cdnvideohub.com';
       var ref = host + '/';
-      var embed = prox + ref + 'playerjs';
+      var embed = ref + 'playerjs';
       var filter_items = {};
       var choice = {
         season: 0,
@@ -11989,7 +11961,7 @@
         var url = Lampa.Utils.addUrlComponent(embed, 'partner=9&kid=' + kinopoisk_id);
         network.clear();
         network.timeout(10000);
-        network["native"](url, function (str) {
+        network["native"](prox + url, function (str) {
           parse(str);
         }, function (a, c) {
           if (a.status == 404 && !a.responseText || a.status == 0 && a.statusText !== 'timeout') {
@@ -12256,7 +12228,7 @@
       var select_title = '';
       var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true;
       var prox = component.proxy('anilibria');
-      var embed = prox + (prefer_http ? 'http:' : 'https:') + '//api.anilibria.tv/v3/';
+      var embed = (prefer_http ? 'http:' : 'https:') + '//api.anilibria.tv/v3/';
       var filter_items = {};
       var choice = {
         season: 0,
@@ -12363,7 +12335,7 @@
         url = Lampa.Utils.addUrlComponent(url, 'search=' + encodeURIComponent(select_title));
         network.clear();
         network.timeout(1000 * 10);
-        network["native"](url, function (json) {
+        network["native"](prox + url, function (json) {
           display(json && json.list);
         }, function (a, c) {
           component.empty(network.errorDecode(a, c));
@@ -12536,8 +12508,6 @@
           items.forEach(function (item) {
             quality[item.label] = item.file;
           });
-          var preferably = Lampa.Storage.get('video_quality_default', '1080') + 'p';
-          if (quality[preferably]) file = quality[preferably];
         }
 
         return {
@@ -12573,8 +12543,8 @@
             if (extra.file) {
               var playlist = [];
               var first = {
-                url: extra.file,
-                quality: extra.quality,
+                url: component.getDefaultQuality(extra.quality, extra.file),
+                quality: component.renameQualityMap(extra.quality),
                 timeline: element.timeline,
                 title: element.title
               };
@@ -12583,8 +12553,8 @@
                 items.forEach(function (elem) {
                   var ex = getFile(elem);
                   playlist.push({
-                    url: ex.file,
-                    quality: ex.quality,
+                    url: component.getDefaultQuality(ex.quality, ex.file),
+                    quality: component.renameQualityMap(ex.quality),
                     timeline: elem.timeline,
                     title: elem.title
                   });
@@ -12627,7 +12597,7 @@
       var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true;
       var prefer_mp4 = false;
       var prox = component.proxy('kodik');
-      var embed = prox + 'https://kodikapi.com/search';
+      var embed = 'https://kodikapi.com/search';
       var token = atob('NDVjNTM1NzhmMTFlY2ZiNzRlMzEyNjdiNjM0Y2M2YTg=');
       var last_player = '';
       var last_info = '';
@@ -12641,7 +12611,7 @@
       function kodik_api_search(api, callback, error) {
         network.clear();
         network.timeout(10000);
-        network["native"](embed + api, function (json) {
+        network["native"](prox + embed + api, function (json) {
           if (callback) callback(json);
         }, function (a, c) {
           if (error) error(network.errorDecode(a, c));
@@ -13032,11 +13002,11 @@
         if (element.stream) return call(element);
         if (!element.link) return error();
         var link_match = element.link.match(/^(\/\/[^\/]+)\/.*$/);
-        var link_origin = prox + (prefer_http ? 'http:' : 'https:') + (link_match ? link_match[1] : '//kodik.info');
-        var url = prox + (prefer_http ? 'http:' : 'https:') + element.link;
+        var link_origin = (prefer_http ? 'http:' : 'https:') + (link_match ? link_match[1] : '//kodik.info');
+        var url = (prefer_http ? 'http:' : 'https:') + element.link;
         network.clear();
         network.timeout(10000);
-        network["native"](url, function (str) {
+        network["native"](prox + url, function (str) {
           str = (str || '').replace(/\n/g, '');
           var urlParams = str.match(/\burlParams = '([^']+)'/);
           var type = str.match(/\bvideoInfo\.type = '([^']+)'/);
@@ -13070,7 +13040,7 @@
             var getLinks = function getLinks() {
               network.clear();
               network.timeout(10000);
-              network["native"](last_info, function (json) {
+              network["native"](prox + last_info, function (json) {
                 if (json.links) {
                   var items = extractItems(json.links),
                       file = '',
@@ -13082,8 +13052,6 @@
                     items.forEach(function (item) {
                       quality[item.label] = item.file;
                     });
-                    var preferably = Lampa.Storage.get('video_quality_default', '1080') + 'p';
-                    if (quality[preferably]) file = quality[preferably];
                   }
 
                   if (file) {
@@ -13100,7 +13068,7 @@
             if (player_url !== last_player) {
               network.clear();
               network.timeout(10000);
-              network["native"](player_url, function (str) {
+              network["native"](prox + player_url, function (str) {
                 str = (str || '').replace(/\n/g, '');
                 var info_match = str.match(/\$\.ajax\({type: *"POST", *url: *atob\("([^"]+)"\)/);
                 var info;
@@ -13197,8 +13165,8 @@
             getStream(element, function (element) {
               element.loading = false;
               var first = {
-                url: element.stream,
-                quality: element.qualitys,
+                url: component.getDefaultQuality(element.qualitys, element.stream),
+                quality: component.renameQualityMap(element.qualitys),
                 timeline: element.timeline,
                 title: element.season ? element.title : select_title + (element.title == select_title ? '' : ' / ' + element.title)
               };
@@ -13213,8 +13181,8 @@
                     var cell = {
                       url: function url(call) {
                         getStream(elem, function (elem) {
-                          cell.url = elem.stream;
-                          cell.quality = elem.qualitys;
+                          cell.url = component.getDefaultQuality(elem.qualitys, elem.stream);
+                          cell.quality = component.renameQualityMap(elem.qualitys);
                           call();
                         }, function () {
                           cell.url = '';
@@ -13272,7 +13240,7 @@
       var select_title = '';
       var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true;
       var prox = component.proxy('kinopub');
-      var embed = prox + 'https://api.srvkp.com/v1/';
+      var embed = 'https://api.srvkp.com/v1/';
       var token = Utils.decodeSecret([76, 91, 92, 0, 67, 85, 66, 68, 0, 95, 84, 92, 2, 11, 77, 64, 0, 3, 94, 91, 84, 68, 70, 83, 13, 92, 90, 79, 2, 78, 5, 5]);
       var server = 'ru';
       var hls_type = 'hls';
@@ -13325,7 +13293,7 @@
       function kinopub_api_search(api, callback, error) {
         network.clear();
         network.timeout(10000);
-        network["native"](api, function (json) {
+        network["native"](prox + embed + api, function (json) {
           if (callback) callback(json);
         }, function (a, c) {
           if (error) error(network.errorDecode(a, c));
@@ -13449,7 +13417,7 @@
         params = Lampa.Utils.addUrlComponent(params, 'field=title');
         params = Lampa.Utils.addUrlComponent(params, 'q=' + encodeURIComponent(select_title));
         decodeSecretToken(function () {
-          kinopub_api_search(embed + params, function (json) {
+          kinopub_api_search(params, function (json) {
             display(json.items);
           }, error);
         });
@@ -13503,7 +13471,7 @@
       function success(item) {
         var params = Lampa.Utils.addUrlComponent('items/' + item.id, 'access_token=' + token);
         var error = component.empty.bind(component);
-        kinopub_api_search(embed + params, function (json) {
+        kinopub_api_search(params, function (json) {
           if (json.item && (json.item.videos && json.item.videos.length || json.item.seasons && json.item.seasons.length)) {
             component.loading(false);
             extractData(json.item);
@@ -13952,8 +13920,6 @@
             items.forEach(function (item) {
               quality[item.label] = item.file + file_end;
             });
-            var preferably = Lampa.Storage.get('video_quality_default', '1080') + 'p';
-            if (quality[preferably]) file = quality[preferably];
           }
         }
 
@@ -13991,8 +13957,8 @@
             if (extra.file) {
               var playlist = [];
               var first = {
-                url: extra.file,
-                quality: extra.quality,
+                url: component.getDefaultQuality(extra.quality, extra.file),
+                quality: component.renameQualityMap(extra.quality),
                 subtitles: extra.subtitles,
                 timeline: element.timeline,
                 title: element.season ? element.title : select_title + (element.title == select_title ? '' : ' / ' + element.title)
@@ -14002,8 +13968,8 @@
                 items.forEach(function (elem) {
                   var ex = getFile(elem);
                   playlist.push({
-                    url: ex.file,
-                    quality: ex.quality,
+                    url: component.getDefaultQuality(ex.quality, ex.file),
+                    quality: component.renameQualityMap(ex.quality),
                     subtitles: ex.subtitles,
                     timeline: elem.timeline,
                     title: elem.title
@@ -14056,6 +14022,13 @@
       var use_stream_proxy = Lampa.Storage.field('online_mod_use_stream_proxy') === true;
       var rezka2_fix_stream = Lampa.Storage.field('online_mod_rezka2_fix_stream') === true;
       var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true;
+      var forcedQuality = '';
+      var qualityFilter = {
+        title: Lampa.Lang.translate('settings_player_quality'),
+        subtitle: '',
+        items: [],
+        stype: 'quality'
+      };
       var contextmenu_all = [];
 
       if (last_bls[object.movie.id]) {
@@ -14274,6 +14247,10 @@
               if (extended) sources[balanser].reset();else _this.start();
             } else if (a.stype == 'source') {
               _this.changeBalanser(filter_sources[b.index]);
+            } else if (a.stype == 'quality') {
+              forcedQuality = b.title;
+
+              _this.updateQualityFilter();
             } else {
               sources[balanser].filter(type, a, b);
             }
@@ -14299,6 +14276,26 @@
         }
 
         this.search();
+        setTimeout(this.closeFilter, 10);
+      };
+
+      this.updateQualityFilter = function () {
+        var preferably = forcedQuality;
+
+        if (!preferably) {
+          preferably = Lampa.Storage.get('video_quality_default', '1080') + 'p';
+          if (preferably === '1080p') preferably = '1080p Ultra';
+        }
+
+        var items = ['2160p', '1440p', '1080p Ultra', '1080p', '720p', '480p'].map(function (quality, i) {
+          return {
+            title: quality,
+            selected: quality === preferably,
+            index: i
+          };
+        });
+        qualityFilter.subtitle = preferably;
+        qualityFilter.items = items;
         setTimeout(this.closeFilter, 10);
       };
       /**
@@ -14370,10 +14367,10 @@
 
       this.vcdn_api_search = function (api, data, callback, error) {
         var prox = this.proxy('videocdn');
-        var url = prox + (prefer_http ? 'http:' : 'https:') + '//videocdn.tv/api/';
+        var url = (prefer_http ? 'http:' : 'https:') + '//videocdn.tv/api/';
         network.clear();
         network.timeout(1000 * 20);
-        network.silent(url + api, function (json) {
+        network.silent(prox + url + api, function (json) {
           if (json.data && json.data.length) data = data.concat(json.data);
           if (callback) callback(data);
         }, function (a, c) {
@@ -14945,6 +14942,45 @@
           if (Lampa.Activity.active().activity === this.activity) this.activity.toggle();
         }
       };
+
+      this.getDefaultQuality = function (qualityMap, defValue) {
+        if (qualityMap) {
+          var preferably = forcedQuality;
+
+          if (!preferably) {
+            preferably = Lampa.Storage.get('video_quality_default', '1080') + 'p';
+            if (preferably === '1080p') preferably = '1080p Ultra';
+          }
+
+          var items = ['2160p', '4K', '1440p', '2K', '1080p Ultra', '1080p', '720p', '480p', '360p', '240p'];
+          var idx = items.indexOf(preferably);
+
+          if (idx !== -1) {
+            for (var i = idx; i < items.length; i++) {
+              var item = items[i];
+              if (qualityMap[item]) return qualityMap[item];
+            }
+
+            for (var _i = idx - 1; _i >= 0; _i--) {
+              var _item = items[_i];
+              if (qualityMap[_item]) return qualityMap[_item];
+            }
+          }
+        }
+
+        return defValue;
+      };
+
+      this.renameQualityMap = function (qualityMap) {
+        if (!qualityMap) return qualityMap;
+        var renamed = {};
+
+        for (var label in qualityMap) {
+          renamed["\u200B" + label] = qualityMap[label];
+        }
+
+        return renamed;
+      };
       /**
        * Построить фильтр
        */
@@ -14985,6 +15021,8 @@
         add('source', Lampa.Lang.translate('online_mod_balanser'));
         if (filter_items.voice && filter_items.voice.length) add('voice', Lampa.Lang.translate('torrent_parser_voice'));
         if (filter_items.season && filter_items.season.length) add('season', Lampa.Lang.translate('torrent_serial_season'));
+        this.updateQualityFilter();
+        select.push(qualityFilter);
         filter.set('filter', select);
         filter.set('sort', obj_filter_sources.map(function (e) {
           return {
@@ -15287,7 +15325,7 @@
       };
     }
 
-    var mod_version = '03.07.2024';
+    var mod_version = '11.07.2024';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
@@ -15876,7 +15914,8 @@
     } ///////FILMIX/////////
 
 
-    var api_url = Utils.proxy('filmix') + 'http://filmixapp.cyou/api/v2/';
+    var filmix_prox = Utils.proxy('filmix');
+    var api_url = 'http://filmixapp.cyou/api/v2/';
     var user_dev = '?user_dev_apk=2.0.1&user_dev_id=' + Lampa.Utils.uid(16) + '&user_dev_name=Xiaomi&user_dev_os=12&user_dev_vendor=Xiaomi&user_dev_token=';
     var ping_auth;
     Lampa.Params.select('filmix_token', '', '');
@@ -15936,7 +15975,7 @@
           }, 10000);
           network.clear();
           network.timeout(10000);
-          network.quiet(api_url + 'token_request' + user_dev, function (found) {
+          network.quiet(filmix_prox + api_url + 'token_request' + user_dev, function (found) {
             if (found.status == 'ok') {
               user_token = found.code;
               user_code = found.user_code;
@@ -15968,7 +16007,7 @@
     function checkPro(token, call) {
       network.clear();
       network.timeout(8000);
-      network.silent(api_url + 'user_profile' + user_dev + token, function (json) {
+      network.silent(filmix_prox + api_url + 'user_profile' + user_dev + token, function (json) {
         if (json) {
           if (json.user_data) {
             Lampa.Storage.set("filmix_status", json.user_data);
@@ -16010,16 +16049,16 @@
     }
 
     function rezka2FillCookie(success, error) {
-      var prox = Utils.proxy('cookie');
+      var prox = Utils.proxy('cookie') + 'get_cookie/param/Cookie=/';
       var proxy_mirror = Lampa.Storage.field('online_mod_proxy_rezka2_mirror') === true;
       var host = !proxy_mirror ? 'https://rezka.ag' : Utils.rezka2Mirror();
-      var url = prox + 'get_cookie/param/Cookie=/' + host + '/ajax/login/';
+      var url = host + '/ajax/login/';
       var postdata = 'login_name=' + encodeURIComponent(Lampa.Storage.get('online_mod_rezka2_name', ''));
       postdata += '&login_password=' + encodeURIComponent(Lampa.Storage.get('online_mod_rezka2_password', ''));
       postdata += '&login_not_save=0';
       network.clear();
       network.timeout(8000);
-      network.silent(url, function (json) {
+      network.silent(prox + url, function (json) {
         var cookie = '';
 
         if (json && json.cookie && json.cookie.forEach) {
@@ -16087,7 +16126,15 @@
 
     template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_anilibria\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} AniLibria</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_kodik\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} Kodik</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_skip_kp_search\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_skip_kp_search}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_iframe_proxy\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_iframe_proxy}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_prefer_http\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_prefer_http}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_prefer_mp4\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_prefer_mp4}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_prefer_dash\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_prefer_dash}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_save_last_balanser\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_save_last_balanser}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_clear_last_balanser\" data-static=\"true\">\n        <div class=\"settings-param__name\">#{online_mod_clear_last_balanser}</div>\n        <div class=\"settings-param__status\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_kinobase_mirror\" data-type=\"input\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{online_mod_kinobase_mirror}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
 
-    template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_rezka2_mirror\" data-type=\"input\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{online_mod_rezka2_mirror}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_rezka2_mirror\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_rezka2_mirror}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_rezka2_name\" data-type=\"input\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{online_mod_rezka2_name}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_rezka2_password\" data-type=\"input\" data-string=\"true\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{online_mod_rezka2_password}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_rezka2_login\" data-static=\"true\">\n        <div class=\"settings-param__name\">#{online_mod_rezka2_login}</div>\n        <div class=\"settings-param__status\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_rezka2_logout\" data-static=\"true\">\n        <div class=\"settings-param__name\">#{online_mod_rezka2_logout}</div>\n        <div class=\"settings-param__status\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_rezka2_cookie\" data-type=\"input\" data-string=\"true\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{online_mod_rezka2_cookie}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_rezka2_fill_cookie\" data-static=\"true\">\n        <div class=\"settings-param__name\">#{online_mod_rezka2_fill_cookie}</div>\n        <div class=\"settings-param__status\"></div>\n    </div>";
+    template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_rezka2_mirror\" data-type=\"input\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{online_mod_rezka2_mirror}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_rezka2_mirror\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_rezka2_mirror}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_rezka2_name\" data-type=\"input\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{online_mod_rezka2_name}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_rezka2_password\" data-type=\"input\" data-string=\"true\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{online_mod_rezka2_password}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
+
+    if (Lampa.Platform.is('android')) {
+      Lampa.Storage.set("online_mod_rezka2_status", 'false');
+    } else {
+      template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_rezka2_login\" data-static=\"true\">\n        <div class=\"settings-param__name\">#{online_mod_rezka2_login}</div>\n        <div class=\"settings-param__status\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_rezka2_logout\" data-static=\"true\">\n        <div class=\"settings-param__name\">#{online_mod_rezka2_logout}</div>\n        <div class=\"settings-param__status\"></div>\n    </div>";
+    }
+
+    template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_rezka2_cookie\" data-type=\"input\" data-string=\"true\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{online_mod_rezka2_cookie}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_rezka2_fill_cookie\" data-static=\"true\">\n        <div class=\"settings-param__name\">#{online_mod_rezka2_fill_cookie}</div>\n        <div class=\"settings-param__status\"></div>\n    </div>";
 
     {
       template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_rezka2_fix_stream\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_rezka2_fix_stream}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
