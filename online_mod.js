@@ -3546,23 +3546,51 @@
               data.folder.forEach(function (e) {
                 if (e.folder) {
                   var e_title = e.title || e.comment || '';
+                  var found = false;
+                  var found_broken = false;
                   e.folder.forEach(function (v) {
                     var voice = v.title || v.comment || '';
 
-                    if (voice == filter_items.voice[choice.voice]) {
-                      var episode_num = parseInt(e_title.match(/\d+/));
-                      var season_num = parseInt(s_title.match(/\d+/));
-                      filtred.push({
-                        title: 'S' + season_num + ' / ' + Lampa.Lang.translate('torrent_serial_episode') + ' ' + episode_num,
-                        quality: '360p ~ 1080p',
-                        info: ' / ' + Lampa.Utils.shortText(voice, 50),
-                        season: season_num,
-                        episode: episode_num,
-                        file: v.file,
-                        subtitles: parseSubs(v.subtitle)
-                      });
+                    if (!found && voice == filter_items.voice[choice.voice] && v.file) {
+                      if (v.file.indexOf('//sarnage.cc/') !== -1) {
+                        found_broken = true;
+                      } else {
+                        found = true;
+                        var episode_num = parseInt(e_title.match(/\d+/));
+                        var season_num = parseInt(s_title.match(/\d+/));
+                        filtred.push({
+                          title: 'S' + season_num + ' / ' + Lampa.Lang.translate('torrent_serial_episode') + ' ' + episode_num,
+                          quality: '360p ~ 1080p',
+                          info: ' / ' + Lampa.Utils.shortText(voice, 50),
+                          season: season_num,
+                          episode: episode_num,
+                          file: v.file,
+                          subtitles: parseSubs(v.subtitle)
+                        });
+                      }
                     }
                   });
+
+                  if (!found && found_broken) {
+                    e.folder.forEach(function (v) {
+                      var voice = v.title || v.comment || '';
+
+                      if (!found && voice == filter_items.voice[choice.voice] && v.file) {
+                        found = true;
+                        var episode_num = parseInt(e_title.match(/\d+/));
+                        var season_num = parseInt(s_title.match(/\d+/));
+                        filtred.push({
+                          title: 'S' + season_num + ' / ' + Lampa.Lang.translate('torrent_serial_episode') + ' ' + episode_num,
+                          quality: '360p ~ 1080p',
+                          info: ' / ' + Lampa.Utils.shortText(voice, 50),
+                          season: season_num,
+                          episode: episode_num,
+                          file: v.file,
+                          subtitles: parseSubs(v.subtitle)
+                        });
+                      }
+                    });
+                  }
                 }
               });
             }
