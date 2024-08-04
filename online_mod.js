@@ -1,4 +1,4 @@
-//11.07.2024 - Fix
+//04.08.2024 - Fix
 
 (function () {
     'use strict';
@@ -2625,7 +2625,7 @@
 
       function getPage(url) {
         url = component.fixLink(url, '', ref);
-        var cookie = 'player_type=new; file_type=' + (prefer_mp4 ? "mp4" : "hls");
+        var cookie = 'player_type=new; file_type=' + (prefer_mp4 ? "mp4" : "hls") + '; uak=' + Math.floor(Date.now() / 1000);
         var headers = Lampa.Platform.is('android') ? {
           'Origin': host,
           'Referer': url,
@@ -2659,7 +2659,12 @@
             network.timeout(1000 * 10);
             network["native"](page_prox + user_url, function (data) {
               if (data && data.vod_hash2 != null && data.vod_time2 != null) {
+                if (data.allow_watch != null && !data.allow_watch) {
+                  Lampa.Noty.show(Lampa.Lang.translate('online_mod_blockedlink') + (data.client_country ? ': ' + data.client_country : ''));
+                }
+
                 var vod_url = getUrlWithParams('/vod/' + MOVIE_ID[1], {
+                  'sbk': '1722685497',
                   'identifier': IDENTIFIER[1],
                   'player_type': 'new',
                   'file_type': prefer_mp4 ? "mp4" : "hls",
@@ -14105,8 +14110,7 @@
         source: new cdnmovies(this, object),
         search: false,
         kp: true,
-        imdb: true,
-        disabled: true
+        imdb: true
       }, {
         name: 'filmix',
         title: 'Filmix',
@@ -15325,7 +15329,7 @@
       };
     }
 
-    var mod_version = '11.07.2024';
+    var mod_version = '04.08.2024';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
@@ -16116,6 +16120,7 @@
 
     if (Utils.isDebug()) {
       template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_kinobase\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} Kinobase</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
+      template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_cdnmovies\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} CDNMovies</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
     }
 
     template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_fancdn\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} FanCDN</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
