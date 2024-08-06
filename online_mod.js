@@ -1,4 +1,4 @@
-//06.08.2024 - Fix
+//07.08.2024 - Fix
 
 (function () {
     'use strict';
@@ -2867,7 +2867,7 @@
       var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true;
       var prefer_dash = Lampa.Storage.field('online_mod_prefer_dash') === true;
       var prox = component.proxy('collaps');
-      var embed = (prefer_http ? 'http:' : 'https:') + '//api.tobaco.ws/embed/';
+      var embed = (prefer_http ? 'http:' : 'https:') + '//api.marts.ws/embed/';
       var embed2 = (prefer_http ? 'http:' : 'https:') + '//api.kinogram.best/embed/';
       var filter_items = {};
       var choice = {
@@ -15357,7 +15357,7 @@
       };
     }
 
-    var mod_version = '06.08.2024';
+    var mod_version = '07.08.2024';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
