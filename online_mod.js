@@ -1,4 +1,4 @@
-//04.08.2024 - Fix
+//06.08.2024 - Fix
 
 (function () {
     'use strict';
@@ -2664,7 +2664,7 @@
                 }
 
                 var vod_url = getUrlWithParams('/vod/' + MOVIE_ID[1], {
-                  'sbk': '1722685497',
+                  'sbk': '1722887856',
                   'identifier': IDENTIFIER[1],
                   'player_type': 'new',
                   'file_type': prefer_mp4 ? "mp4" : "hls",
@@ -15357,7 +15357,7 @@
       };
     }
 
-    var mod_version = '04.08.2024';
+    var mod_version = '06.08.2024';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
