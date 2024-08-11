@@ -1150,12 +1150,16 @@
           } else error();
         };
 
+        var call_error = function call_error(a, c) {
+          error();
+        };
+
         if (iframe_proxy) {
-          component.proxyCall3('GET', url, 5000, null, call_success, error);
+          component.proxyCall3('GET', url, 5000, null, call_success, call_error);
         } else {
           network.clear();
           network.timeout(5000);
-          network["native"](prox + url, call_success, error, false, {
+          network["native"](prox + url, call_success, call_error, false, {
             dataType: 'text'
           });
         }
@@ -2008,7 +2012,9 @@
               call(element);
             } else error();
           } else error();
-        }, error, postdata, {
+        }, function (a, c) {
+          error();
+        }, postdata, {
           withCredentials: logged_in,
           headers: headers
         });
@@ -11458,7 +11464,9 @@
               });
             } else decodeStream('');
           } else error();
-        }, error, postdata, {
+        }, function (a, c) {
+          error();
+        }, postdata, {
           headers: extract.headers
         });
       }
@@ -13121,7 +13129,9 @@
                     call(element);
                   } else error();
                 } else error();
-              }, error, postdata);
+              }, function (a, c) {
+                error();
+              }, postdata);
             };
 
             var player_url = link_origin + player[1];
@@ -13143,12 +13153,16 @@
                   last_player = player_url;
                   getLinks();
                 } else error();
-              }, error, false, {
+              }, function (a, c) {
+                error();
+              }, false, {
                 dataType: 'text'
               });
             } else getLinks();
           } else error();
-        }, error, false, {
+        }, function (a, c) {
+          error();
+        }, false, {
           dataType: 'text'
         });
       }
