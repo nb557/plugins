@@ -1,4 +1,4 @@
-//12.08.2024 - Fix
+//20.08.2024 - Fix
 
 (function () {
     'use strict';
@@ -428,7 +428,7 @@
         component.loading(false);
         str = (str || '').replace(/\n/g, '');
         var voices = str.match(/<div class="translations">\s*(<select>.*?<\/select>)/);
-        var fs = str.match(/id="(?:fs|ury)" value='([^']*)'/);
+        var fs = str.match(/id="[^"]*" value='([^']*p\]\\\/\\\/filmos.in\\\/[^']*)'/);
 
         if (fs) {
           var files = {};
@@ -15399,7 +15399,7 @@
       };
     }
 
-    var mod_version = '12.08.2024';
+    var mod_version = '20.08.2024';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
