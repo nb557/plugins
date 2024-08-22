@@ -1,4 +1,4 @@
-//20.08.2024 - Fix
+//22.08.2024 - Fix
 
 (function () {
     'use strict';
@@ -14117,7 +14117,7 @@
       this.proxyStream = function (url, name) {
         if (url && use_stream_proxy) {
           if (name === 'rezka2') {
-            return url.replace(/\/\/(stream\.voidboost\.(cc|top|link|club)|femeretes.org)\//, '//prx-ams.ukrtelcdn.net/');
+            return url.replace(/\/\/(stream\.voidboost\.(cc|top|link|club)|femeretes.org)\//, '//prx.ukrtelcdn.net/');
           }
 
           return (prefer_http ? 'http://apn.cfhttp.top/' : 'https://apn.watch/') + url;
@@ -15399,7 +15399,7 @@
       };
     }
 
-    var mod_version = '20.08.2024';
+    var mod_version = '22.08.2024';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
