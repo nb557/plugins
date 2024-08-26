@@ -2359,6 +2359,7 @@
         network.clear();
         network.timeout(1000 * 10);
         network["native"](page_prox + url, function (str) {
+          console.log('Kinobase', 'search:', str);
           str = (str || '').replace(/\n/g, '');
           var links = object.movie.number_of_seasons ? str.match(/<div class="title"><a href="\/(serial|tv_show)\/([^"]*)"[^>]*>(.*?)<\/a><\/div>/g) : str.match(/<div class="title"><a href="\/film\/([^"]*)"[^>]*>(.*?)<\/a><\/div>/g);
           var search_date = object.search_date || !object.clarification && (object.movie.release_date || object.movie.first_air_date || object.movie.last_air_date) || '0000';
@@ -2691,6 +2692,7 @@
         network.clear();
         network.timeout(1000 * 10);
         network["native"](page_prox + url, function (str) {
+          console.log('Kinobase', 'page:', str);
           str = (str || '').replace(/\n/g, '');
           var MOVIE_ID = str.match(/var MOVIE_ID = (\d+);/);
           var PLAYER_CUID = str.match(/var PLAYER_CUID = "([^"]+)";/);
@@ -2707,6 +2709,7 @@
             network.clear();
             network.timeout(1000 * 10);
             network["native"](page_prox + movie_url, function (script) {
+              console.log('Kinobase', 'movie:', script);
               var params = {};
 
               try {
@@ -2722,6 +2725,8 @@
               network.clear();
               network.timeout(1000 * 10);
               network["native"](page_prox + user_url, function (data) {
+                console.log('Kinobase', 'user:', data);
+
                 if (data && data.vod_hash2 != null && data.vod_time2 != null) {
                   if (!params.vod) {
                     Lampa.Noty.show(Lampa.Lang.translate('online_mod_nolink'));
@@ -2742,6 +2747,7 @@
                   network.clear();
                   network.timeout(1000 * 10);
                   network["native"](page_prox + vod_url, function (files) {
+                    console.log('Kinobase', 'vod:', files);
                     component.loading(false);
                     extractData(files, str);
                     filter();
@@ -14178,6 +14184,7 @@
         voice: Lampa.Lang.translate('torrent_parser_voice'),
         source: Lampa.Lang.translate('settings_rest_source')
       };
+      var disable_dbg = !Utils.isDebug();
       var all_sources = [{
         name: 'videocdn',
         title: 'VideoCDN',
@@ -14206,7 +14213,8 @@
         source: new kinobase(this, object),
         search: true,
         kp: false,
-        imdb: false
+        imdb: false,
+        disabled: disable_dbg
       }, {
         name: 'collaps',
         title: 'Collaps',
@@ -14270,37 +14278,31 @@
         search: true,
         kp: true,
         imdb: true
+      }, {
+        name: 'alloha',
+        title: 'Alloha',
+        source: new alloha(this, object),
+        search: false,
+        kp: true,
+        imdb: true,
+        disabled: disable_dbg
+      }, {
+        name: 'kinopub',
+        title: 'KinoPub',
+        source: new kinopub(this, object),
+        search: true,
+        kp: false,
+        imdb: true,
+        disabled: true
+      }, {
+        name: 'filmix2',
+        title: 'Filmix 4K',
+        source: new filmix(this, object, true),
+        search: true,
+        kp: false,
+        imdb: false,
+        disabled: true
       }];
-
-      if (Utils.isDebug()) {
-        all_sources.push({
-          name: 'alloha',
-          title: 'Alloha',
-          source: new alloha(this, object),
-          search: false,
-          kp: true,
-          imdb: true
-        });
-        all_sources.push({
-          name: 'kinopub',
-          title: 'KinoPub',
-          source: new kinopub(this, object),
-          search: true,
-          kp: false,
-          imdb: true,
-          disabled: true
-        });
-        all_sources.push({
-          name: 'filmix2',
-          title: 'Filmix 4K',
-          source: new filmix(this, object, true),
-          search: true,
-          kp: false,
-          imdb: false,
-          disabled: true
-        });
-      }
-
       var obj_filter_sources = all_sources.filter(function (s) {
         return !s.disabled;
       });
@@ -16225,9 +16227,10 @@
       template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_redheadsound\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} RedHeadSound</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
     }
 
-    template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_anilibria\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} AniLibria</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_kodik\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} Kodik</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_skip_kp_search\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_skip_kp_search}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_iframe_proxy\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_iframe_proxy}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_prefer_http\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_prefer_http}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_prefer_mp4\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_prefer_mp4}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_prefer_dash\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_prefer_dash}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_save_last_balanser\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_save_last_balanser}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_clear_last_balanser\" data-static=\"true\">\n        <div class=\"settings-param__name\">#{online_mod_clear_last_balanser}</div>\n        <div class=\"settings-param__status\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_kinobase_mirror\" data-type=\"input\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{online_mod_kinobase_mirror}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
+    template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_anilibria\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} AniLibria</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_kodik\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} Kodik</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_skip_kp_search\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_skip_kp_search}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_iframe_proxy\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_iframe_proxy}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_prefer_http\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_prefer_http}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_prefer_mp4\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_prefer_mp4}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_prefer_dash\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_prefer_dash}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_save_last_balanser\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_save_last_balanser}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_clear_last_balanser\" data-static=\"true\">\n        <div class=\"settings-param__name\">#{online_mod_clear_last_balanser}</div>\n        <div class=\"settings-param__status\"></div>\n    </div>";
 
-    {
+    if (Utils.isDebug()) {
+      template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_kinobase_mirror\" data-type=\"input\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{online_mod_kinobase_mirror}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
       template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_kinobase_cookie\" data-type=\"input\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{online_mod_kinobase_cookie}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
     }
 
