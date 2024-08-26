@@ -2672,7 +2672,7 @@
 
       function getPage(url) {
         url = component.fixLink(url, '', ref);
-        var cookie = (check_cookie ? check_cookie + '; ' : '') + 'player_type=new; file_type=' + file_type + '; uak=' + Math.floor(Date.now() / 1000);
+        var cookie = (check_cookie ? check_cookie + '; ' : '') + 'player_type=new; file_type=' + file_type + '; nets=' + Math.floor(Date.now() / 1000);
         var headers = Lampa.Platform.is('android') ? {
           'Origin': host,
           'Referer': url,
