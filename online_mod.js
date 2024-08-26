@@ -2779,10 +2779,7 @@
         }, false, {
           dataType: 'text',
           withCredentials: !prox,
-          headers: Lampa.Platform.is('android') ? {
-            'Origin': host,
-            'Referer': ref
-          } : {}
+          headers: headers
         });
       }
       /**
