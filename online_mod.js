@@ -1,4 +1,4 @@
-//22.08.2024 - Fix
+//26.08.2024 - Fix
 
 (function () {
     'use strict';
@@ -424,11 +424,33 @@
         return [];
       }
 
+      function decode(pass, src) {
+        var pass_len = pass.length;
+        var pass_arr = Array.from(pass, function (c) {
+          return c.charCodeAt(0);
+        });
+        var src_len = src.length;
+        var res = [];
+
+        for (var i = 0; i < src_len; i += 2) {
+          var hex = src.slice(i, i + 2);
+          var code = parseInt(hex, 16);
+          var secret = pass_arr[i / 2 % pass_len] % 255;
+          res.push(code ^ secret);
+        }
+
+        return res.map(function (code) {
+          return String.fromCharCode(code);
+        }).join('');
+      }
+
       function parse(str) {
         component.loading(false);
         str = (str || '').replace(/\n/g, '');
         var voices = str.match(/<div class="translations">\s*(<select>.*?<\/select>)/);
-        var fs = str.match(/id="[^"]*" value='([^']*p\]\\\/\\\/filmos.in\\\/[^']*)'/);
+        var client_id = str.match(/id="client_id" value="([^"]*)"/);
+        var sentry_id = str.match(/id="sentry_id" value="([^"]*)"/);
+        var fs = client_id && sentry_id && decode(client_id[1], sentry_id[1]);
 
         if (fs) {
           var files = {};
@@ -438,7 +460,7 @@
           extract.fs = files;
           var voice_map = {};
 
-          if (voices && fs) {
+          if (voices) {
             var select = $(voices[1]);
             $('option', select).each(function () {
               var id = $(this).val();
@@ -457,7 +479,7 @@
             });
           }
 
-          var json = Lampa.Arrays.decodeJson(component.decodeHtml(fs[1]), {});
+          var json = Lampa.Arrays.decodeJson(fs, {});
           var skip0 = json[0] && json[7] && JSON.stringify(json[0]) === JSON.stringify(json[7]);
 
           var _loop = function _loop(i) {
@@ -2297,6 +2319,8 @@
       var ref = host + '/';
       var embed = ref;
       var decrypt = atob('InVzZSBzdHJpY3QiOyAoZnVuY3Rpb24oc2NyaXB0MSwgc2NyaXB0Miwgc3RyLCBQTEFZRVJfVFlQRSwgRklMRV9UWVBFKXsgdmFyIHJlcyA9IFtdOyB2YXIgZG9jdW1lbnQgPSAobmV3IERPTVBhcnNlcikucGFyc2VGcm9tU3RyaW5nKCI8aGVhZD48L2hlYWQ+PGJvZHk+PC9ib2R5PiIsICJ0ZXh0L2h0bWwiKTsgdmFyIHBhdXNlX3RpbWUgPSAwOyB2YXIgZlZvaWQgPSBmdW5jdGlvbigpe307IHZhciBmSW50ID0gZnVuY3Rpb24oKXsgcmV0dXJuIDE7IH07IHZhciAkID0gZnVuY3Rpb24oKXsgcmV0dXJuICQ7IH07ICQuYWRkQ2xhc3MgPSAkLmFmdGVyID0gJC5hcHBlbmQgPSAkLmF0dHIgPSAkLmNsaWNrID0gJC5jbG9zZXN0ID0gJC5jc3MgPSAkLmZpbmQgPSAkLmZvY3VzID0gJC5oaWRlID0gJC5odG1sID0gJC5vbiA9ICQucGFyZW50ID0gJC5wcmVwZW5kID0gJC5yYXRpbmcgPSAkLnJlYWR5ID0gJC5yZW1vdmUgPSAkLnJlbW92ZUNsYXNzID0gJC5zaG93ID0gJC5zdWJtaXQgPSAkLnRhYiA9ICQudGV4dCA9ICQudG9vbHRpcCA9ICQudmFsID0gJDsgJC53aWR0aCA9IGZJbnQ7ICQuYWpheFNldHVwID0gJC5jb29raWUgPSBmVm9pZDsgJC5hamF4ID0gZnVuY3Rpb24oc2V0dGluZ3MpeyBpZiAoc2V0dGluZ3MubWV0aG9kID09PSAiSEVBRCIgfHwgc2V0dGluZ3MudHlwZSA9PT0gIkhFQUQiKXsgaWYgKHNldHRpbmdzLnN1Y2Nlc3MpIHNldHRpbmdzLnN1Y2Nlc3MobnVsbCwgInN1Y2Nlc3MiLCB7fSk7IGlmIChzZXR0aW5ncy5jb21wbGV0ZSkgc2V0dGluZ3MuY29tcGxldGUoe30sICJzdWNjZXNzIik7IH0gZWxzZSBpZiAoc2V0dGluZ3MudXJsKSByZXMucHVzaCh7dHlwZTogImFqYXgiLCB1cmw6IHNldHRpbmdzLnVybCwgcGFyYW1zOiBzZXR0aW5ncy5kYXRhfSk7IH07ICQuZ2V0ID0gZnVuY3Rpb24odXJsLCBkYXRhKXsgcmVzLnB1c2goe3R5cGU6ICJnZXQiLCB1cmw6IHVybCwgcGFyYW1zOiBkYXRhfSk7IH07ICQucG9zdCA9IGZ1bmN0aW9uKHVybCwgZGF0YSl7IHJlcy5wdXNoKHt0eXBlOiAicG9zdCIsIHVybDogdXJsLCBwYXJhbXM6IGRhdGF9KTsgfTsgJC5nZXRTY3JpcHQgPSBmdW5jdGlvbih1cmwpeyByZXMucHVzaCh7dHlwZTogImdldFNjcmlwdCIsIHVybDogdXJsLCBwYXJhbXM6IHsiXyI6IERhdGUubm93KCl9fSk7IH07IHZhciBYTUxIdHRwUmVxdWVzdCA9IGZ1bmN0aW9uIFhNTEh0dHBSZXF1ZXN0KCkgeyB0aGlzLm9wZW4gPSBmdW5jdGlvbihtLCB1KSB7IHJlcy5wdXNoKHsgdXJsOiB1IH0pOyB9OyB0aGlzLnNlbmQgPSBmdW5jdGlvbigpIHt9OyB9OyB2YXIgZmluZF92b2QgPSAoc3RyIHx8ICIiKS5yZXBsYWNlKC9cbi9nLCAiIikubWF0Y2goL2lmICpcKCAqIU1PVklFX0lTX0NPTUlORyAqXCkgKlx7ICpyZXNpemVfcGxheWVyXChcKTsgKihcd1tcd1xkXSopXChcKTsgKlx9Lyk7IHZhciBvbGRUID0gd2luZG93LnNldFRpbWVvdXQsIG9sZENUID0gd2luZG93LmNsZWFyVGltZW91dCwgb2xkSSA9IHdpbmRvdy5zZXRJbnRlcnZhbCwgb2xkQ0kgPSB3aW5kb3cuY2xlYXJJbnRlcnZhbCwgb2xkQ29ucyA9IHdpbmRvdy5jb25zb2xlOyB0cnkgeyB0cnkgeyB3aW5kb3cuc2V0VGltZW91dCA9IHdpbmRvdy5zZXRJbnRlcnZhbCA9IGZJbnQ7IHdpbmRvdy5jbGVhclRpbWVvdXQgPSB3aW5kb3cuY2xlYXJJbnRlcnZhbCA9IGZWb2lkOyB3aW5kb3cuY29uc29sZSA9IHt9OyBldmFsKHNjcmlwdDEgKyAiXG4iICsgc2NyaXB0MiArICJcbiIgKyBzdHIgKyAiXG4iICsgKGZpbmRfdm9kID8gZmluZF92b2RbMV0gKyAiKCk7IiA6ICIiKSk7IH0gZmluYWxseSB7IHdpbmRvdy5zZXRUaW1lb3V0ID0gb2xkVDsgd2luZG93LmNsZWFyVGltZW91dCA9IG9sZENUOyB3aW5kb3cuc2V0SW50ZXJ2YWwgPSBvbGRJOyB3aW5kb3cuY2xlYXJJbnRlcnZhbCA9IG9sZENJOyB3aW5kb3cuY29uc29sZSA9IG9sZENvbnM7IH0gfSBjYXRjaCAoZSl7IH0gdmFyIHBhcmFtcyA9IHt9OyByZXMuZm9yRWFjaChmdW5jdGlvbiAocCl7IGlmICgoL1wvdm9kXC8vKS50ZXN0KHAudXJsKSkgcGFyYW1zLnZvZCA9IHA7IH0pOyByZXR1cm4gcGFyYW1zOyB9KS5jYWxsKHt9LA==');
+      var user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36';
+      var check_cookie = Lampa.Storage.get('online_mod_kinobase_cookie', '') + '';
       var filter_items = {};
       var choice = {
         season: 0,
@@ -2315,9 +2339,26 @@
         select_title = object.search || object.movie.title;
         if (this.wait_similars && data && data[0].is_similars) return getPage(data[0].link);
         var url = embed + 'search?query=' + encodeURIComponent(component.cleanTitle(select_title));
+        var cookie = check_cookie;
+        var headers = Lampa.Platform.is('android') ? {
+          'Origin': host,
+          'Referer': ref,
+          'User-Agent': user_agent,
+          'Cookie': cookie
+        } : {};
+        var page_prox = prox;
+
+        if (page_prox) {
+          page_prox += 'param/Origin=' + encodeURIComponent(host) + '/';
+          page_prox += 'param/Referer=' + encodeURIComponent(ref) + '/';
+          stream_prox = page_prox;
+          page_prox += 'param/User-Agent=' + encodeURIComponent(user_agent) + '/';
+          page_prox += 'param/Cookie=' + encodeURIComponent(cookie) + '/';
+        }
+
         network.clear();
         network.timeout(1000 * 10);
-        network["native"](prox + url, function (str) {
+        network["native"](page_prox + url, function (str) {
           str = (str || '').replace(/\n/g, '');
           var links = object.movie.number_of_seasons ? str.match(/<div class="title"><a href="\/(serial|tv_show)\/([^"]*)"[^>]*>(.*?)<\/a><\/div>/g) : str.match(/<div class="title"><a href="\/film\/([^"]*)"[^>]*>(.*?)<\/a><\/div>/g);
           var search_date = object.search_date || !object.clarification && (object.movie.release_date || object.movie.first_air_date || object.movie.last_air_date) || '0000';
@@ -2403,10 +2444,7 @@
         }, false, {
           dataType: 'text',
           withCredentials: !prox,
-          headers: Lampa.Platform.is('android') ? {
-            'Origin': host,
-            'Referer': ref
-          } : {}
+          headers: headers
         });
       };
 
@@ -2633,10 +2671,11 @@
 
       function getPage(url) {
         url = component.fixLink(url, '', ref);
-        var cookie = 'player_type=new; file_type=' + file_type + '; uak=' + Math.floor(Date.now() / 1000);
+        var cookie = (check_cookie ? check_cookie + '; ' : '') + 'player_type=new; file_type=' + file_type + '; uak=' + Math.floor(Date.now() / 1000);
         var headers = Lampa.Platform.is('android') ? {
           'Origin': host,
           'Referer': url,
+          'User-Agent': user_agent,
           'Cookie': cookie
         } : {};
         var page_prox = prox;
@@ -2645,6 +2684,7 @@
           page_prox += 'param/Origin=' + encodeURIComponent(host) + '/';
           page_prox += 'param/Referer=' + encodeURIComponent(url) + '/';
           stream_prox = page_prox;
+          page_prox += 'param/User-Agent=' + encodeURIComponent(user_agent) + '/';
           page_prox += 'param/Cookie=' + encodeURIComponent(cookie) + '/';
         }
 
@@ -3822,7 +3862,7 @@
       }
 
       var dev_id = '1d07ba88e4b45d30';
-      var token = Lampa.Storage.get('filmix_token', '');
+      var token = Lampa.Storage.get('filmix_token', '') + '';
       var dev_token = '?user_dev_apk=2.0.1&user_dev_id=' + dev_id + '&user_dev_name=Xiaomi&user_dev_os=12&user_dev_token=' + (token || 'aaaabbbbccccddddeeeeffffaaaabbbb') + '&user_dev_vendor=Xiaomi';
       var abuse_token = '?user_dev_apk=2.0.1&user_dev_id=' + '&user_dev_name=Xiaomi&user_dev_os=12&user_dev_token=' + atob('YmMxNzBkZTNiMmNhZmIwOTI4M2I5MzYwMTFmMDU0ZWQ=') + '&user_dev_vendor=Xiaomi';
       /**
@@ -14092,7 +14132,7 @@
       });
       var files = new Lampa.Explorer(object);
       var filter = new Lampa.Filter(object);
-      var balanser = Lampa.Storage.get('online_mod_balanser', 'videocdn');
+      var balanser = Lampa.Storage.get('online_mod_balanser', 'zetflix') + '';
       var last_bls = Lampa.Storage.field('online_mod_save_last_balanser') === true ? Lampa.Storage.cache('online_mod_last_balanser', 200, {}) : {};
       var use_stream_proxy = Lampa.Storage.field('online_mod_use_stream_proxy') === true;
       var rezka2_fix_stream = Lampa.Storage.field('online_mod_rezka2_fix_stream') === true;
@@ -14288,7 +14328,7 @@
       }); // шаловливые ручки
 
       if (filter_sources.indexOf(balanser) == -1) {
-        balanser = 'videocdn';
+        balanser = 'zetflix';
         Lampa.Storage.set('online_mod_balanser', balanser);
       }
 
@@ -15399,7 +15439,7 @@
       };
     }
 
-    var mod_version = '22.08.2024';
+    var mod_version = '26.08.2024';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
@@ -15454,7 +15494,7 @@
     Lampa.Params.trigger('online_mod_save_last_balanser', false);
     Lampa.Params.trigger('online_mod_rezka2_fix_stream', false);
     Lampa.Params.select('online_mod_kinobase_mirror', '', '');
-    Lampa.Params.select('online_mod_kinobase_token', '', '');
+    Lampa.Params.select('online_mod_kinobase_cookie', '', '');
     Lampa.Params.select('online_mod_rezka2_mirror', '', '');
     Lampa.Params.select('online_mod_rezka2_name', '', '');
     Lampa.Params.select('online_mod_rezka2_password', '', '');
@@ -15466,26 +15506,12 @@
       Lampa.Storage.set('online_mod_prefer_http', 'false');
     }
 
-    if (Lampa.Storage.get('online_mod_proxy_reset', '') != 1) {
-      Lampa.Storage.set('online_mod_proxy_videodb', 'false');
-      Lampa.Storage.set('online_mod_proxy_zetflix', 'false');
-      Lampa.Storage.set('online_mod_proxy_anilibria', 'false');
-
-      if (Lampa.Platform.is('android') || isLocal || Lampa.Storage.field('online_mod_iframe_proxy') === true) {
-        Lampa.Storage.set('online_mod_proxy_rezka', 'false');
+    if (Lampa.Storage.get('online_mod_proxy_reset', '') != 2) {
+      if (Lampa.Storage.get('online_mod_balanser', 'zetflix') + '' === 'videocdn') {
+        Lampa.Storage.set('online_mod_balanser', 'zetflix');
       }
 
-      if (Lampa.Storage.get('online_mod_rezka2_status', '') !== true) {
-        Lampa.Storage.set('online_mod_rezka2_mirror', '');
-      }
-
-      if (Lampa.Platform.is('android') || isLocal) {
-        Lampa.Storage.set('online_mod_proxy_rezka2', 'false');
-        Lampa.Storage.set('online_mod_proxy_redheadsound', 'false');
-        Lampa.Storage.set('online_mod_proxy_kodik', 'false');
-      }
-
-      Lampa.Storage.set('online_mod_proxy_reset', '1');
+      Lampa.Storage.set('online_mod_proxy_reset', '2');
     }
 
     if (!Lampa.Lang) {
@@ -15704,12 +15730,12 @@
         en: 'Mirror for Kinobase',
         zh: 'Kinobase的镜子'
       },
-      online_mod_kinobase_token: {
-        ru: 'ТОКЕН от Kinobase',
-        uk: 'ТОКЕН від Kinobase',
-        be: 'ТОКЕН ад Kinobase',
-        en: 'TOKEN from Kinobase',
-        zh: 'TOKEN 来自 Kinobase'
+      online_mod_kinobase_cookie: {
+        ru: 'Куки для Kinobase',
+        uk: 'Кукі для Kinobase',
+        be: 'Кукі для Kinobase',
+        en: 'Cookie for Kinobase',
+        zh: 'Kinobase 的 Cookie'
       },
       online_mod_rezka2_mirror: {
         ru: 'Зеркало для HDrezka',
@@ -16200,6 +16226,10 @@
     }
 
     template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_anilibria\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} AniLibria</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_kodik\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} Kodik</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_skip_kp_search\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_skip_kp_search}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_iframe_proxy\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_iframe_proxy}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_prefer_http\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_prefer_http}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_prefer_mp4\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_prefer_mp4}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_prefer_dash\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_prefer_dash}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_save_last_balanser\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_save_last_balanser}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_clear_last_balanser\" data-static=\"true\">\n        <div class=\"settings-param__name\">#{online_mod_clear_last_balanser}</div>\n        <div class=\"settings-param__status\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_kinobase_mirror\" data-type=\"input\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{online_mod_kinobase_mirror}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
+
+    {
+      template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_kinobase_cookie\" data-type=\"input\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{online_mod_kinobase_cookie}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
+    }
 
     template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_rezka2_mirror\" data-type=\"input\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{online_mod_rezka2_mirror}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_rezka2_mirror\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_rezka2_mirror}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_rezka2_name\" data-type=\"input\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{online_mod_rezka2_name}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_rezka2_password\" data-type=\"input\" data-string=\"true\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{online_mod_rezka2_password}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
 
