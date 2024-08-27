@@ -1,4 +1,4 @@
-//27.08.2024 - Fix
+//28.08.2024 - Fix
 
 (function () {
     'use strict';
@@ -14135,7 +14135,7 @@
       });
       var files = new Lampa.Explorer(object);
       var filter = new Lampa.Filter(object);
-      var balanser = Lampa.Storage.get('online_mod_balanser', 'zetflix') + '';
+      var balanser = Lampa.Storage.get('online_mod_balanser', 'collaps') + '';
       var last_bls = Lampa.Storage.field('online_mod_save_last_balanser') === true ? Lampa.Storage.cache('online_mod_last_balanser', 200, {}) : {};
       var use_stream_proxy = Lampa.Storage.field('online_mod_use_stream_proxy') === true;
       var rezka2_fix_stream = Lampa.Storage.field('online_mod_rezka2_fix_stream') === true;
@@ -14327,7 +14327,7 @@
       }); // шаловливые ручки
 
       if (filter_sources.indexOf(balanser) == -1) {
-        balanser = 'zetflix';
+        balanser = 'collaps';
         Lampa.Storage.set('online_mod_balanser', balanser);
       }
 
@@ -15438,7 +15438,7 @@
       };
     }
 
-    var mod_version = '27.08.2024';
+    var mod_version = '28.08.2024';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
@@ -15505,13 +15505,13 @@
       Lampa.Storage.set('online_mod_prefer_http', 'false');
     }
 
-    if (Lampa.Storage.get('online_mod_proxy_reset', '') != 3) {
-      if (Lampa.Storage.get('online_mod_balanser', 'zetflix') + '' === 'videocdn') {
-        Lampa.Storage.set('online_mod_balanser', 'zetflix');
+    if (Lampa.Storage.get('online_mod_proxy_reset', '') != 4) {
+      if (['videocdn', 'zetflix'].indexOf(Lampa.Storage.get('online_mod_balanser', 'collaps') + '') !== -1) {
+        Lampa.Storage.set('online_mod_balanser', 'collaps');
       }
 
       Lampa.Storage.set('online_mod_proxy_rezka2', 'false');
-      Lampa.Storage.set('online_mod_proxy_reset', '3');
+      Lampa.Storage.set('online_mod_proxy_reset', '4');
     }
 
     if (!Lampa.Lang) {
