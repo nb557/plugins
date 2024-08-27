@@ -1,4 +1,4 @@
-//26.08.2024 - Fix
+//27.08.2024 - Fix
 
 (function () {
     'use strict';
@@ -15438,7 +15438,7 @@
       };
     }
 
-    var mod_version = '26.08.2024';
+    var mod_version = '27.08.2024';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
@@ -15505,12 +15505,13 @@
       Lampa.Storage.set('online_mod_prefer_http', 'false');
     }
 
-    if (Lampa.Storage.get('online_mod_proxy_reset', '') != 2) {
+    if (Lampa.Storage.get('online_mod_proxy_reset', '') != 3) {
       if (Lampa.Storage.get('online_mod_balanser', 'zetflix') + '' === 'videocdn') {
         Lampa.Storage.set('online_mod_balanser', 'zetflix');
       }
 
-      Lampa.Storage.set('online_mod_proxy_reset', '2');
+      Lampa.Storage.set('online_mod_proxy_rezka2', 'false');
+      Lampa.Storage.set('online_mod_proxy_reset', '3');
     }
 
     if (!Lampa.Lang) {
