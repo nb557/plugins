@@ -15506,7 +15506,7 @@
     }
 
     if (Lampa.Storage.get('online_mod_proxy_reset', '') != 4) {
-      if (['videocdn', 'zetflix'].indexOf(Lampa.Storage.get('online_mod_balanser', 'collaps') + '') !== -1) {
+      if (['videocdn', 'zetflix'].indexOf(Lampa.Storage.get('online_mod_balanser', '') + '') !== -1) {
         Lampa.Storage.set('online_mod_balanser', 'collaps');
       }
 
