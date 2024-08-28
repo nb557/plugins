@@ -1,4 +1,4 @@
-//28.08.2024 - Fix
+//29.08.2024 - Fix
 
 (function () {
     'use strict';
@@ -14239,7 +14239,8 @@
         source: new zetflix(this, object),
         search: false,
         kp: true,
-        imdb: true
+        imdb: true,
+        disabled: disable_dbg
       }, {
         name: 'fancdn',
         title: 'FanCDN',
@@ -15438,7 +15439,7 @@
       };
     }
 
-    var mod_version = '28.08.2024';
+    var mod_version = '29.08.2024';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
