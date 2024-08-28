@@ -27,7 +27,7 @@ async function handle(request, connInfo) {
           body += "connInfo" + " = " + JSON.stringify(connInfo.remoteAddr) + "\n";
         }
         body += "request_url" + " = " + request.url + "\n";
-        body += "apn_version = 1.04\n";
+        body += "apn_version = 1.05\n";
         return new Response(body, corsHeaders);
       }
 
@@ -147,7 +147,7 @@ async function handle(request, connInfo) {
         request.headers.delete("cf-ray");
         request.headers.delete("cf-visitor");
       }
-      if (ip) {
+      if (ip && ip !== "no") {
         request.headers.set("X-Forwarded-For", ip);
         request.headers.set("X-Forwarded-Proto", "https");
         request.headers.set("X-Real-IP", ip);
@@ -213,8 +213,8 @@ async function handle(request, connInfo) {
             },
           });
         }
-        let ctype = response.headers.get("Content-Type");
-        if (ctype == "application/x-mpegurl" || ctype == "application/vnd.apple.mpegurl") {
+        let ctype = (response.headers.get("Content-Type") || '').toLowerCase();
+        if (["application/x-mpegurl", "application/vnd.apple.mpegurl"].indexOf(ctype) !== -1) {
           let body = edit_m3u8(await response.text(), proxy, apiUrl, apiBase);
           response.headers.delete("Content-Length");
           response.headers.delete("Content-Range");
