@@ -81,7 +81,9 @@
 
       var proxy2 = (window.location.protocol === 'https:' ? 'https://' : 'http://') + 'iqslgbok.deploy.cx/?';
       var proxy3 = proxy2;
-      var proxy_apn = (window.location.protocol === 'https:' ? 'https://' : 'http://') + 'byzkhkgr.deploy.cx/?' + param_ip;
+      var proxy_apn = (window.location.protocol === 'https:' ? 'https://' : 'http://') + 'byzkhkgr.deploy.cx/?';
+      var proxy_apn1 = proxy_apn + param_ip;
+      var proxy_apn2 = proxy_apn + 'ipno/';
       var proxy_secret = decodeSecret([80, 68, 77, 68, 64, 3, 27, 31, 85, 72, 94, 20, 89, 81, 12, 1, 6, 26, 83, 95, 64, 81, 81, 23, 85, 64, 68, 23]) + param_ip;
       var proxy_other = Lampa.Storage.field('online_mod_proxy_other') === true;
       var proxy_other_url = proxy_other ? Lampa.Storage.field('online_mod_proxy_other_url') + '' : '';
@@ -90,18 +92,18 @@
       if (name === 'filmix') return window.location.protocol === 'https:' ? user_proxy2 : '';
       if (name === 'filmix_site') return user_proxy2;
       if (name === 'svetacdn') return '';
-      if (name === 'allohacdn') return proxy_other ? proxy_secret : proxy_apn;
+      if (name === 'zetflix') return proxy_apn2;
+      if (name === 'allohacdn') return proxy_other ? proxy_secret : proxy_apn1;
       if (name === 'cookie') return user_proxy2;
 
       if (Lampa.Storage.field('online_mod_proxy_' + name) === true) {
         if (name === 'rezka') return user_proxy2;
         if (name === 'rezka2') return user_proxy2;
-        if (name === 'kinobase') return proxy_apn;
-        if (name === 'cdnmovies') return proxy_other ? proxy_secret : proxy_apn;
+        if (name === 'kinobase') return proxy_apn1;
+        if (name === 'cdnmovies') return proxy_other ? proxy_secret : proxy_apn1;
         if (name === 'videodb') return user_proxy2;
-        if (name === 'zetflix') return user_proxy2;
         if (name === 'fancdn') return user_proxy2;
-        if (name === 'redheadsound') return proxy_other ? proxy_secret : proxy_apn;
+        if (name === 'redheadsound') return proxy_other ? proxy_secret : proxy_apn1;
         if (name === 'anilibria') return user_proxy2;
         if (name === 'kodik') return user_proxy3;
         if (name === 'kinopub') return user_proxy2;
@@ -4426,8 +4428,8 @@
       var select_title = '';
       var select_id = '';
       var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true;
-      component.proxy('zetflix');
-      var embed = (prefer_http ? 'http://bwa-cloud.cfhttp.top/' : 'https://bwa-cloud.apn.monster/') + 'lite/zetflix';
+      var prox = component.proxy('zetflix');
+      var embed = (prefer_http ? 'http:' : 'https:') + '//hidxlglk.deploy.cx/lite/zetflix';
       var filter_items = {};
       var choice = {
         season: 0,
@@ -4484,9 +4486,7 @@
           try {
             network.clear();
             network.timeout(10000);
-            network.silent(
-            /*prox +*/
-            url, call_success, call_error, false, {
+            network.silent(url, call_success, call_error, false, {
               dataType: 'text'
             });
           } finally {
@@ -4558,7 +4558,7 @@
             return {
               label: item.label,
               quality: quality ? parseInt(quality[1]) : NaN,
-              file: component.proxyStream(link, 'zetflix')
+              file: component.fixLink(link, prox)
             };
           });
           items.sort(function (a, b) {
