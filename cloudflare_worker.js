@@ -25,7 +25,7 @@ export default {
         let body = "";
         request.headers.forEach((value, key) => body += key + " = " + value + "\n");
         body += "request_url" + " = " + request.url + "\n";
-        body += "worker_version = 1.05\n";
+        body += "worker_version = 1.06\n";
         return new Response(body, corsHeaders);
       }
 
@@ -90,7 +90,7 @@ export default {
 
       if (!ip) {
         let forwarded_for = request.headers.get("X-Forwarded-For");
-        if (forwarded_for) ip = forwarded_for.split(",")[0].trim();
+        if (forwarded_for) ip = forwarded_for.split(",").map(s=>s.trim()).find(s=>s && !s.match(/^(127\.|10\.|172\.1[6-9]|172\.2[0-9]|172\.3[01]|192\.168\.)/)) || "";
       }
       if (!ip) ip = request.headers.get("cf-connecting-ip");
       if (!ip) ip = request.headers.get("X-Real-IP");
@@ -151,7 +151,7 @@ export default {
         request.headers.set("cf-connecting-ip", ip);
       }
       if (apiUrl.hostname === "rezka.ag" || apiUrl.hostname === "hdrezka.ag" || apiUrl.hostname === "hdrezka.me" || apiUrl.hostname === "hdrezka.sh" || apiUrl.hostname === "hdrezka.cm" || apiUrl.hostname === "hdrezka.kim" || apiUrl.hostname === "hdrezka.la" || apiUrl.hostname === "rezka.pub" || apiUrl.hostname === "kinopub.me") {
-        request.headers.set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36");
+        request.headers.set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36");
       }
       if (apiUrl.hostname.endsWith(".svetacdn.in")) {
         request.headers.set("Origin", "https://videocdn.tv");
@@ -162,7 +162,7 @@ export default {
         request.headers.set("Referer", "https://cdnmovies.net/");
       }
       if (apiUrl.hostname.endsWith(".bazon.site")) {
-        request.headers.set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36");
+        request.headers.set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36");
         request.headers.set("Origin", "https://bazon.cc");
         request.headers.set("Referer", "https://bazon.cc/");
       }

@@ -14,7 +14,7 @@ async function handle(request, connInfo) {
       const url = new URL(request.url);
       let api_pos = url.origin.length + 1;
       let api = url.href.substring(api_pos);
-      let ip = "";
+      let ip = "no";
       let redirect = request.method === "POST" ? "manual" : "follow";
       let get_cookie = false;
       let params = [];
@@ -27,7 +27,7 @@ async function handle(request, connInfo) {
           body += "connInfo" + " = " + JSON.stringify(connInfo.remoteAddr) + "\n";
         }
         body += "request_url" + " = " + request.url + "\n";
-        body += "apn_version = 1.05\n";
+        body += "apn_version = 1.06\n";
         return new Response(body, corsHeaders);
       }
 
@@ -92,7 +92,7 @@ async function handle(request, connInfo) {
 
       if (!ip) {
         let forwarded_for = request.headers.get("X-Forwarded-For");
-        if (forwarded_for) ip = forwarded_for.split(",")[0].trim();
+        if (forwarded_for) ip = forwarded_for.split(",").map(s=>s.trim()).find(s=>s && !s.match(/^(127\.|10\.|172\.1[6-9]|172\.2[0-9]|172\.3[01]|192\.168\.)/)) || "";
       }
       if (!ip) ip = request.headers.get("cf-connecting-ip");
       if (!ip) ip = request.headers.get("X-Real-IP");
@@ -154,7 +154,7 @@ async function handle(request, connInfo) {
         request.headers.set("cf-connecting-ip", ip);
       }
       if (apiUrl.hostname === "rezka.ag" || apiUrl.hostname === "hdrezka.ag" || apiUrl.hostname === "hdrezka.me" || apiUrl.hostname === "hdrezka.sh" || apiUrl.hostname === "hdrezka.cm" || apiUrl.hostname === "hdrezka.kim" || apiUrl.hostname === "hdrezka.la" || apiUrl.hostname === "rezka.pub" || apiUrl.hostname === "kinopub.me") {
-        request.headers.set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36");
+        request.headers.set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36");
       }
       if (apiUrl.hostname.endsWith(".svetacdn.in")) {
         request.headers.set("Origin", "https://videocdn.tv");
@@ -165,7 +165,7 @@ async function handle(request, connInfo) {
         request.headers.set("Referer", "https://cdnmovies.net/");
       }
       if (apiUrl.hostname.endsWith(".bazon.site")) {
-        request.headers.set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36");
+        request.headers.set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36");
         request.headers.set("Origin", "https://bazon.cc");
         request.headers.set("Referer", "https://bazon.cc/");
       }

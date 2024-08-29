@@ -1,4 +1,4 @@
-//29.08.2024 - Fix
+//30.08.2024 - Fix
 
 (function () {
     'use strict';
@@ -72,38 +72,37 @@
     }
 
     function proxy(name) {
-      var ip = getMyIp();
-      var param_ip = ip ? 'ip' + ip + '/' : '';
+      var ip = getMyIp() || '';
+      var param_ip = Lampa.Storage.field('online_mod_proxy_find_ip') === true ? 'ip' + ip + '/' : '';
+      var proxy1 = 'https://cors.nb557.workers.dev:8443/';
+      var proxy2 = (window.location.protocol === 'https:' ? 'https://' : 'http://') + 'iqslgbok.deploy.cx/?';
       /*
-          let proxy2 = 'https://cors.nb557.workers.dev:8443/'
           let proxy3 = 'https://cors557.deno.dev/'
       */
 
-      var proxy2 = (window.location.protocol === 'https:' ? 'https://' : 'http://') + 'iqslgbok.deploy.cx/?';
       var proxy3 = proxy2;
       var proxy_apn = (window.location.protocol === 'https:' ? 'https://' : 'http://') + 'byzkhkgr.deploy.cx/?';
-      var proxy_apn1 = proxy_apn + param_ip;
-      var proxy_apn2 = proxy_apn + 'ipno/';
-      var proxy_secret = decodeSecret([80, 68, 77, 68, 64, 3, 27, 31, 85, 72, 94, 20, 89, 81, 12, 1, 6, 26, 83, 95, 64, 81, 81, 23, 85, 64, 68, 23]) + param_ip;
+      var proxy_secret = decodeSecret([80, 68, 77, 68, 64, 3, 27, 31, 85, 72, 94, 20, 89, 81, 12, 1, 6, 26, 83, 95, 64, 81, 81, 23, 85, 64, 68, 23]);
       var proxy_other = Lampa.Storage.field('online_mod_proxy_other') === true;
       var proxy_other_url = proxy_other ? Lampa.Storage.field('online_mod_proxy_other_url') + '' : '';
+      var user_proxy1 = (proxy_other_url || proxy1) + param_ip;
       var user_proxy2 = (proxy_other_url || proxy2) + param_ip;
       var user_proxy3 = (proxy_other_url || proxy3) + param_ip;
       if (name === 'filmix') return window.location.protocol === 'https:' ? user_proxy2 : '';
       if (name === 'filmix_site') return user_proxy2;
       if (name === 'svetacdn') return '';
-      if (name === 'zetflix') return proxy_apn2;
-      if (name === 'allohacdn') return proxy_other ? proxy_secret : proxy_apn1;
-      if (name === 'cookie') return user_proxy2;
+      if (name === 'zetflix') return proxy_apn;
+      if (name === 'allohacdn') return proxy_other ? proxy_secret : proxy_apn;
+      if (name === 'cookie') return user_proxy1;
 
       if (Lampa.Storage.field('online_mod_proxy_' + name) === true) {
         if (name === 'rezka') return user_proxy2;
         if (name === 'rezka2') return user_proxy2;
-        if (name === 'kinobase') return proxy_apn1;
-        if (name === 'cdnmovies') return proxy_other ? proxy_secret : proxy_apn1;
+        if (name === 'kinobase') return proxy_apn;
+        if (name === 'cdnmovies') return proxy_other ? proxy_secret : proxy_apn;
         if (name === 'videodb') return user_proxy2;
         if (name === 'fancdn') return user_proxy2;
-        if (name === 'redheadsound') return proxy_other ? proxy_secret : proxy_apn1;
+        if (name === 'redheadsound') return proxy_other ? proxy_secret : proxy_apn;
         if (name === 'anilibria') return user_proxy2;
         if (name === 'kodik') return user_proxy3;
         if (name === 'kinopub') return user_proxy2;
@@ -1417,7 +1416,7 @@
       var headers = Lampa.Platform.is('android') && !logged_in ? {
         'Origin': host,
         'Referer': ref,
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36'
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36'
       } : {};
       var cookie = Lampa.Storage.get('online_mod_rezka2_cookie', '') + '';
       if (cookie.indexOf('PHPSESSID=') == -1) cookie = 'PHPSESSID=' + Lampa.Utils.uid(26) + (cookie ? '; ' + cookie : '');
@@ -1644,6 +1643,10 @@
             if (links && links.length) data = data.concat(links);
             if (callback) callback(data, have_more, query);
           }, function (a, c) {
+            if (prox && a.status == 403 && a.responseText && a.responseText.indexOf('<div>105</div>') !== -1) {
+              Lampa.Storage.set('online_mod_proxy_rezka2', 'false');
+            }
+
             component.empty(network.errorDecode(a, c));
           }, postdata, {
             dataType: 'text',
@@ -2320,8 +2323,8 @@
       var host = prox ? 'https://kinobase.org' : Utils.kinobaseMirror();
       var ref = host + '/';
       var embed = ref;
-      var decrypt = atob('InVzZSBzdHJpY3QiOyAoZnVuY3Rpb24oc2NyaXB0MSwgc2NyaXB0Miwgc3RyLCBQTEFZRVJfVFlQRSwgRklMRV9UWVBFKXsgdmFyIHJlcyA9IFtdOyB2YXIgZG9jdW1lbnQgPSAobmV3IERPTVBhcnNlcikucGFyc2VGcm9tU3RyaW5nKCI8aGVhZD48L2hlYWQ+PGJvZHk+PC9ib2R5PiIsICJ0ZXh0L2h0bWwiKTsgdmFyIHBhdXNlX3RpbWUgPSAwOyB2YXIgZlZvaWQgPSBmdW5jdGlvbigpe307IHZhciBmSW50ID0gZnVuY3Rpb24oKXsgcmV0dXJuIDE7IH07IHZhciAkID0gZnVuY3Rpb24oKXsgcmV0dXJuICQ7IH07ICQuYWRkQ2xhc3MgPSAkLmFmdGVyID0gJC5hcHBlbmQgPSAkLmF0dHIgPSAkLmNsaWNrID0gJC5jbG9zZXN0ID0gJC5jc3MgPSAkLmZpbmQgPSAkLmZvY3VzID0gJC5oaWRlID0gJC5odG1sID0gJC5vbiA9ICQucGFyZW50ID0gJC5wcmVwZW5kID0gJC5yYXRpbmcgPSAkLnJlYWR5ID0gJC5yZW1vdmUgPSAkLnJlbW92ZUNsYXNzID0gJC5zaG93ID0gJC5zdWJtaXQgPSAkLnRhYiA9ICQudGV4dCA9ICQudG9vbHRpcCA9ICQudmFsID0gJDsgJC53aWR0aCA9IGZJbnQ7ICQuYWpheFNldHVwID0gJC5jb29raWUgPSBmVm9pZDsgJC5hamF4ID0gZnVuY3Rpb24oc2V0dGluZ3MpeyBpZiAoc2V0dGluZ3MubWV0aG9kID09PSAiSEVBRCIgfHwgc2V0dGluZ3MudHlwZSA9PT0gIkhFQUQiKXsgaWYgKHNldHRpbmdzLnN1Y2Nlc3MpIHNldHRpbmdzLnN1Y2Nlc3MobnVsbCwgInN1Y2Nlc3MiLCB7fSk7IGlmIChzZXR0aW5ncy5jb21wbGV0ZSkgc2V0dGluZ3MuY29tcGxldGUoe30sICJzdWNjZXNzIik7IH0gZWxzZSBpZiAoc2V0dGluZ3MudXJsKSByZXMucHVzaCh7dHlwZTogImFqYXgiLCB1cmw6IHNldHRpbmdzLnVybCwgcGFyYW1zOiBzZXR0aW5ncy5kYXRhfSk7IH07ICQuZ2V0ID0gZnVuY3Rpb24odXJsLCBkYXRhKXsgcmVzLnB1c2goe3R5cGU6ICJnZXQiLCB1cmw6IHVybCwgcGFyYW1zOiBkYXRhfSk7IH07ICQucG9zdCA9IGZ1bmN0aW9uKHVybCwgZGF0YSl7IHJlcy5wdXNoKHt0eXBlOiAicG9zdCIsIHVybDogdXJsLCBwYXJhbXM6IGRhdGF9KTsgfTsgJC5nZXRTY3JpcHQgPSBmdW5jdGlvbih1cmwpeyByZXMucHVzaCh7dHlwZTogImdldFNjcmlwdCIsIHVybDogdXJsLCBwYXJhbXM6IHsiXyI6IERhdGUubm93KCl9fSk7IH07IHZhciBYTUxIdHRwUmVxdWVzdCA9IGZ1bmN0aW9uIFhNTEh0dHBSZXF1ZXN0KCkgeyB0aGlzLm9wZW4gPSBmdW5jdGlvbihtLCB1KSB7IHJlcy5wdXNoKHsgdXJsOiB1IH0pOyB9OyB0aGlzLnNlbmQgPSBmdW5jdGlvbigpIHt9OyB9OyB2YXIgZmluZF92b2QgPSAoc3RyIHx8ICIiKS5yZXBsYWNlKC9cbi9nLCAiIikubWF0Y2goL2lmICpcKCAqIU1PVklFX0lTX0NPTUlORyAqXCkgKlx7ICpyZXNpemVfcGxheWVyXChcKTsgKihcd1tcd1xkXSopXChcKTsgKlx9Lyk7IHZhciBvbGRUID0gd2luZG93LnNldFRpbWVvdXQsIG9sZENUID0gd2luZG93LmNsZWFyVGltZW91dCwgb2xkSSA9IHdpbmRvdy5zZXRJbnRlcnZhbCwgb2xkQ0kgPSB3aW5kb3cuY2xlYXJJbnRlcnZhbCwgb2xkQ29ucyA9IHdpbmRvdy5jb25zb2xlOyB0cnkgeyB0cnkgeyB3aW5kb3cuc2V0VGltZW91dCA9IHdpbmRvdy5zZXRJbnRlcnZhbCA9IGZJbnQ7IHdpbmRvdy5jbGVhclRpbWVvdXQgPSB3aW5kb3cuY2xlYXJJbnRlcnZhbCA9IGZWb2lkOyB3aW5kb3cuY29uc29sZSA9IHt9OyBldmFsKHNjcmlwdDEgKyAiXG4iICsgc2NyaXB0MiArICJcbiIgKyBzdHIgKyAiXG4iICsgKGZpbmRfdm9kID8gZmluZF92b2RbMV0gKyAiKCk7IiA6ICIiKSk7IH0gZmluYWxseSB7IHdpbmRvdy5zZXRUaW1lb3V0ID0gb2xkVDsgd2luZG93LmNsZWFyVGltZW91dCA9IG9sZENUOyB3aW5kb3cuc2V0SW50ZXJ2YWwgPSBvbGRJOyB3aW5kb3cuY2xlYXJJbnRlcnZhbCA9IG9sZENJOyB3aW5kb3cuY29uc29sZSA9IG9sZENvbnM7IH0gfSBjYXRjaCAoZSl7IH0gdmFyIHBhcmFtcyA9IHt9OyByZXMuZm9yRWFjaChmdW5jdGlvbiAocCl7IGlmICgoL1wvdm9kXC8vKS50ZXN0KHAudXJsKSkgcGFyYW1zLnZvZCA9IHA7IH0pOyByZXR1cm4gcGFyYW1zOyB9KS5jYWxsKHt9LA==');
-      var user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36';
+      var decrypt = atob('InVzZSBzdHJpY3QiOyAoZnVuY3Rpb24oc2NyaXB0MSwgc2NyaXB0Miwgc3RyLCBQTEFZRVJfVFlQRSwgRklMRV9UWVBFKXsgdmFyIHJlcyA9IFtdOyB2YXIgZG9jdW1lbnQgPSAobmV3IERPTVBhcnNlcikucGFyc2VGcm9tU3RyaW5nKCI8aGVhZD48L2hlYWQ+PGJvZHk+PC9ib2R5PiIsICJ0ZXh0L2h0bWwiKTsgdmFyIHBhdXNlX3RpbWUgPSAwOyB2YXIgZlZvaWQgPSBmdW5jdGlvbigpe307IHZhciBmSW50ID0gZnVuY3Rpb24oKXsgcmV0dXJuIDE7IH07IHZhciBYTUxIdHRwUmVxdWVzdCA9IGZ1bmN0aW9uIFhNTEh0dHBSZXF1ZXN0KCkgeyB0aGlzLm9wZW4gPSBmdW5jdGlvbihtLCB1KSB7IHJlcy5wdXNoKHsgdXJsOiB1IH0pOyB9OyB0aGlzLnNlbmQgPSBmdW5jdGlvbigpIHt9OyB9OyB2YXIgZmluZF92b2QgPSAoc3RyIHx8ICIiKS5yZXBsYWNlKC9cbi9nLCAiIikubWF0Y2goL2lmICpcKCAqIU1PVklFX0lTX0NPTUlORyAqXCkgKlx7ICpyZXNpemVfcGxheWVyXChcKTsgKiguKikgKlx9ICppZiAqXCggKmRhdGEuY2xpZW50X2NvdW50cnkgKj09ICoiUlUiICpcKSAqXHsvKTsgdmFyIGJhazEyMyA9IHsgYWpheFNldHVwOiAkLmFqYXhTZXR1cCwgY29va2llOiAkLmNvb2tpZSwgYWpheDogJC5hamF4LCBnZXQ6ICQuZ2V0LCBwb3N0OiAkLnBvc3QsIGdldFNjcmlwdDogJC5nZXRTY3JpcHQsIHNldFRpbWVvdXQ6IHdpbmRvdy5zZXRUaW1lb3V0LCBjbGVhclRpbWVvdXQ6IHdpbmRvdy5jbGVhclRpbWVvdXQsIHNldEludGVydmFsOiB3aW5kb3cuc2V0SW50ZXJ2YWwsIGNsZWFySW50ZXJ2YWw6IHdpbmRvdy5jbGVhckludGVydmFsLCBjb25zb2xlOiB3aW5kb3cuY29uc29sZSwgXzogIiIgfTsgdHJ5IHsgdHJ5IHsgJC5hamF4U2V0dXAgPSAkLmNvb2tpZSA9IGZWb2lkOyAkLmFqYXggPSBmdW5jdGlvbihzZXR0aW5ncyl7IGlmIChzZXR0aW5ncy5tZXRob2QgPT09ICJIRUFEIiB8fCBzZXR0aW5ncy50eXBlID09PSAiSEVBRCIpeyBpZiAoc2V0dGluZ3Muc3VjY2Vzcykgc2V0dGluZ3Muc3VjY2VzcyhudWxsLCAic3VjY2VzcyIsIHt9KTsgaWYgKHNldHRpbmdzLmNvbXBsZXRlKSBzZXR0aW5ncy5jb21wbGV0ZSh7fSwgInN1Y2Nlc3MiKTsgfSBlbHNlIGlmIChzZXR0aW5ncy51cmwpIHJlcy5wdXNoKHt0eXBlOiAiYWpheCIsIHVybDogc2V0dGluZ3MudXJsLCBwYXJhbXM6IHNldHRpbmdzLmRhdGF9KTsgfTsgJC5nZXQgPSBmdW5jdGlvbih1cmwsIGRhdGEpeyByZXMucHVzaCh7dHlwZTogImdldCIsIHVybDogdXJsLCBwYXJhbXM6IGRhdGF9KTsgfTsgJC5wb3N0ID0gZnVuY3Rpb24odXJsLCBkYXRhKXsgcmVzLnB1c2goe3R5cGU6ICJwb3N0IiwgdXJsOiB1cmwsIHBhcmFtczogZGF0YX0pOyB9OyAkLmdldFNjcmlwdCA9IGZ1bmN0aW9uKHVybCl7IHJlcy5wdXNoKHt0eXBlOiAiZ2V0U2NyaXB0IiwgdXJsOiB1cmwsIHBhcmFtczogeyJfIjogRGF0ZS5ub3coKX19KTsgfTsgd2luZG93LnNldFRpbWVvdXQgPSB3aW5kb3cuc2V0SW50ZXJ2YWwgPSBmSW50OyB3aW5kb3cuY2xlYXJUaW1lb3V0ID0gd2luZG93LmNsZWFySW50ZXJ2YWwgPSBmVm9pZDsgd2luZG93LmNvbnNvbGUgPSB7fTsgZXZhbChzY3JpcHQxICsgIlxuIiArIHNjcmlwdDIgKyAiXG4iICsgc3RyICsgIlxuIiArIChmaW5kX3ZvZCA/IGZpbmRfdm9kWzFdIDogIiIpKTsgfSBmaW5hbGx5IHsgJC5hamF4U2V0dXAgPSBiYWsxMjMuYWpheFNldHVwOyAkLmNvb2tpZSA9IGJhazEyMy5jb29raWU7ICQuYWpheCA9IGJhazEyMy5hamF4OyAkLmdldCA9IGJhazEyMy5nZXQ7ICQucG9zdCA9IGJhazEyMy5wb3N0OyAkLmdldFNjcmlwdCA9IGJhazEyMy5nZXRTY3JpcHQ7IHdpbmRvdy5zZXRUaW1lb3V0ID0gYmFrMTIzLnNldFRpbWVvdXQ7IHdpbmRvdy5jbGVhclRpbWVvdXQgPSBiYWsxMjMuY2xlYXJUaW1lb3V0OyB3aW5kb3cuc2V0SW50ZXJ2YWwgPSBiYWsxMjMuc2V0SW50ZXJ2YWw7IHdpbmRvdy5jbGVhckludGVydmFsID0gYmFrMTIzLmNsZWFySW50ZXJ2YWw7IHdpbmRvdy5jb25zb2xlID0gYmFrMTIzLmNvbnNvbGU7IH0gfSBjYXRjaCAoZSl7IH0gdmFyIHBhcmFtcyA9IHt9OyByZXMuZm9yRWFjaChmdW5jdGlvbiAocCl7IGlmICgoL1wvdm9kXC8vKS50ZXN0KHAudXJsKSkgcGFyYW1zLnZvZCA9IHA7IH0pOyByZXR1cm4gcGFyYW1zOyB9KS5jYWxsKHt9LA==');
+      var user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36';
       var check_cookie = Lampa.Storage.get('online_mod_kinobase_cookie', '') + '';
       var filter_items = {};
       var choice = {
@@ -2737,7 +2740,7 @@
                   }
 
                   var vod_params = params.vod && params.vod.params || {
-                    sbk: '1723410632'
+                    sbk: 'dd938skv9sh'
                   };
                   vod_params['identifier'] = IDENTIFIER[1];
                   vod_params['player_type'] = 'new';
@@ -2761,6 +2764,12 @@
                     withCredentials: !prox,
                     headers: headers
                   });
+                } else if (data && data.error) {
+                  if (prox) {
+                    component.empty(Lampa.Lang.translate('online_mod_captcha_proxy'));
+                  } else {
+                    component.empty(Lampa.Lang.translate('online_mod_captcha_address') + embed);
+                  }
                 } else component.emptyForQuery(select_title);
               }, function (a, c) {
                 component.empty(network.errorDecode(a, c));
@@ -15439,7 +15448,7 @@
       };
     }
 
-    var mod_version = '29.08.2024';
+    var mod_version = '30.08.2024';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
@@ -16161,9 +16170,10 @@
       network.timeout(8000);
       network.silent(prox + url, function (json) {
         var cookie = '';
+        var values = {};
+        var sid = '';
 
         if (json && json.cookie && json.cookie.forEach) {
-          var values = {};
           json.cookie.forEach(function (param) {
             var parts = param.split(';')[0].split("=");
 
@@ -16171,6 +16181,7 @@
               if (parts[1] === 'deleted') delete values[parts[0]];else values[parts[0]] = parts[1] || '';
             }
           });
+          sid = values['PHPSESSID'];
           delete values['PHPSESSID'];
           var cookies = [];
 
@@ -16183,7 +16194,31 @@
 
         if (cookie) {
           Lampa.Storage.set("online_mod_rezka2_cookie", cookie);
-          if (success) success();
+          if (cookie.indexOf('PHPSESSID=') == -1) cookie = 'PHPSESSID=' + (sid || Lampa.Utils.uid(26)) + (cookie ? '; ' + cookie : '');
+          prox += 'param/Cookie=' + encodeURIComponent(cookie) + '/';
+          network.clear();
+          network.timeout(8000);
+          network.silent(prox + host + '/', function (json) {
+            json.cookie.forEach(function (param) {
+              var parts = param.split(';')[0].split("=");
+
+              if (parts[0]) {
+                if (parts[1] === 'deleted') delete values[parts[0]];else values[parts[0]] = parts[1] || '';
+              }
+            });
+            delete values['PHPSESSID'];
+            var cookies = [];
+
+            for (var _name in values) {
+              cookies.push(_name + '=' + values[_name]);
+            }
+
+            cookie = cookies.join("; ");
+            if (cookie) Lampa.Storage.set("online_mod_rezka2_cookie", cookie);
+            if (success) success();
+          }, function (a, c) {
+            if (success) success();
+          });
         } else {
           if (error) error();
         }
