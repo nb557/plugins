@@ -2739,10 +2739,10 @@
                     _params = (0, eval)(decrypt + [JSON.stringify(component.decodeHtml(SCRIPTS[0])), JSON.stringify(component.decodeHtml(SCRIPTS[1])), JSON.stringify(script), JSON.stringify('new'), JSON.stringify(file_type), JSON.stringify(data)].join(',') + ');');
                   } catch (e) {}
 
-                  if (!_params.vod) {
-                    Lampa.Noty.show(Lampa.Lang.translate('online_mod_nolink'));
-                  } else if (data.allow_watch != null && !data.allow_watch) {
+                  if (data.allow_watch != null && !data.allow_watch) {
                     Lampa.Noty.show(Lampa.Lang.translate('online_mod_blockedlink') + (data.client_country ? ': ' + data.client_country : ''));
+                  } else if (!_params.vod) {
+                    Lampa.Noty.show(Lampa.Lang.translate('online_mod_nolink'));
                   }
 
                   var vod_params = _params.vod && _params.vod.params || {};
