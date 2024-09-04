@@ -1,4 +1,4 @@
-//31.08.2024 - Fix
+//04.09.2024 - Fix
 
 (function () {
     'use strict';
@@ -2323,7 +2323,7 @@
       var host = prox ? 'https://kinobase.org' : Utils.kinobaseMirror();
       var ref = host + '/';
       var embed = ref;
-      var decrypt = atob('InVzZSBzdHJpY3QiOyAoZnVuY3Rpb24oc2NyaXB0MSwgc2NyaXB0Miwgc3RyLCBQTEFZRVJfVFlQRSwgRklMRV9UWVBFKXsgdmFyIHJlcyA9IFtdOyB2YXIgZG9jdW1lbnQgPSAobmV3IERPTVBhcnNlcikucGFyc2VGcm9tU3RyaW5nKCI8aGVhZD48L2hlYWQ+PGJvZHk+PC9ib2R5PiIsICJ0ZXh0L2h0bWwiKTsgdmFyIHBhdXNlX3RpbWUgPSAwOyB2YXIgZlZvaWQgPSBmdW5jdGlvbigpe307IHZhciBmSW50ID0gZnVuY3Rpb24oKXsgcmV0dXJuIDE7IH07IHZhciBYTUxIdHRwUmVxdWVzdCA9IGZ1bmN0aW9uIFhNTEh0dHBSZXF1ZXN0KCkgeyB0aGlzLm9wZW4gPSBmdW5jdGlvbihtLCB1KSB7IHJlcy5wdXNoKHsgdXJsOiB1IH0pOyB9OyB0aGlzLnNlbmQgPSBmdW5jdGlvbigpIHt9OyB9OyB2YXIgZmluZF92b2QgPSAoc3RyIHx8ICIiKS5yZXBsYWNlKC9cbi9nLCAiIikubWF0Y2goL2lmICpcKCAqIU1PVklFX0lTX0NPTUlORyAqXCkgKlx7ICpyZXNpemVfcGxheWVyXChcKTsgKiguKikgKlx9ICppZiAqXCggKmRhdGEuY2xpZW50X2NvdW50cnkgKj09ICoiUlUiICpcKSAqXHsvKTsgdmFyIGJhazEyMyA9IHsgYWpheFNldHVwOiAkLmFqYXhTZXR1cCwgY29va2llOiAkLmNvb2tpZSwgYWpheDogJC5hamF4LCBnZXQ6ICQuZ2V0LCBwb3N0OiAkLnBvc3QsIGdldFNjcmlwdDogJC5nZXRTY3JpcHQsIHNldFRpbWVvdXQ6IHdpbmRvdy5zZXRUaW1lb3V0LCBjbGVhclRpbWVvdXQ6IHdpbmRvdy5jbGVhclRpbWVvdXQsIHNldEludGVydmFsOiB3aW5kb3cuc2V0SW50ZXJ2YWwsIGNsZWFySW50ZXJ2YWw6IHdpbmRvdy5jbGVhckludGVydmFsLCBjb25zb2xlOiB3aW5kb3cuY29uc29sZSwgXzogIiIgfTsgdHJ5IHsgdHJ5IHsgJC5hamF4U2V0dXAgPSAkLmNvb2tpZSA9IGZWb2lkOyAkLmFqYXggPSBmdW5jdGlvbihzZXR0aW5ncyl7IGlmIChzZXR0aW5ncy5tZXRob2QgPT09ICJIRUFEIiB8fCBzZXR0aW5ncy50eXBlID09PSAiSEVBRCIpeyBpZiAoc2V0dGluZ3Muc3VjY2Vzcykgc2V0dGluZ3Muc3VjY2VzcyhudWxsLCAic3VjY2VzcyIsIHt9KTsgaWYgKHNldHRpbmdzLmNvbXBsZXRlKSBzZXR0aW5ncy5jb21wbGV0ZSh7fSwgInN1Y2Nlc3MiKTsgfSBlbHNlIGlmIChzZXR0aW5ncy51cmwpIHJlcy5wdXNoKHt0eXBlOiAiYWpheCIsIHVybDogc2V0dGluZ3MudXJsLCBwYXJhbXM6IHNldHRpbmdzLmRhdGF9KTsgfTsgJC5nZXQgPSBmdW5jdGlvbih1cmwsIGRhdGEpeyByZXMucHVzaCh7dHlwZTogImdldCIsIHVybDogdXJsLCBwYXJhbXM6IGRhdGF9KTsgfTsgJC5wb3N0ID0gZnVuY3Rpb24odXJsLCBkYXRhKXsgcmVzLnB1c2goe3R5cGU6ICJwb3N0IiwgdXJsOiB1cmwsIHBhcmFtczogZGF0YX0pOyB9OyAkLmdldFNjcmlwdCA9IGZ1bmN0aW9uKHVybCl7IHJlcy5wdXNoKHt0eXBlOiAiZ2V0U2NyaXB0IiwgdXJsOiB1cmwsIHBhcmFtczogeyJfIjogRGF0ZS5ub3coKX19KTsgfTsgd2luZG93LnNldFRpbWVvdXQgPSB3aW5kb3cuc2V0SW50ZXJ2YWwgPSBmSW50OyB3aW5kb3cuY2xlYXJUaW1lb3V0ID0gd2luZG93LmNsZWFySW50ZXJ2YWwgPSBmVm9pZDsgd2luZG93LmNvbnNvbGUgPSB7fTsgZXZhbChzY3JpcHQxICsgIlxuIiArIHNjcmlwdDIgKyAiXG4iICsgc3RyICsgIlxuIiArIChmaW5kX3ZvZCA/IGZpbmRfdm9kWzFdIDogIiIpKTsgfSBmaW5hbGx5IHsgJC5hamF4U2V0dXAgPSBiYWsxMjMuYWpheFNldHVwOyAkLmNvb2tpZSA9IGJhazEyMy5jb29raWU7ICQuYWpheCA9IGJhazEyMy5hamF4OyAkLmdldCA9IGJhazEyMy5nZXQ7ICQucG9zdCA9IGJhazEyMy5wb3N0OyAkLmdldFNjcmlwdCA9IGJhazEyMy5nZXRTY3JpcHQ7IHdpbmRvdy5zZXRUaW1lb3V0ID0gYmFrMTIzLnNldFRpbWVvdXQ7IHdpbmRvdy5jbGVhclRpbWVvdXQgPSBiYWsxMjMuY2xlYXJUaW1lb3V0OyB3aW5kb3cuc2V0SW50ZXJ2YWwgPSBiYWsxMjMuc2V0SW50ZXJ2YWw7IHdpbmRvdy5jbGVhckludGVydmFsID0gYmFrMTIzLmNsZWFySW50ZXJ2YWw7IHdpbmRvdy5jb25zb2xlID0gYmFrMTIzLmNvbnNvbGU7IH0gfSBjYXRjaCAoZSl7IH0gdmFyIHBhcmFtcyA9IHt9OyByZXMuZm9yRWFjaChmdW5jdGlvbiAocCl7IGlmICgoL1wvdm9kXC8vKS50ZXN0KHAudXJsKSkgcGFyYW1zLnZvZCA9IHA7IH0pOyByZXR1cm4gcGFyYW1zOyB9KS5jYWxsKHt9LA==');
+      var decrypt = atob('InVzZSBzdHJpY3QiOyAoZnVuY3Rpb24oc2NyaXB0MSwgc2NyaXB0Miwgc3RyLCBQTEFZRVJfVFlQRSwgRklMRV9UWVBFLCBqc29uKXsgdmFyIHJlcyA9IFtdOyB2YXIgZG9jdW1lbnQgPSAobmV3IERPTVBhcnNlcikucGFyc2VGcm9tU3RyaW5nKCI8aGVhZD48L2hlYWQ+PGJvZHk+PC9ib2R5PiIsICJ0ZXh0L2h0bWwiKTsgdmFyIHBhdXNlX3RpbWUgPSAwOyB2YXIgZlZvaWQgPSBmdW5jdGlvbigpe307IHZhciBmSW50ID0gZnVuY3Rpb24oKXsgcmV0dXJuIDE7IH07IHZhciBYTUxIdHRwUmVxdWVzdCA9IGZ1bmN0aW9uIFhNTEh0dHBSZXF1ZXN0KCl7IHRoaXMub3BlbiA9IGZ1bmN0aW9uKG0sIHUpeyByZXMucHVzaCh7IHVybDogdSB9KTsgfTsgdGhpcy5zZW5kID0gZnVuY3Rpb24oKXt9OyB9OyB2YXIgYmFrMTIzID0geyBhamF4U2V0dXA6ICQuYWpheFNldHVwLCBjb29raWU6ICQuY29va2llLCBhamF4OiAkLmFqYXgsIGdldDogJC5nZXQsIHBvc3Q6ICQucG9zdCwgZ2V0U2NyaXB0OiAkLmdldFNjcmlwdCwgc2V0VGltZW91dDogd2luZG93LnNldFRpbWVvdXQsIGNsZWFyVGltZW91dDogd2luZG93LmNsZWFyVGltZW91dCwgc2V0SW50ZXJ2YWw6IHdpbmRvdy5zZXRJbnRlcnZhbCwgY2xlYXJJbnRlcnZhbDogd2luZG93LmNsZWFySW50ZXJ2YWwsIGNvbnNvbGU6IHdpbmRvdy5jb25zb2xlLCBmbl9pbml0OiAkLmZuLmluaXQsIF86ICIiIH07IHRyeSB7IHRyeSB7ICQuYWpheFNldHVwID0gJC5jb29raWUgPSBmVm9pZDsgJC5hamF4ID0gZnVuY3Rpb24oc2V0dGluZ3MpeyBpZiAoc2V0dGluZ3MubWV0aG9kID09PSAiSEVBRCIgfHwgc2V0dGluZ3MudHlwZSA9PT0gIkhFQUQiKXsgaWYgKHNldHRpbmdzLnN1Y2Nlc3MpIHNldHRpbmdzLnN1Y2Nlc3MobnVsbCwgInN1Y2Nlc3MiLCB7fSk7IGlmIChzZXR0aW5ncy5jb21wbGV0ZSkgc2V0dGluZ3MuY29tcGxldGUoe30sICJzdWNjZXNzIik7IH0gZWxzZSBpZiAoanNvbiAmJiAoL1wvdXNlcl9kYXRhLykudGVzdChzZXR0aW5ncy51cmwpKXsgaWYgKHNldHRpbmdzLnN1Y2Nlc3MpIHNldHRpbmdzLnN1Y2Nlc3MoanNvbiwgInN1Y2Nlc3MiLCB7fSk7IH0gZWxzZSBpZiAoc2V0dGluZ3MudXJsKSByZXMucHVzaCh7dHlwZTogImFqYXgiLCB1cmw6IHNldHRpbmdzLnVybCwgcGFyYW1zOiBzZXR0aW5ncy5kYXRhfSk7IH07ICQuZ2V0ID0gZnVuY3Rpb24odXJsLCBkYXRhKXsgcmVzLnB1c2goe3R5cGU6ICJnZXQiLCB1cmw6IHVybCwgcGFyYW1zOiBkYXRhfSk7IH07ICQucG9zdCA9IGZ1bmN0aW9uKHVybCwgZGF0YSl7IHJlcy5wdXNoKHt0eXBlOiAicG9zdCIsIHVybDogdXJsLCBwYXJhbXM6IGRhdGF9KTsgfTsgJC5nZXRTY3JpcHQgPSBmdW5jdGlvbih1cmwpeyByZXMucHVzaCh7dHlwZTogImdldFNjcmlwdCIsIHVybDogdXJsLCBwYXJhbXM6IHsiXyI6IERhdGUubm93KCl9fSk7IH07IHdpbmRvdy5zZXRUaW1lb3V0ID0gd2luZG93LnNldEludGVydmFsID0gZkludDsgd2luZG93LmNsZWFyVGltZW91dCA9IHdpbmRvdy5jbGVhckludGVydmFsID0gZlZvaWQ7IHdpbmRvdy5jb25zb2xlID0ge307ICQuZm4uaW5pdCA9IGZ1bmN0aW9uKHMsIGMsIHIpeyBjID0gYyB8fCBkb2N1bWVudDsgcmV0dXJuIG5ldyBiYWsxMjMuZm5faW5pdChzLCBjLCByKTsgfTsgZXZhbChzY3JpcHQxICsgIlxuIiArIHNjcmlwdDIgKyAiXG4iICsgc3RyICsgIlxudXNlcl9kYXRhKCk7Iik7IH0gZmluYWxseSB7ICQuYWpheFNldHVwID0gYmFrMTIzLmFqYXhTZXR1cDsgJC5jb29raWUgPSBiYWsxMjMuY29va2llOyAkLmFqYXggPSBiYWsxMjMuYWpheDsgJC5nZXQgPSBiYWsxMjMuZ2V0OyAkLnBvc3QgPSBiYWsxMjMucG9zdDsgJC5nZXRTY3JpcHQgPSBiYWsxMjMuZ2V0U2NyaXB0OyB3aW5kb3cuc2V0VGltZW91dCA9IGJhazEyMy5zZXRUaW1lb3V0OyB3aW5kb3cuY2xlYXJUaW1lb3V0ID0gYmFrMTIzLmNsZWFyVGltZW91dDsgd2luZG93LnNldEludGVydmFsID0gYmFrMTIzLnNldEludGVydmFsOyB3aW5kb3cuY2xlYXJJbnRlcnZhbCA9IGJhazEyMy5jbGVhckludGVydmFsOyB3aW5kb3cuY29uc29sZSA9IGJhazEyMy5jb25zb2xlOyAkLmZuLmluaXQgPSBiYWsxMjMuZm5faW5pdDsgfSB9IGNhdGNoIChlKXsgfSB2YXIgcGFyYW1zID0ge307IHJlcy5mb3JFYWNoKGZ1bmN0aW9uIChwKXsgaWYgKCgvXC91c2VyX2RhdGEvKS50ZXN0KHAudXJsKSkgcGFyYW1zLnVzZXIgPSBwOyBpZiAoKC9cL3ZvZFwvLykudGVzdChwLnVybCkpIHBhcmFtcy52b2QgPSBwOyB9KTsgcmV0dXJuIHBhcmFtczsgfSkuY2FsbCh7fSw=');
       var user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36';
       var check_cookie = Lampa.Storage.get('online_mod_kinobase_cookie', '') + '';
       var filter_items = {};
@@ -2677,7 +2677,7 @@
 
       function getPage(url) {
         url = component.fixLink(url, '', ref);
-        var cookie = (check_cookie ? check_cookie + '; ' : '') + 'player_type=new; file_type=' + file_type + '; nets=' + Math.floor(Date.now() / 1000);
+        var cookie = (check_cookie ? check_cookie + '; ' : '') + 'player_type=new; file_type=' + file_type;
         var headers = Lampa.Platform.is('android') ? {
           'Origin': host,
           'Referer': url,
@@ -2721,32 +2721,36 @@
                 params = (0, eval)(decrypt + [JSON.stringify(component.decodeHtml(SCRIPTS[0])), JSON.stringify(component.decodeHtml(SCRIPTS[1])), JSON.stringify(script), JSON.stringify('new'), JSON.stringify(file_type)].join(',') + ');');
               } catch (e) {}
 
-              var user_url = getUrlWithParams('/user_data', {
-                page: 'movie',
-                movie_id: MOVIE_ID[1],
-                cuid: PLAYER_CUID[1],
-                '_': Date.now()
-              });
+              var user_params = params.user && params.user.params || {};
+              user_params['page'] = 'movie';
+              user_params['movie_id'] = MOVIE_ID[1];
+              user_params['cuid'] = PLAYER_CUID[1];
+              user_params['_'] = Date.now();
+              var user_url = getUrlWithParams('/user_data', user_params);
               network.clear();
               network.timeout(1000 * 10);
               network["native"](page_prox + user_url, function (data) {
                 console.log('Kinobase', 'user:', data);
 
-                if (data && data.vod_hash2 != null && data.vod_time2 != null) {
-                  if (!params.vod) {
+                if (data && data.vod_hash != null && data.vod_time != null) {
+                  var _params = {};
+
+                  try {
+                    _params = (0, eval)(decrypt + [JSON.stringify(component.decodeHtml(SCRIPTS[0])), JSON.stringify(component.decodeHtml(SCRIPTS[1])), JSON.stringify(script), JSON.stringify('new'), JSON.stringify(file_type), JSON.stringify(data)].join(',') + ');');
+                  } catch (e) {}
+
+                  if (!_params.vod) {
                     Lampa.Noty.show(Lampa.Lang.translate('online_mod_nolink'));
                   } else if (data.allow_watch != null && !data.allow_watch) {
                     Lampa.Noty.show(Lampa.Lang.translate('online_mod_blockedlink') + (data.client_country ? ': ' + data.client_country : ''));
                   }
 
-                  var vod_params = params.vod && params.vod.params || {
-                    sbk: 'dd938skv9sh'
-                  };
+                  var vod_params = _params.vod && _params.vod.params || {};
                   vod_params['identifier'] = IDENTIFIER[1];
                   vod_params['player_type'] = 'new';
                   vod_params['file_type'] = file_type;
-                  vod_params['st'] = data.vod_hash2;
-                  vod_params['e'] = data.vod_time2;
+                  vod_params['st'] = data.vod_hash;
+                  vod_params['e'] = data.vod_time;
                   vod_params['_'] = Date.now();
                   var vod_url = getUrlWithParams('/vod/' + MOVIE_ID[1], vod_params);
                   network.clear();
@@ -3278,8 +3282,8 @@
       var extract = [];
       var object = _object;
       var select_title = '';
-      var prefer_http = false;
-      var prefer_mp4 = false;
+      var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true;
+      var prefer_mp4 = Lampa.Storage.field('online_mod_prefer_mp4') === true;
       var prox = component.proxy('cdnmovies');
       var stream_prox = prox;
       var iframe_proxy = !prox && Lampa.Storage.field('online_mod_iframe_proxy') === true && !startsWith(window.location.protocol, 'http');
@@ -3484,8 +3488,8 @@
             var quality = item.label.match(/(\d\d\d+)p/);
             var link = item.links[0] || '';
             link = link.replace('/sundb.coldcdn.xyz/', '/sundb.nl/');
-            if (prefer_http) ;
-            if (prefer_mp4) ;
+            if (prefer_http) link = link.replace('https://', 'http://');
+            if (prefer_mp4) link = link.replace(/(\.mp4):hls:manifest\.m3u8$/i, '$1');
             return {
               label: item.label,
               quality: quality ? parseInt(quality[1]) : NaN,
@@ -3545,6 +3549,8 @@
         }
 
         url = url.replace('/sundb.coldcdn.xyz/', '/sundb.nl/');
+        if (prefer_http) url = url.replace('https://', 'http://');
+        if (prefer_mp4) url = url.replace(/(\.mp4):hls:manifest\.m3u8$/i, '$1');
 
         if (url) {
           element.stream = component.fixLink(url, stream_prox);
@@ -3611,6 +3617,7 @@
         var subtitles = component.parsePlaylist(str).map(function (item) {
           var link = item.links[0] || '';
           link = link.replace('/sundb.coldcdn.xyz/', '/sundb.nl/');
+          if (prefer_http) link = link.replace('https://', 'http://');
           return {
             label: item.label,
             url: component.fixLink(link, stream_prox)
@@ -15448,7 +15455,7 @@
       };
     }
 
-    var mod_version = '31.08.2024';
+    var mod_version = '04.09.2024';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
