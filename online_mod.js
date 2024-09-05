@@ -1,4 +1,4 @@
-//04.09.2024 - Fix
+//05.09.2024 - Fix
 
 (function () {
     'use strict';
@@ -63,6 +63,10 @@
       return url;
     }
 
+    function filmixToken(dev_id, token) {
+      return '?user_dev_id=' + dev_id + '&user_dev_name=Xiaomi&user_dev_token=' + token + '&user_dev_vendor=Xiaomi&user_dev_os=14&user_dev_apk=2.1.8&app_lang=ru-rRU';
+    }
+
     function setMyIp(ip) {
       myIp = ip;
     }
@@ -88,7 +92,7 @@
       var user_proxy1 = (proxy_other_url || proxy1) + param_ip;
       var user_proxy2 = (proxy_other_url || proxy2) + param_ip;
       var user_proxy3 = (proxy_other_url || proxy3) + param_ip;
-      if (name === 'filmix') return window.location.protocol === 'https:' ? user_proxy2 : '';
+      if (name === 'filmix') return window.location.protocol === 'https:' && !Lampa.Platform.is('android') ? user_proxy1 : '';
       if (name === 'filmix_site') return user_proxy2;
       if (name === 'svetacdn') return '';
       if (name === 'zetflix') return proxy_apn;
@@ -117,6 +121,7 @@
       isDebug2: isDebug2,
       rezka2Mirror: rezka2Mirror,
       kinobaseMirror: kinobaseMirror,
+      filmixToken: filmixToken,
       setMyIp: setMyIp,
       getMyIp: getMyIp,
       proxy: proxy
@@ -3825,54 +3830,12 @@
       };
       var secret = '';
       var secret_url = '';
-      var secret_part = '';
-      var secret_timestamp = null;
 
       function decodeSecretToken(callback) {
-        if (!debug) {
+        {
           if (callback) callback();
           return;
         }
-
-        if (secret_part) secret = '$1/s/' + secret_part + '/';
-        var timestamp = new Date().getTime();
-        var cache_timestamp = timestamp - 1000 * 60 * 10;
-
-        if (secret && secret_timestamp && secret_timestamp > cache_timestamp) {
-          if (callback) callback();
-          return;
-        }
-
-        var url = 'https://api.filmix.tv/api-fx/post/171042/video-links';
-
-        if (!startsWith(url, 'http')) {
-          if (callback) callback();
-          return;
-        }
-
-        url = Lampa.Utils.addUrlComponent(url, 'v=' + Date.now());
-        network.clear();
-        network.timeout(10000);
-        network.silent(url, function (str) {
-          str = (str || '').replace(/\n/g, '');
-          var found = str.match(/https?:\\\/\\\/[^\/]+\\\/s\\\/([^\/]*)\\\//);
-
-          if (found) {
-            secret_part = found[1];
-            secret = '$1/s/' + secret_part + '/';
-            secret_url = '';
-            secret_timestamp = timestamp;
-          }
-
-          if (callback) callback();
-        }, function (a, c) {
-          if (callback) callback();
-        }, false, {
-          dataType: 'text',
-          headers: {
-            'Authorization': 'Bearer <token>'
-          }
-        });
       }
 
       if (!window.mod_filmix) {
@@ -3882,10 +3845,9 @@
         };
       }
 
-      var dev_id = '1d07ba88e4b45d30';
       var token = Lampa.Storage.get('filmix_token', '') + '';
-      var dev_token = '?user_dev_apk=2.0.1&user_dev_id=' + dev_id + '&user_dev_name=Xiaomi&user_dev_os=12&user_dev_token=' + (token || 'aaaabbbbccccddddeeeeffffaaaabbbb') + '&user_dev_vendor=Xiaomi';
-      var abuse_token = '?user_dev_apk=2.0.1&user_dev_id=' + '&user_dev_name=Xiaomi&user_dev_os=12&user_dev_token=' + atob('YmMxNzBkZTNiMmNhZmIwOTI4M2I5MzYwMTFmMDU0ZWQ=') + '&user_dev_vendor=Xiaomi';
+      var dev_token = Utils.filmixToken(Lampa.Utils.uid(16), token || 'aaaabbbbccccddddeeeeffffaaaabbbb');
+      var abuse_token = '';
       /**
        * Начать поиск
        * @param {Object} _object
@@ -3986,7 +3948,7 @@
           var url = site + 'api/v2/suggestions?search_word=' + encodeURIComponent(clean_title);
           network.clear();
           network.timeout(10000);
-          network.silent(prox2 + url, function (json) {
+          network["native"](prox2 + url, function (json) {
             display(json.posts || []);
           }, function (a, c) {
             component.empty(network.errorDecode(a, c));
@@ -4002,7 +3964,7 @@
           url = Lampa.Utils.addUrlComponent(url, 'story=' + encodeURIComponent(clean_title));
           network.clear();
           network.timeout(10000);
-          network.silent(prox + url, function (json) {
+          network["native"](prox + url, function (json) {
             if (json.length) display(json);else siteSearch();
           }, function (a, c) {
             siteSearch();
@@ -4017,7 +3979,7 @@
           window.mod_filmix.is_max_qualitie = true;
           network.clear();
           network.timeout(10000);
-          network.silent(prox + url + 'user_profile' + dev_token, function (found) {
+          network["native"](prox + url + 'user_profile' + dev_token, function (found) {
             if (found && found.user_data) {
               if (found.user_data.is_pro) window.mod_filmix.max_qualitie = 1080;
               if (found.user_data.is_pro_plus) window.mod_filmix.max_qualitie = 2160;
@@ -4030,9 +3992,9 @@
         function end_search(filmix_id) {
           network.clear();
           network.timeout(10000);
-          network.silent(prox + url + 'post/' + filmix_id + (abuse ? abuse_token : dev_token), function (found) {
+          network["native"](prox + url + 'post/' + filmix_id + (abuse ? abuse_token : dev_token), function (found) {
             if (found && Object.keys(found).length) {
-              if (!abuse && checkAbuse(found)) find(filmix_id, true);else success(found);
+              if (!abuse && abuse_token && checkAbuse(found)) find(filmix_id, true);else success(found);
             } else component.emptyForQuery(select_title);
           }, function (a, c) {
             component.empty(network.errorDecode(a, c));
@@ -4110,7 +4072,7 @@
               var found = stream_url.match(/https?:\/\/[^\/]+(\/s\/[^\/]*\/)/);
 
               if (found) {
-                if (!secret_part) {
+                {
                   secret = '$1' + found[1];
                   secret_url = '';
                 }
@@ -15455,7 +15417,7 @@
       };
     }
 
-    var mod_version = '04.09.2024';
+    var mod_version = '05.09.2024';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
@@ -16033,7 +15995,7 @@
 
     var filmix_prox = Utils.proxy('filmix');
     var api_url = 'http://filmixapp.cyou/api/v2/';
-    var user_dev = '?user_dev_apk=2.0.1&user_dev_id=' + Lampa.Utils.uid(16) + '&user_dev_name=Xiaomi&user_dev_os=12&user_dev_vendor=Xiaomi&user_dev_token=';
+    var dev_id = Lampa.Utils.uid(16);
     var ping_auth;
     Lampa.Params.select('filmix_token', '', '');
     Lampa.Template.add('settings_filmix', "<div>\n    <div class=\"settings-param selector\" data-name=\"filmix_token\" data-type=\"input\" placeholder=\"#{online_mod_filmix_param_placeholder}\">\n        <div class=\"settings-param__name\">#{online_mod_filmix_param_add_title}</div>\n        <div class=\"settings-param__value\"></div>\n        <div class=\"settings-param__descr\">#{online_mod_filmix_param_add_descr}</div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"filmix_add\" data-static=\"true\">\n        <div class=\"settings-param__name\">#{online_mod_filmix_param_add_device}</div>\n    </div>\n</div>");
@@ -16092,7 +16054,7 @@
           }, 10000);
           network.clear();
           network.timeout(10000);
-          network.quiet(filmix_prox + api_url + 'token_request' + user_dev, function (found) {
+          network["native"](filmix_prox + api_url + 'token_request' + Utils.filmixToken(dev_id, ''), function (found) {
             if (found.status == 'ok') {
               user_token = found.code;
               user_code = found.user_code;
@@ -16124,7 +16086,7 @@
     function checkPro(token, call) {
       network.clear();
       network.timeout(8000);
-      network.silent(filmix_prox + api_url + 'user_profile' + user_dev + token, function (json) {
+      network["native"](filmix_prox + api_url + 'user_profile' + Utils.filmixToken(dev_id, token), function (json) {
         if (json) {
           if (json.user_data) {
             Lampa.Storage.set("filmix_status", json.user_data);
