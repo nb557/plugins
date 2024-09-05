@@ -80,11 +80,7 @@
       var param_ip = Lampa.Storage.field('online_mod_proxy_find_ip') === true ? 'ip' + ip + '/' : '';
       var proxy1 = 'https://cors.nb557.workers.dev:8443/';
       var proxy2 = (window.location.protocol === 'https:' ? 'https://' : 'http://') + 'iqslgbok.deploy.cx/?';
-      /*
-          let proxy3 = 'https://cors557.deno.dev/'
-      */
-
-      var proxy3 = proxy2;
+      var proxy3 = 'https://cors557.deno.dev/';
       var proxy_apn = (window.location.protocol === 'https:' ? 'https://' : 'http://') + 'byzkhkgr.deploy.cx/?';
       var proxy_secret = decodeSecret([80, 68, 77, 68, 64, 3, 27, 31, 85, 72, 94, 20, 89, 81, 12, 1, 6, 26, 83, 95, 64, 81, 81, 23, 85, 64, 68, 23]);
       var proxy_other = Lampa.Storage.field('online_mod_proxy_other') === true;
@@ -92,7 +88,7 @@
       var user_proxy1 = (proxy_other_url || proxy1) + param_ip;
       var user_proxy2 = (proxy_other_url || proxy2) + param_ip;
       var user_proxy3 = (proxy_other_url || proxy3) + param_ip;
-      if (name === 'filmix') return window.location.protocol === 'https:' && !Lampa.Platform.is('android') ? user_proxy1 : '';
+      if (name === 'filmix') return window.location.protocol === 'https:' && !Lampa.Platform.is('android') ? user_proxy3 : '';
       if (name === 'filmix_site') return user_proxy2;
       if (name === 'svetacdn') return '';
       if (name === 'zetflix') return proxy_apn;
@@ -108,7 +104,7 @@
         if (name === 'fancdn') return user_proxy2;
         if (name === 'redheadsound') return proxy_other ? proxy_secret : proxy_apn;
         if (name === 'anilibria') return user_proxy2;
-        if (name === 'kodik') return user_proxy3;
+        if (name === 'kodik') return user_proxy2;
         if (name === 'kinopub') return user_proxy2;
       }
 
