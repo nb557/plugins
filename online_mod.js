@@ -1,4 +1,4 @@
-//05.09.2024 - Fix
+//07.09.2024 - Fix
 
 (function () {
     'use strict';
@@ -1149,7 +1149,7 @@
         if (element.voice.d) url += '&d=' + encodeURIComponent(element.voice.d);
 
         var call_success = function call_success(str) {
-          var videos = str.match("'file': '(.*?)'");
+          var videos = (str || '').match("'file': '(.*?)'");
 
           if (videos) {
             var video = decode(videos[1]),
@@ -1900,7 +1900,7 @@
           episode: []
         };
 
-        if (json.seasons) {
+        if (json && json.seasons) {
           var select = $('<ul>' + json.seasons + '</ul>');
           $('.b-simple_season__item', select).each(function () {
             data.season.push({
@@ -1910,7 +1910,7 @@
           });
         }
 
-        if (json.episodes) {
+        if (json && json.episodes) {
           var _select3 = $('<div>' + json.episodes + '</div>');
 
           $('.b-simple_episode__item', _select3).each(function () {
@@ -2007,7 +2007,7 @@
         network.clear();
         network.timeout(10000);
         network_call(prox + url, function (json) {
-          if (json.url) {
+          if (json && json.url) {
             var video = decode(json.url),
                 file = '',
                 quality = false;
@@ -2620,7 +2620,7 @@
         var translation_match = page.match(/<li><b>Перевод:<\/b>([^<,]+)<\/li>/i);
         quality_type = quality_match ? quality_match[1].trim() : '';
         translation = translation_match ? translation_match[1].trim() : '';
-        var vod = str.split('|');
+        var vod = (str || '').split('|');
 
         if (vod[0] == 'file') {
           var file = vod[1];
@@ -2719,7 +2719,7 @@
               var params = {};
 
               try {
-                params = (0, eval)(decrypt + [JSON.stringify(component.decodeHtml(SCRIPTS[0])), JSON.stringify(component.decodeHtml(SCRIPTS[1])), JSON.stringify(script), JSON.stringify('new'), JSON.stringify(file_type)].join(',') + ');');
+                params = (0, eval)(decrypt + [JSON.stringify(component.decodeHtml(SCRIPTS[0])), JSON.stringify(component.decodeHtml(SCRIPTS[1])), JSON.stringify(script || ''), JSON.stringify('new'), JSON.stringify(file_type)].join(',') + ');');
               } catch (e) {}
 
               var user_params = params.user && params.user.params || {};
@@ -2733,7 +2733,7 @@
               network["native"](page_prox + user_url, function (data) {
                 console.log('Kinobase', 'user:', data);
 
-                if (data && data.vod_hash != null && data.vod_time != null) {
+                if (data && !data.error) {
                   var _params = {};
 
                   try {
@@ -2750,8 +2750,8 @@
                   vod_params['identifier'] = IDENTIFIER[1];
                   vod_params['player_type'] = 'new';
                   vod_params['file_type'] = file_type;
-                  vod_params['st'] = data.vod_hash;
-                  vod_params['e'] = data.vod_time;
+                  vod_params['st'] = vod_params['st'] || data.vod_hash3;
+                  vod_params['e'] = vod_params['e'] || data.vod_time3;
                   vod_params['_'] = Date.now();
                   var vod_url = getUrlWithParams('/vod/' + MOVIE_ID[1], vod_params);
                   network.clear();
@@ -3945,7 +3945,7 @@
           network.clear();
           network.timeout(10000);
           network["native"](prox2 + url, function (json) {
-            display(json.posts || []);
+            display(json && json.posts || []);
           }, function (a, c) {
             component.empty(network.errorDecode(a, c));
           }, false, {
@@ -3961,7 +3961,7 @@
           network.clear();
           network.timeout(10000);
           network["native"](prox + url, function (json) {
-            if (json.length) display(json);else siteSearch();
+            if (json && json.length) display(json);else siteSearch();
           }, function (a, c) {
             siteSearch();
           });
@@ -10948,9 +10948,9 @@
         var error = component.empty.bind(component);
         var api = (+kinopoisk_id ? 'kp=' : 'imdb=') + kinopoisk_id;
         alloha_api_search(api, function (json) {
-          if (json.data && json.data.iframe) getPage(json.data);else if (!object.clarification && object.movie.imdb_id && kinopoisk_id != object.movie.imdb_id) {
+          if (json && json.data && json.data.iframe) getPage(json.data);else if (!object.clarification && object.movie.imdb_id && kinopoisk_id != object.movie.imdb_id) {
             alloha_api_search('imdb=' + object.movie.imdb_id, function (json) {
-              if (json.data && json.data.iframe) getPage(json.data);else component.emptyForQuery(select_title);
+              if (json && json.data && json.data.iframe) getPage(json.data);else component.emptyForQuery(select_title);
             }, error);
           } else component.emptyForQuery(select_title);
         }, error);
@@ -11373,10 +11373,10 @@
         network.clear();
         network.timeout(10000);
         network["native"]((prox2 ? prox2 + extract.prox2 : '') + extract.domain, function (json) {
-          if (json.url) {
+          if (json && json.url) {
             var decodeStream = function decodeStream(aes) {
               var quality = false;
-              var file = decode(json.url, aes);
+              var file = decode(json.url, aes || '');
 
               if (element.params) {
                 file = file.replace(/\{v3\}/g, element.params.v3);
@@ -12873,11 +12873,11 @@
 
         var error = component.empty.bind(component);
         kodik_search_by_id(function (json) {
-          display(json.results, function () {
+          display(json && json.results, function () {
             kodik_search_by_title_part(function (json) {
-              display(json.results, function () {
+              display(json && json.results, function () {
                 kodik_search_by_title(function (json) {
-                  display(json.results, function () {
+                  display(json && json.results, function () {
                     component.emptyForQuery(select_title);
                   });
                 }, error);
@@ -12944,7 +12944,7 @@
         var error = component.empty.bind(component);
         kodik_api_search(params, function (json) {
           component.loading(false);
-          extractData(json.results ? json.results.filter(function (c) {
+          extractData(json && json.results ? json.results.filter(function (c) {
             return c.title === media.title;
           }) : []);
           filter();
@@ -13127,7 +13127,7 @@
               network.clear();
               network.timeout(10000);
               network["native"](prox + last_info, function (json) {
-                if (json.links) {
+                if (json && json.links) {
                   var items = extractItems(json.links),
                       file = '',
                       quality = false;
@@ -13344,42 +13344,12 @@
         voice_name: ''
       };
       var secret = '';
-      var secret_part = '';
-      var secret_timestamp = null;
 
       function decodeSecretToken(callback) {
-        if (secret_part) secret = '/$1/' + secret_part;
-        var timestamp = new Date().getTime();
-        var cache_timestamp = timestamp - 1000 * 60 * 10;
-
-        if (secret && secret_timestamp && secret_timestamp > cache_timestamp) {
+        {
           if (callback) callback();
           return;
         }
-
-        var url = Utils.decodeSecret([80, 68, 77, 68, 64, 3, 27, 31, 86, 79, 81, 23, 64, 92, 22, 64, 85, 89, 72, 31, 82, 93, 93, 86, 68, 69, 86, 76, 91, 23, 64, 75, 77]);
-
-        if (!startsWith(url, 'http')) {
-          if (callback) callback();
-          return;
-        }
-
-        url = Lampa.Utils.addUrlComponent(url, 'v=' + Date.now());
-        network.clear();
-        network.timeout(10000);
-        network.silent(url, function (str) {
-          if (str) {
-            secret_part = str;
-            secret = '/$1/' + secret_part;
-            secret_timestamp = timestamp;
-          }
-
-          if (callback) callback();
-        }, function (a, c) {
-          if (callback) callback();
-        }, false, {
-          dataType: 'text'
-        });
       }
 
       function kinopub_api_search(api, callback, error) {
@@ -13510,7 +13480,7 @@
         params = Lampa.Utils.addUrlComponent(params, 'q=' + encodeURIComponent(select_title));
         decodeSecretToken(function () {
           kinopub_api_search(params, function (json) {
-            display(json.items);
+            display(json && json.items);
           }, error);
         });
       };
@@ -13564,7 +13534,7 @@
         var params = Lampa.Utils.addUrlComponent('items/' + item.id, 'access_token=' + token);
         var error = component.empty.bind(component);
         kinopub_api_search(params, function (json) {
-          if (json.item && (json.item.videos && json.item.videos.length || json.item.seasons && json.item.seasons.length)) {
+          if (json && json.item && (json.item.videos && json.item.videos.length || json.item.seasons && json.item.seasons.length)) {
             component.loading(false);
             extractData(json.item);
             filter();
@@ -15413,7 +15383,7 @@
       };
     }
 
-    var mod_version = '05.09.2024';
+    var mod_version = '07.09.2024';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
@@ -16051,7 +16021,7 @@
           network.clear();
           network.timeout(10000);
           network["native"](filmix_prox + api_url + 'token_request' + Utils.filmixToken(dev_id, ''), function (found) {
-            if (found.status == 'ok') {
+            if (found && found.status == 'ok') {
               user_token = found.code;
               user_code = found.user_code;
               modal.find('.selector').text(user_code); //modal.find('.broadcast__scan').remove()
