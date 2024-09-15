@@ -4783,9 +4783,9 @@
       var extract = [];
       var object = _object;
       var select_title = '';
-      var prefer_http = false;
+      var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true;
       var prox = component.proxy('fancdn');
-      var embed = ('https:') + '//fancdn.net/ember/';
+      var embed = (prefer_http ? 'http:' : 'https:') + '//fancdn.net/ember/';
       var filter_items = {};
       var choice = {
         season: 0,
@@ -4917,7 +4917,7 @@
           var items = component.parsePlaylist(str).map(function (item) {
             var quality = item.label.match(/(\d\d\d+)p/);
             var link = item.links[0] || '';
-            if (prefer_http) ;
+            if (prefer_http) link = link.replace('https://', 'http://');
             return {
               label: item.label,
               quality: quality ? parseInt(quality[1]) : NaN,
@@ -5006,6 +5006,8 @@
           return;
         }
 
+        if (prefer_http) url = url.replace('https://', 'http://');
+
         if (url.substr(-5) === '.m3u8') {
           getStreamM3U(element, call, error, url);
           return;
@@ -5023,6 +5025,7 @@
         if (!str) return false;
         var subtitles = component.parsePlaylist(str).map(function (item) {
           var link = item.links[0] || '';
+          if (prefer_http) link = link.replace('https://', 'http://');
           return {
             label: item.label,
             url: component.proxyStream(component.fixLink(link, '', url), 'fancdn')
