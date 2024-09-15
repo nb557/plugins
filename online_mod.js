@@ -1,4 +1,4 @@
-//14.09.2024 - Fix
+//15.09.2024 - Fix
 
 (function () {
     'use strict';
@@ -2324,9 +2324,10 @@
       var host = prox ? 'https://kinobase.org' : Utils.kinobaseMirror();
       var ref = host + '/';
       var embed = ref;
-      var decrypt = atob('InVzZSBzdHJpY3QiOyAoZnVuY3Rpb24oc2NyaXB0MSwgc2NyaXB0Miwgc3RyLCBQTEFZRVJfVFlQRSwgRklMRV9UWVBFLCBqc29uKXsgdmFyIHJlcyA9IFtdOyB2YXIgZG9jdW1lbnQgPSAobmV3IERPTVBhcnNlcikucGFyc2VGcm9tU3RyaW5nKCI8aGVhZD48L2hlYWQ+PGJvZHk+PC9ib2R5PiIsICJ0ZXh0L2h0bWwiKTsgdmFyIHBhdXNlX3RpbWUgPSAwOyB2YXIgZlZvaWQgPSBmdW5jdGlvbigpe307IHZhciBmSW50ID0gZnVuY3Rpb24oKXsgcmV0dXJuIDE7IH07IHZhciBYTUxIdHRwUmVxdWVzdCA9IGZ1bmN0aW9uIFhNTEh0dHBSZXF1ZXN0KCl7IHRoaXMub3BlbiA9IGZ1bmN0aW9uKG0sIHUpeyByZXMucHVzaCh7IHVybDogdSB9KTsgfTsgdGhpcy5zZW5kID0gZnVuY3Rpb24oKXt9OyB9OyB2YXIgYmFrMTIzID0geyBhamF4U2V0dXA6ICQuYWpheFNldHVwLCBjb29raWU6ICQuY29va2llLCBhamF4OiAkLmFqYXgsIGdldDogJC5nZXQsIHBvc3Q6ICQucG9zdCwgZ2V0U2NyaXB0OiAkLmdldFNjcmlwdCwgc2V0VGltZW91dDogd2luZG93LnNldFRpbWVvdXQsIGNsZWFyVGltZW91dDogd2luZG93LmNsZWFyVGltZW91dCwgc2V0SW50ZXJ2YWw6IHdpbmRvdy5zZXRJbnRlcnZhbCwgY2xlYXJJbnRlcnZhbDogd2luZG93LmNsZWFySW50ZXJ2YWwsIGNvbnNvbGU6IHdpbmRvdy5jb25zb2xlLCBmbl9pbml0OiAkLmZuLmluaXQsIGZuX3JlYWR5OiAkLmZuLnJlYWR5LCBfOiAiIiB9OyB0cnkgeyB0cnkgeyAkLmFqYXhTZXR1cCA9ICQuY29va2llID0gZlZvaWQ7ICQuYWpheCA9IGZ1bmN0aW9uKHNldHRpbmdzKXsgaWYgKHNldHRpbmdzLm1ldGhvZCA9PT0gIkhFQUQiIHx8IHNldHRpbmdzLnR5cGUgPT09ICJIRUFEIil7IGlmIChzZXR0aW5ncy5zdWNjZXNzKSBzZXR0aW5ncy5zdWNjZXNzKG51bGwsICJzdWNjZXNzIiwge30pOyBpZiAoc2V0dGluZ3MuY29tcGxldGUpIHNldHRpbmdzLmNvbXBsZXRlKHt9LCAic3VjY2VzcyIpOyB9IGVsc2UgaWYgKGpzb24gJiYgKC9cL3VzZXJfZGF0YS8pLnRlc3Qoc2V0dGluZ3MudXJsKSl7IGlmIChzZXR0aW5ncy5zdWNjZXNzKSBzZXR0aW5ncy5zdWNjZXNzKGpzb24sICJzdWNjZXNzIiwge30pOyB9IGVsc2UgaWYgKHNldHRpbmdzLnVybCkgcmVzLnB1c2goe3R5cGU6ICJhamF4IiwgdXJsOiBzZXR0aW5ncy51cmwsIHBhcmFtczogc2V0dGluZ3MuZGF0YX0pOyB9OyAkLmdldCA9IGZ1bmN0aW9uKHVybCwgZGF0YSl7IHJlcy5wdXNoKHt0eXBlOiAiZ2V0IiwgdXJsOiB1cmwsIHBhcmFtczogZGF0YX0pOyB9OyAkLnBvc3QgPSBmdW5jdGlvbih1cmwsIGRhdGEpeyByZXMucHVzaCh7dHlwZTogInBvc3QiLCB1cmw6IHVybCwgcGFyYW1zOiBkYXRhfSk7IH07ICQuZ2V0U2NyaXB0ID0gZnVuY3Rpb24odXJsKXsgcmVzLnB1c2goe3R5cGU6ICJnZXRTY3JpcHQiLCB1cmw6IHVybCwgcGFyYW1zOiB7Il8iOiBEYXRlLm5vdygpfX0pOyB9OyB3aW5kb3cuc2V0VGltZW91dCA9IHdpbmRvdy5zZXRJbnRlcnZhbCA9IGZJbnQ7IHdpbmRvdy5jbGVhclRpbWVvdXQgPSB3aW5kb3cuY2xlYXJJbnRlcnZhbCA9IGZWb2lkOyB3aW5kb3cuY29uc29sZSA9IHt9OyAkLmZuLmluaXQgPSBmdW5jdGlvbihzLCBjLCByKXsgYyA9IGMgfHwgZG9jdW1lbnQ7IHJldHVybiBuZXcgYmFrMTIzLmZuX2luaXQocywgYywgcik7IH07ICQuZm4ucmVhZHkgPSBmdW5jdGlvbihoKXsgcmV0dXJuIGggJiYgaCgpOyB9OyBldmFsKHNjcmlwdDEgKyAiXG4iICsgc2NyaXB0MiArICJcbiIgKyBzdHIpOyB9IGZpbmFsbHkgeyAkLmFqYXhTZXR1cCA9IGJhazEyMy5hamF4U2V0dXA7ICQuY29va2llID0gYmFrMTIzLmNvb2tpZTsgJC5hamF4ID0gYmFrMTIzLmFqYXg7ICQuZ2V0ID0gYmFrMTIzLmdldDsgJC5wb3N0ID0gYmFrMTIzLnBvc3Q7ICQuZ2V0U2NyaXB0ID0gYmFrMTIzLmdldFNjcmlwdDsgd2luZG93LnNldFRpbWVvdXQgPSBiYWsxMjMuc2V0VGltZW91dDsgd2luZG93LmNsZWFyVGltZW91dCA9IGJhazEyMy5jbGVhclRpbWVvdXQ7IHdpbmRvdy5zZXRJbnRlcnZhbCA9IGJhazEyMy5zZXRJbnRlcnZhbDsgd2luZG93LmNsZWFySW50ZXJ2YWwgPSBiYWsxMjMuY2xlYXJJbnRlcnZhbDsgd2luZG93LmNvbnNvbGUgPSBiYWsxMjMuY29uc29sZTsgJC5mbi5pbml0ID0gYmFrMTIzLmZuX2luaXQ7ICQuZm4ucmVhZHkgPSBiYWsxMjMucmVhZHk7IH0gfSBjYXRjaCAoZSl7IH0gdmFyIHBhcmFtcyA9IHt9OyByZXMuZm9yRWFjaChmdW5jdGlvbiAocCl7IGlmICgoL1wvdXNlcl9kYXRhLykudGVzdChwLnVybCkpIHBhcmFtcy51c2VyID0gcDsgaWYgKCgvXC92b2RcLy8pLnRlc3QocC51cmwpKSBwYXJhbXMudm9kID0gcDsgfSk7IHJldHVybiBwYXJhbXM7IH0pLmNhbGwoe30s');
       var user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36';
       var check_cookie = Lampa.Storage.get('online_mod_kinobase_cookie', '') + '';
+      var decrypt = Utils.decodeSecret([26, 69, 74, 81, 19, 74, 64, 66, 93, 91, 68, 27, 15, 19, 17, 82, 69, 90, 91, 68, 80, 91, 93, 17, 71, 83, 70, 81, 64, 77, 5, 31, 25, 71, 83, 70, 81, 64, 77, 6, 31, 25, 71, 68, 70, 20, 16, 105, 120, 114, 96, 113, 98, 107, 108, 105, 105, 113, 31, 25, 114, 121, 120, 125, 111, 109, 109, 99, 124, 24, 16, 65, 75, 85, 75, 24, 19, 79, 91, 84, 29, 67, 16, 79, 85, 65, 25, 70, 85, 71, 24, 13, 25, 111, 110, 2, 20, 70, 85, 74, 16, 73, 88, 82, 64, 81, 66, 20, 5, 16, 87, 65, 95, 85, 15, 16, 66, 89, 66, 25, 80, 92, 90, 65, 93, 81, 86, 68, 25, 9, 19, 17, 90, 85, 67, 24, 116, 118, 121, 99, 88, 70, 67, 81, 74, 25, 23, 68, 82, 75, 71, 85, 114, 74, 95, 84, 103, 71, 75, 93, 94, 83, 16, 18, 5, 92, 86, 88, 80, 14, 8, 23, 88, 92, 85, 87, 7, 8, 82, 91, 92, 73, 7, 8, 28, 91, 91, 84, 77, 6, 18, 21, 20, 17, 77, 81, 72, 64, 23, 88, 77, 89, 95, 27, 29, 11, 20, 78, 81, 75, 20, 67, 88, 65, 67, 81, 103, 68, 80, 89, 86, 25, 9, 16, 4, 3, 16, 79, 85, 65, 25, 82, 102, 91, 81, 84, 25, 9, 19, 95, 65, 94, 87, 76, 89, 86, 90, 27, 16, 79, 77, 15, 24, 70, 88, 70, 19, 95, 125, 94, 64, 24, 13, 25, 82, 70, 87, 87, 68, 93, 87, 94, 17, 29, 72, 25, 70, 85, 64, 77, 66, 87, 20, 2, 2, 20, 77, 15, 24, 70, 88, 70, 19, 97, 121, 124, 124, 76, 68, 73, 102, 86, 72, 65, 85, 71, 76, 16, 4, 20, 85, 76, 90, 83, 64, 81, 95, 87, 20, 107, 116, 120, 120, 64, 76, 64, 107, 81, 66, 76, 81, 67, 64, 16, 25, 66, 20, 71, 81, 93, 67, 26, 87, 64, 92, 90, 19, 4, 20, 86, 65, 86, 83, 77, 93, 92, 87, 28, 93, 24, 24, 69, 16, 79, 19, 75, 81, 67, 26, 72, 69, 74, 92, 27, 66, 20, 69, 70, 84, 10, 25, 65, 19, 68, 29, 11, 20, 69, 11, 25, 64, 91, 80, 71, 30, 71, 93, 94, 93, 20, 14, 25, 82, 69, 90, 91, 68, 80, 91, 93, 17, 29, 75, 73, 3, 16, 68, 15, 19, 79, 85, 66, 20, 104, 92, 88, 77, 86, 75, 94, 67, 20, 5, 16, 95, 65, 93, 90, 64, 89, 91, 86, 16, 105, 88, 82, 64, 81, 66, 94, 75, 24, 86, 68, 71, 16, 79, 16, 68, 84, 81, 64, 81, 65, 25, 9, 16, 91, 72, 68, 2, 20, 78, 2, 20, 70, 85, 74, 16, 91, 85, 88, 8, 6, 3, 20, 5, 16, 66, 20, 82, 83, 85, 72, 103, 93, 68, 76, 68, 9, 25, 16, 30, 85, 82, 81, 65, 103, 86, 77, 65, 64, 24, 24, 83, 86, 91, 88, 80, 81, 10, 20, 28, 30, 90, 91, 92, 82, 93, 85, 24, 24, 81, 83, 85, 75, 3, 20, 20, 26, 89, 90, 88, 76, 31, 25, 83, 85, 64, 2, 16, 29, 26, 84, 92, 64, 28, 20, 72, 95, 74, 64, 9, 25, 16, 30, 68, 87, 67, 77, 24, 19, 94, 81, 68, 103, 91, 66, 80, 68, 71, 3, 20, 20, 26, 95, 85, 77, 103, 80, 75, 93, 64, 64, 20, 16, 74, 81, 71, 109, 93, 93, 81, 87, 69, 77, 14, 19, 78, 93, 94, 80, 87, 71, 23, 71, 86, 77, 96, 89, 89, 93, 95, 76, 64, 31, 25, 87, 92, 81, 89, 66, 109, 93, 94, 92, 91, 69, 64, 2, 16, 78, 93, 93, 93, 91, 71, 26, 91, 92, 92, 85, 65, 109, 93, 93, 81, 87, 69, 77, 24, 19, 74, 81, 68, 125, 86, 68, 92, 70, 69, 88, 88, 10, 20, 79, 89, 87, 80, 92, 78, 26, 67, 81, 76, 121, 87, 64, 86, 75, 66, 81, 88, 20, 16, 90, 88, 86, 88, 70, 121, 90, 76, 85, 75, 66, 82, 85, 14, 16, 67, 81, 94, 93, 91, 68, 23, 87, 92, 81, 89, 66, 112, 90, 71, 92, 70, 70, 85, 84, 28, 25, 87, 92, 87, 71, 95, 88, 93, 10, 25, 67, 90, 87, 80, 95, 67, 22, 83, 86, 90, 64, 86, 88, 85, 24, 24, 86, 87, 107, 90, 87, 93, 68, 14, 24, 20, 23, 82, 93, 23, 93, 94, 93, 76, 28, 25, 82, 93, 102, 70, 85, 85, 92, 73, 3, 20, 23, 23, 82, 94, 26, 74, 85, 88, 80, 74, 21, 20, 111, 14, 24, 18, 27, 20, 78, 2, 20, 68, 70, 65, 16, 66, 20, 71, 75, 77, 16, 79, 24, 20, 23, 85, 89, 88, 76, 99, 81, 76, 69, 73, 20, 14, 25, 16, 30, 87, 87, 95, 82, 93, 86, 25, 9, 16, 82, 110, 95, 80, 80, 8, 25, 16, 30, 85, 82, 81, 65, 20, 14, 25, 82, 69, 90, 91, 68, 80, 91, 93, 17, 71, 85, 64, 76, 89, 87, 83, 64, 16, 79, 16, 93, 94, 16, 17, 71, 86, 77, 64, 89, 90, 95, 67, 23, 89, 86, 77, 92, 95, 80, 24, 13, 4, 9, 19, 27, 124, 117, 117, 124, 18, 25, 72, 79, 25, 71, 85, 64, 76, 89, 87, 83, 64, 23, 64, 73, 68, 93, 16, 4, 9, 14, 25, 22, 120, 113, 121, 116, 27, 29, 72, 25, 93, 86, 20, 16, 67, 92, 64, 71, 80, 90, 87, 71, 22, 67, 76, 87, 80, 92, 71, 67, 29, 24, 67, 92, 64, 71, 80, 90, 87, 71, 22, 67, 76, 87, 80, 92, 71, 67, 28, 86, 69, 85, 88, 31, 25, 22, 67, 65, 91, 83, 92, 71, 64, 27, 24, 16, 79, 69, 25, 2, 20, 90, 95, 20, 24, 71, 93, 68, 77, 93, 93, 94, 71, 30, 87, 87, 93, 73, 88, 86, 77, 81, 25, 20, 75, 85, 77, 64, 90, 87, 83, 67, 26, 91, 95, 84, 68, 95, 92, 64, 85, 28, 67, 77, 21, 20, 17, 74, 65, 83, 87, 93, 67, 74, 22, 26, 2, 20, 77, 20, 93, 92, 74, 81, 19, 80, 82, 16, 28, 77, 67, 92, 70, 19, 31, 18, 16, 28, 23, 108, 22, 65, 64, 92, 70, 111, 80, 89, 68, 88, 27, 26, 23, 64, 85, 71, 76, 24, 74, 81, 71, 77, 93, 94, 83, 75, 30, 76, 70, 95, 16, 29, 75, 20, 81, 86, 25, 28, 64, 92, 64, 68, 93, 86, 87, 74, 26, 64, 76, 87, 83, 81, 75, 67, 16, 20, 64, 92, 64, 68, 93, 86, 87, 74, 26, 64, 76, 87, 83, 81, 75, 67, 17, 65, 64, 92, 70, 28, 20, 26, 67, 76, 87, 80, 92, 71, 67, 22, 20, 16, 66, 73, 26, 2, 20, 77, 20, 93, 92, 74, 81, 19, 80, 82, 16, 28, 78, 95, 93, 20, 21, 31, 20, 24, 27, 100, 31, 79, 91, 87, 101, 27, 31, 29, 22, 68, 92, 71, 71, 17, 71, 85, 64, 76, 89, 87, 83, 64, 23, 65, 66, 88, 17, 25, 66, 20, 90, 95, 20, 24, 71, 93, 68, 77, 93, 93, 94, 71, 30, 71, 77, 83, 90, 81, 64, 74, 29, 16, 71, 93, 68, 77, 93, 93, 94, 71, 30, 71, 77, 83, 90, 81, 64, 74, 28, 70, 91, 92, 28, 25, 22, 64, 76, 87, 83, 81, 75, 67, 27, 24, 19, 66, 73, 25, 15, 24, 77, 25, 81, 95, 74, 81, 16, 93, 94, 16, 17, 71, 86, 77, 64, 89, 90, 95, 67, 23, 65, 65, 85, 29, 16, 70, 93, 67, 23, 68, 70, 74, 92, 24, 79, 76, 73, 73, 81, 9, 25, 22, 81, 94, 89, 72, 27, 24, 19, 76, 70, 92, 14, 24, 67, 92, 64, 71, 80, 90, 87, 71, 22, 69, 75, 88, 31, 25, 68, 81, 70, 89, 93, 74, 14, 19, 74, 81, 68, 64, 81, 94, 94, 71, 29, 93, 85, 68, 85, 69, 25, 2, 20, 78, 2, 20, 20, 26, 95, 85, 77, 20, 14, 25, 82, 69, 90, 91, 68, 80, 91, 93, 17, 65, 66, 88, 20, 16, 93, 85, 71, 88, 29, 75, 20, 74, 85, 74, 26, 67, 76, 71, 88, 28, 67, 68, 64, 68, 86, 3, 20, 18, 83, 93, 68, 27, 24, 19, 76, 70, 92, 14, 24, 69, 75, 88, 31, 25, 68, 81, 70, 89, 93, 74, 14, 19, 93, 85, 68, 85, 69, 25, 2, 20, 78, 2, 20, 20, 26, 72, 95, 74, 64, 19, 4, 20, 86, 65, 86, 83, 77, 93, 92, 87, 28, 69, 70, 84, 28, 25, 80, 82, 77, 85, 25, 79, 24, 66, 92, 71, 29, 73, 65, 67, 92, 16, 75, 77, 77, 67, 92, 14, 16, 22, 72, 95, 74, 64, 17, 21, 20, 69, 70, 84, 10, 25, 65, 65, 85, 24, 16, 68, 89, 66, 88, 89, 64, 3, 20, 84, 85, 76, 81, 68, 29, 8, 25, 73, 11, 20, 28, 30, 94, 81, 71, 106, 87, 66, 93, 72, 68, 25, 9, 19, 95, 65, 94, 87, 76, 89, 86, 90, 27, 76, 70, 92, 29, 67, 16, 75, 81, 64, 23, 68, 69, 71, 80, 24, 66, 64, 74, 73, 81, 10, 20, 26, 87, 92, 64, 96, 90, 70, 89, 68, 76, 18, 21, 20, 70, 75, 88, 10, 20, 77, 66, 85, 24, 19, 73, 85, 66, 85, 85, 67, 3, 20, 72, 27, 107, 18, 14, 24, 116, 88, 64, 86, 23, 90, 95, 67, 16, 25, 68, 73, 26, 2, 20, 77, 15, 24, 71, 80, 90, 87, 86, 67, 30, 71, 93, 68, 109, 93, 94, 92, 91, 69, 64, 24, 13, 25, 67, 90, 87, 80, 95, 67, 22, 67, 92, 64, 122, 87, 64, 85, 70, 78, 81, 85, 20, 14, 25, 82, 121, 90, 76, 11, 25, 67, 90, 87, 80, 95, 67, 22, 83, 85, 81, 82, 75, 96, 89, 89, 93, 95, 76, 64, 19, 4, 20, 71, 93, 86, 84, 86, 67, 29, 90, 88, 85, 85, 74, 121, 87, 64, 86, 75, 66, 81, 88, 24, 13, 25, 82, 101, 86, 93, 84, 15, 24, 71, 80, 90, 87, 86, 67, 30, 87, 87, 94, 74, 91, 95, 92, 20, 13, 20, 67, 77, 2, 20, 23, 23, 82, 94, 26, 81, 94, 80, 64, 19, 4, 20, 86, 65, 86, 83, 77, 93, 92, 87, 28, 67, 24, 24, 83, 21, 20, 65, 16, 79, 16, 87, 24, 13, 25, 87, 19, 69, 72, 16, 80, 87, 83, 76, 89, 86, 87, 64, 11, 20, 74, 85, 77, 65, 65, 87, 20, 94, 81, 79, 16, 91, 85, 88, 8, 6, 3, 26, 94, 94, 102, 93, 93, 80, 64, 24, 71, 20, 16, 90, 24, 19, 75, 29, 11, 20, 69, 11, 25, 16, 29, 95, 90, 30, 70, 93, 81, 93, 77, 19, 4, 20, 86, 65, 86, 83, 77, 93, 92, 87, 28, 88, 29, 67, 16, 75, 81, 71, 76, 70, 94, 20, 80, 16, 31, 18, 19, 81, 28, 25, 15, 24, 77, 2, 20, 86, 79, 85, 92, 28, 75, 83, 75, 93, 67, 77, 5, 16, 31, 24, 18, 101, 90, 17, 25, 31, 16, 71, 91, 66, 80, 68, 71, 11, 20, 27, 20, 26, 108, 87, 22, 19, 18, 20, 67, 64, 74, 25, 2, 20, 78, 25, 82, 89, 90, 89, 92, 85, 77, 19, 66, 20, 20, 26, 89, 90, 88, 76, 96, 92, 64, 69, 68, 24, 13, 25, 86, 82, 82, 5, 2, 7, 22, 81, 83, 85, 75, 106, 81, 68, 65, 72, 11, 25, 16, 29, 90, 91, 95, 95, 81, 85, 25, 9, 19, 91, 85, 91, 5, 10, 3, 23, 87, 92, 86, 95, 89, 81, 3, 16, 29, 26, 82, 83, 85, 72, 20, 5, 16, 91, 85, 88, 8, 6, 3, 26, 89, 90, 88, 76, 8, 25, 16, 30, 83, 93, 68, 25, 9, 19, 91, 85, 91, 5, 10, 3, 23, 83, 86, 77, 15, 16, 16, 22, 64, 86, 71, 71, 25, 9, 16, 86, 89, 91, 8, 6, 0, 23, 68, 95, 71, 76, 11, 25, 16, 29, 94, 81, 68, 103, 91, 66, 80, 68, 71, 25, 9, 16, 86, 89, 91, 8, 6, 0, 23, 83, 85, 64, 107, 83, 75, 93, 67, 77, 15, 16, 67, 81, 94, 93, 91, 68, 23, 71, 85, 64, 108, 89, 84, 81, 92, 76, 64, 16, 9, 24, 82, 88, 95, 2, 11, 7, 30, 71, 93, 68, 109, 93, 94, 92, 91, 69, 64, 3, 16, 78, 93, 93, 93, 91, 71, 26, 91, 92, 92, 85, 65, 109, 93, 93, 81, 87, 69, 77, 20, 14, 25, 86, 81, 95, 9, 2, 10, 26, 80, 85, 81, 81, 70, 108, 89, 84, 81, 92, 76, 64, 11, 20, 79, 89, 87, 80, 92, 78, 26, 67, 81, 76, 121, 87, 64, 86, 75, 66, 81, 88, 24, 13, 25, 86, 82, 82, 5, 2, 7, 22, 67, 92, 64, 122, 87, 64, 85, 70, 78, 81, 85, 15, 19, 78, 93, 94, 80, 87, 71, 23, 87, 95, 92, 85, 66, 125, 86, 68, 92, 70, 69, 88, 88, 16, 9, 24, 82, 88, 95, 2, 11, 7, 30, 87, 84, 85, 88, 70, 122, 87, 64, 85, 70, 78, 81, 85, 15, 19, 78, 93, 94, 80, 87, 71, 23, 87, 92, 87, 71, 95, 88, 93, 16, 4, 20, 81, 88, 95, 1, 6, 11, 30, 90, 91, 93, 74, 91, 92, 81, 3, 16, 29, 26, 85, 87, 26, 89, 90, 81, 68, 25, 9, 19, 91, 85, 91, 5, 10, 3, 23, 82, 93, 102, 93, 94, 93, 76, 11, 25, 16, 29, 95, 90, 30, 70, 93, 81, 93, 77, 19, 4, 20, 82, 85, 83, 1, 11, 7, 29, 75, 81, 81, 80, 65, 11, 25, 73, 19, 68, 20, 83, 85, 76, 83, 81, 20, 27, 92, 29, 75, 20, 69, 16, 79, 85, 65, 25, 68, 81, 70, 89, 93, 74, 20, 14, 25, 79, 77, 15, 24, 66, 92, 71, 29, 95, 91, 66, 113, 89, 83, 81, 28, 85, 76, 90, 83, 64, 81, 95, 87, 20, 27, 73, 29, 75, 20, 81, 86, 25, 28, 27, 22, 104, 31, 65, 75, 85, 75, 107, 87, 88, 64, 81, 27, 17, 30, 77, 81, 64, 77, 28, 64, 26, 77, 66, 85, 29, 26, 25, 68, 81, 70, 89, 93, 74, 26, 70, 74, 81, 66, 20, 5, 16, 73, 15, 19, 80, 82, 16, 28, 16, 31, 101, 27, 69, 86, 80, 108, 27, 23, 25, 23, 64, 86, 74, 64, 24, 68, 22, 69, 75, 88, 26, 16, 20, 64, 85, 74, 81, 84, 71, 29, 79, 91, 84, 20, 5, 16, 73, 15, 19, 68, 29, 11, 20, 72, 81, 75, 85, 94, 74, 26, 64, 88, 89, 73, 92, 70, 19, 4, 20, 64, 88, 89, 73, 92, 70, 8, 25, 70, 85, 64, 77, 66, 87, 20, 67, 88, 70, 81, 89, 75, 11, 25, 73, 26, 23, 87, 81, 88, 84, 24, 66, 73, 31]);
+
       var filter_items = {};
       var choice = {
         season: 0,
@@ -2615,17 +2616,20 @@
        */
 
 
-      function extractData(str, page) {
+      function extractData(vod, page) {
         var quality_match = page.match(/<li><b>Качество:<\/b>([^<,]+)<\/li>/i);
         var translation_match = page.match(/<li><b>Перевод:<\/b>([^<,]+)<\/li>/i);
         quality_type = quality_match ? quality_match[1].trim() : '';
         translation = translation_match ? translation_match[1].trim() : '';
-        var vod = (str || '').split('|');
+        var pl = vod && vod.file && Lampa.Arrays.decodeJson(vod.file, []) || [];
 
-        if (vod[0] == 'file') {
-          var file = vod[1];
+        if (pl.length) {
+          extract = pl;
+          is_playlist = true;
+        } else if (vod && vod.file) {
+          var file = vod.file;
           var found = [];
-          var subtiles = parseSubs(vod[2]);
+          var subtiles = parseSubs(vod.subtitle);
 
           if (file) {
             var voices = {};
@@ -2656,9 +2660,6 @@
 
           extract = found;
           is_playlist = false;
-        } else if (vod[0] == 'pl') {
-          extract = Lampa.Arrays.decodeJson(vod[1], []);
-          is_playlist = true;
         } else component.emptyForQuery(select_title);
       }
 
@@ -2711,7 +2712,6 @@
             var SCRIPTS = IMAGES_URL_SCRIPT ? IMAGES_URL_SCRIPT.index > MOVIE_ID_SCRIPT.index ? [MOVIE_ID_SCRIPT[1], IMAGES_URL_SCRIPT[1]] : [IMAGES_URL_SCRIPT[1], MOVIE_ID_SCRIPT[1]] : [MOVIE_ID_SCRIPT[1], ''];
             if (SCRIPTS[1] === SCRIPTS[0]) SCRIPTS[1] = '';
             var movie_url = component.fixLink(MOVIE_URL[1], '', ref);
-
             network.clear();
             network.timeout(1000 * 10);
             network["native"](page_prox + movie_url, function (script) {
@@ -2754,8 +2754,8 @@
                   vod_params['identifier'] = IDENTIFIER[1];
                   vod_params['player_type'] = 'new';
                   vod_params['file_type'] = file_type;
-                  vod_params['st'] = vod_params['st'] || data.vod_hash3;
-                  vod_params['e'] = vod_params['e'] || data.vod_time3;
+                  vod_params['st'] = vod_params['st'];
+                  vod_params['e'] = vod_params['e'];
                   vod_params['_'] = Date.now();
                   var vod_url = getUrlWithParams('/vod/' + MOVIE_ID[1], vod_params);
                   network.clear();
@@ -2763,22 +2763,13 @@
                   network["native"](page_prox + vod_url, function (files) {
                     console.log('Kinobase', 'vod:', files);
                     component.loading(false);
-                    var res = '';
+                    var params = {};
 
-                    for (var i = 0; i < files.length; i++) {
-                      try {
-                        var x = atob(decodeURIComponent(escape(atob(files.substring(i)))));
-                        var pos = x.indexOf('file|[');
-                        if (pos === -1) pos = x.indexOf('pl|[');
+                    try {
+                      params = (0, eval)(decrypt + [JSON.stringify(component.decodeHtml(SCRIPTS[0])), JSON.stringify(component.decodeHtml(SCRIPTS[1])), JSON.stringify(script), JSON.stringify('new'), JSON.stringify(file_type), JSON.stringify(data), JSON.stringify(files)].join(',') + ');');
+                    } catch (e) {}
 
-                        if (pos !== -1) {
-                          res = decodeURIComponent(escape(x.substring(pos)));
-                          break;
-                        }
-                      } catch (e) {}
-                    }
-
-                    extractData(res, str);
+                    extractData(params.player, str);
                     filter();
                     append(filtred());
                   }, function (a, c) {
@@ -15403,7 +15394,7 @@
       };
     }
 
-    var mod_version = '14.09.2024';
+    var mod_version = '15.09.2024';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
