@@ -12435,7 +12435,7 @@
         url = Lampa.Utils.addUrlComponent(url, 'limit=20');
         url = Lampa.Utils.addUrlComponent(url, 'search=' + encodeURIComponent(select_title));
         network.clear();
-        network.timeout(1000 * 10);
+        network.timeout(1000 * 15);
         network["native"](prox + url, function (json) {
           display(json && json.list);
         }, function (a, c) {
@@ -13206,7 +13206,7 @@
             var obj = playlists[key];
             var quality = parseInt(key);
             var link = decode(obj && obj[0] && obj[0].src || '');
-            if (startsWith(link, '//')) link = (prefer_http ? 'http:' : 'https:') + link;
+            if (startsWith(link, '//')) link = (prefer_http ? 'http:' : 'https:') + link;else if (prefer_http) link = link.replace('https://', 'http://');
             if (prefer_mp4) ;
             items.push({
               label: quality ? quality + 'p' : '360p ~ 1080p',
