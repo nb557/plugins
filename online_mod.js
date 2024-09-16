@@ -15451,7 +15451,7 @@
     Lampa.Params.trigger('online_mod_prefer_http', window.location.protocol !== 'https:');
     Lampa.Params.trigger('online_mod_prefer_mp4', true);
     Lampa.Params.trigger('online_mod_prefer_dash', false);
-    Lampa.Params.trigger('online_mod_collaps_lampa_player', true);
+    Lampa.Params.trigger('online_mod_collaps_lampa_player', false);
     Lampa.Params.trigger('online_mod_av1_support', true);
     Lampa.Params.trigger('online_mod_save_last_balanser', false);
     Lampa.Params.trigger('online_mod_rezka2_fix_stream', false);
