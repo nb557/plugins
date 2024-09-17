@@ -27,7 +27,7 @@ async function handle(request, connInfo) {
           body += "connInfo" + " = " + JSON.stringify(connInfo.remoteAddr) + "\n";
         }
         body += "request_url" + " = " + request.url + "\n";
-        body += "apn_version = 1.06\n";
+        body += "apn_version = 1.07\n";
         return new Response(body, corsHeaders);
       }
 
@@ -78,7 +78,12 @@ async function handle(request, connInfo) {
             api_pos += api.length;
             api = "";
           }
-          params.push(param.split("="));
+          pos = param.indexOf("=");
+          if (pos !== -1) {
+            params.push([param.substring(0, pos), param.substring(pos + 1)]);
+          } else {
+            params.push([param]);
+          }
         } else {
           next_param = false;
         }
@@ -176,7 +181,7 @@ async function handle(request, connInfo) {
       if (apiUrl.hostname === "kinoplay.site" || apiUrl.hostname === "kinoplay1.site" || apiUrl.hostname === "kinoplay2.site") {
         request.headers.set("Cookie", "invite=a246a3f46c82fe439a45c3dbbbb24ad5");
       }
-      if (apiUrl.pathname.endsWith(".m3u8") || apiUrl.pathname.endsWith(".m3u") || apiUrl.pathname.endsWith(".M3U8") || apiUrl.pathname.endsWith(".M3U")) {
+      if (apiUrl.pathname.endsWith(".m3u8") || apiUrl.pathname.endsWith(".m3u") || apiUrl.pathname.endsWith(".M3U8") || apiUrl.pathname.endsWith(".M3U") || apiUrl.pathname.endsWith(".mpd") || apiUrl.pathname.endsWith(".MPD")) {
         request.headers.delete("Range");
       }
       params.forEach(param => {
@@ -216,6 +221,13 @@ async function handle(request, connInfo) {
         let ctype = (response.headers.get("Content-Type") || '').toLowerCase();
         if (["application/x-mpegurl", "application/vnd.apple.mpegurl"].indexOf(ctype) !== -1) {
           let body = edit_m3u8(await response.text(), proxy, apiUrl, apiBase);
+          response.headers.delete("Content-Length");
+          response.headers.delete("Content-Range");
+          response.headers.set("Accept-Ranges", "none");
+          return new Response(body, response);
+        }
+        if (["application/dash+xml"].indexOf(ctype) !== -1) {
+          let body = edit_mpd(await response.text(), proxy, apiUrl, apiBase);
           response.headers.delete("Content-Length");
           response.headers.delete("Content-Range");
           response.headers.set("Accept-Ranges", "none");
@@ -265,6 +277,44 @@ async function handle(request, connInfo) {
         }).join("\n");
       } catch (err) {
         return m3u8;
+      }
+    }
+
+    function unescapeXml(str) {
+      return str.replace(/&lt;|&gt;|&amp;|&apos;|&quot;/g, function (c) {
+        switch (c) {
+          case "&lt;": return "<";
+          case "&gt;": return ">";
+          case "&amp;": return "&";
+          case "&apos;": return "'";
+          case "&quot;": return '"';
+        }
+      });
+    }
+
+    function escapeXml(str) {
+      return str.replace(/[<>&'"]/g, function (c) {
+        switch (c) {
+          case "<": return "&lt;";
+          case ">": return "&gt;";
+          case "&": return "&amp;";
+          case "'": return "&apos;";
+          case '"': return "&quot;";
+        }
+      });
+    }
+
+    function edit_mpd(mpd, proxy, url, base) {
+      try {
+        return mpd.replace(/<BaseURL>([^<]*)/g, (str, link) => {
+          link = link.trim();
+          if (link) {
+            return "<BaseURL>" + escapeXml(fixLink(unescapeXml(link), proxy, url, base));
+          }
+          return str;
+        });
+      } catch (err) {
+        return mpd;
       }
     }
 

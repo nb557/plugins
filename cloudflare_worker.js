@@ -25,7 +25,7 @@ export default {
         let body = "";
         request.headers.forEach((value, key) => body += key + " = " + value + "\n");
         body += "request_url" + " = " + request.url + "\n";
-        body += "worker_version = 1.06\n";
+        body += "worker_version = 1.07\n";
         return new Response(body, corsHeaders);
       }
 
@@ -76,7 +76,12 @@ export default {
             api_pos += api.length;
             api = "";
           }
-          params.push(param.split("="));
+          pos = param.indexOf("=");
+          if (pos !== -1) {
+            params.push([param.substring(0, pos), param.substring(pos + 1)]);
+          } else {
+            params.push([param]);
+          }
         } else {
           next_param = false;
         }
