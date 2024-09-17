@@ -1,4 +1,4 @@
-//17.09.2024 - Fix
+//18.09.2024 - Fix
 
 (function () {
     'use strict';
@@ -81,8 +81,9 @@
       var proxy1 = 'https://cors.nb557.workers.dev:8443/';
       var proxy2 = (window.location.protocol === 'https:' ? 'https://' : 'http://') + 'iqslgbok.deploy.cx/?';
       var proxy3 = 'https://cors557.deno.dev/';
-      var proxy_apn = (window.location.protocol === 'https:' ? 'https://' : 'http://') + 'byzkhkgr.deploy.cx/?';
-      var proxy_secret = decodeSecret([80, 68, 77, 68, 64, 3, 27, 31, 85, 72, 94, 20, 89, 81, 12, 1, 6, 26, 83, 95, 64, 81, 81, 23, 85, 64, 68, 23]);
+      var proxy_apn0 = (window.location.protocol === 'https:' ? 'https://' : 'http://') + 'byzkhkgr.deploy.cx/';
+      var proxy_apn = proxy_apn0 + '?';
+      var proxy_secret = isDebug() ? decodeSecret([80, 68, 77, 68, 64, 3, 27, 31, 85, 72, 94, 20, 89, 81, 12, 1, 6, 26, 83, 95, 64, 81, 81, 23, 85, 64, 68, 23]) : proxy_apn0;
       var proxy_other = Lampa.Storage.field('online_mod_proxy_other') === true;
       var proxy_other_url = proxy_other ? Lampa.Storage.field('online_mod_proxy_other_url') + '' : '';
       var user_proxy1 = (proxy_other_url || proxy1) + param_ip;
@@ -92,6 +93,7 @@
       if (name === 'filmix_site') return user_proxy2;
       if (name === 'svetacdn') return '';
       if (name === 'zetflix') return proxy_apn;
+      if (name === 'collapscdn') return isDebug() ? proxy_other ? proxy_secret : proxy_apn0 : '';
       if (name === 'allohacdn') return proxy_other ? proxy_secret : proxy_apn;
       if (name === 'cookie') return user_proxy1;
 
@@ -2973,6 +2975,12 @@
       var prox = component.proxy('collaps');
       var embed = (prefer_http ? 'http:' : 'https:') + '//api.ninsel.ws/embed/';
       var embed2 = (prefer_http ? 'http:' : 'https:') + '//api.kinogram.best/embed/';
+      var stream_prox = component.proxy('collapscdn');
+
+      if (stream_prox) {
+        stream_prox += 'param/User-Agent=' + encodeURIComponent('Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1') + '/';
+      }
+
       var filter_items = {};
       var choice = {
         season: 0,
@@ -3151,13 +3159,13 @@
                   info: audio_names.length ? ' / ' + component.uniqueNamesShortText(audio_names, 80) : '',
                   season: season.season,
                   episode: parseInt(episode.episode),
-                  file: file,
+                  file: component.fixLink(file, stream_prox),
                   subtitles: episode.cc ? episode.cc.map(function (c) {
                     var url = c.url || '';
                     if (prefer_http) url = url.replace('https://', 'http://');
                     return {
                       label: c.name,
-                      url: url
+                      url: component.fixLink(url, stream_prox)
                     };
                   }) : false,
                   audio_tracks: audio_tracks.length ? audio_tracks : false
@@ -3194,13 +3202,13 @@
             title: extract.title || select_title,
             quality: max_quality ? max_quality + 'p' : '360p ~ 1080p',
             info: audio_names.length ? ' / ' + component.uniqueNamesShortText(audio_names, 80) : '',
-            file: file,
+            file: component.fixLink(file, stream_prox),
             subtitles: extract.source.cc ? extract.source.cc.map(function (c) {
               var url = c.url || '';
               if (prefer_http) url = url.replace('https://', 'http://');
               return {
                 label: c.name,
-                url: url
+                url: component.fixLink(url, stream_prox)
               };
             }) : false,
             audio_tracks: audio_tracks.length ? audio_tracks : false
@@ -14178,7 +14186,7 @@
         search: false,
         kp: true,
         imdb: true,
-        disabled: disable_dbg
+        disabled: disable_dbg && !Lampa.Platform.is('apple')
       }, {
         name: 'cdnmovies',
         title: 'CDNMovies',
@@ -15401,7 +15409,7 @@
       };
     }
 
-    var mod_version = '17.09.2024';
+    var mod_version = '18.09.2024';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
@@ -16223,7 +16231,7 @@
 
     template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_anilibria\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} AniLibria</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_kodik\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} Kodik</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_skip_kp_search\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_skip_kp_search}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_iframe_proxy\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_iframe_proxy}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_prefer_http\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_prefer_http}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_prefer_mp4\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_prefer_mp4}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
 
-    if (Utils.isDebug()) {
+    if (Utils.isDebug() || Lampa.Platform.is('apple')) {
       template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_prefer_dash\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_prefer_dash}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_collaps_lampa_player\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_collaps_lampa_player}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
     }
 
