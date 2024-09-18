@@ -93,7 +93,6 @@
       if (name === 'filmix_site') return user_proxy2;
       if (name === 'svetacdn') return '';
       if (name === 'zetflix') return proxy_apn;
-      if (name === 'collapscdn') return isDebug() ? proxy_other ? proxy_secret : proxy_apn0 : '';
       if (name === 'allohacdn') return proxy_other ? proxy_secret : proxy_apn;
       if (name === 'cookie') return user_proxy1;
 
@@ -101,6 +100,7 @@
         if (name === 'rezka') return user_proxy2;
         if (name === 'rezka2') return user_proxy2;
         if (name === 'kinobase') return proxy_apn;
+        if (name === 'collaps') return proxy_other ? proxy_secret : proxy_apn0;
         if (name === 'cdnmovies') return proxy_other ? proxy_secret : proxy_apn;
         if (name === 'videodb') return user_proxy2;
         if (name === 'fancdn') return user_proxy2;
@@ -2972,15 +2972,15 @@
       var select_title = '';
       var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true;
       var prefer_dash = Lampa.Storage.field('online_mod_prefer_dash') === true;
-      var prox = component.proxy('collaps');
       var embed = (prefer_http ? 'http:' : 'https:') + '//api.ninsel.ws/embed/';
       var embed2 = (prefer_http ? 'http:' : 'https:') + '//api.kinogram.best/embed/';
-      var stream_prox = component.proxy('collapscdn');
+      var prox = component.proxy('collaps');
 
-      if (stream_prox) {
-        stream_prox += 'param/User-Agent=' + encodeURIComponent('Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1') + '/';
+      if (prox) {
+        prox += 'param/User-Agent=' + encodeURIComponent('Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1') + '/';
       }
 
+      var stream_prox = prox;
       var filter_items = {};
       var choice = {
         season: 0,
@@ -14185,8 +14185,7 @@
         source: new collaps(this, object),
         search: false,
         kp: true,
-        imdb: true,
-        disabled: disable_dbg && !Lampa.Platform.is('apple')
+        imdb: true
       }, {
         name: 'cdnmovies',
         title: 'CDNMovies',
@@ -15422,12 +15421,12 @@
 
     if (!Utils.isDebug()) {
       Lampa.Storage.set('online_mod_proxy_kinobase', 'false');
+      Lampa.Storage.set('online_mod_proxy_collaps', 'false');
       Lampa.Storage.set('online_mod_proxy_cdnmovies', 'false');
       Lampa.Storage.set('online_mod_proxy_redheadsound', 'false');
     }
 
     Lampa.Storage.set('online_mod_proxy_videocdn', 'false');
-    Lampa.Storage.set('online_mod_proxy_collaps', 'false');
     Lampa.Storage.set('online_mod_proxy_videodb', 'false');
     Lampa.Storage.set('online_mod_proxy_zetflix', 'false');
     Lampa.Storage.set('online_mod_proxy_kinopub', 'true');
@@ -16220,6 +16219,7 @@
 
     if (Utils.isDebug()) {
       template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_kinobase\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} Kinobase</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
+      template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_collaps\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} Collaps</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
       template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_cdnmovies\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} CDNMovies</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
     }
 
@@ -16231,7 +16231,7 @@
 
     template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_anilibria\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} AniLibria</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_kodik\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} Kodik</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_skip_kp_search\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_skip_kp_search}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_iframe_proxy\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_iframe_proxy}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_prefer_http\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_prefer_http}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_prefer_mp4\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_prefer_mp4}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
 
-    if (Utils.isDebug() || Lampa.Platform.is('apple')) {
+    {
       template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_prefer_dash\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_prefer_dash}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_collaps_lampa_player\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_collaps_lampa_player}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
     }
 
