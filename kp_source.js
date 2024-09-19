@@ -1,6 +1,10 @@
 (function () {
     'use strict';
 
+    function startsWith(str, searchString) {
+      return str.lastIndexOf(searchString, 0) === 0;
+    }
+
     var network = new Lampa.Reguest();
     var cache = {};
     var total_cnt = 0;
@@ -526,9 +530,19 @@
       var params = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
       var oncomplite = arguments.length > 1 ? arguments[1] : undefined;
       var onerror = arguments.length > 2 ? arguments[2] : undefined;
+      var kinopoisk_id = '';
 
-      if (params.card && params.card.source === SOURCE_NAME && params.card.kinopoisk_id) {
-        getById(params.card.kinopoisk_id, params, function (json) {
+      if (params.card && params.card.source === SOURCE_NAME) {
+        if (params.card.kinopoisk_id) {
+          kinopoisk_id = params.card.kinopoisk_id;
+        } else if (startsWith(params.card.id + '', SOURCE_NAME + '_')) {
+          kinopoisk_id = (params.card.id + '').substring(SOURCE_NAME.length + 1);
+          params.card.kinopoisk_id = kinopoisk_id;
+        }
+      }
+
+      if (kinopoisk_id) {
+        getById(kinopoisk_id, params, function (json) {
           var status = new Lampa.Status(4);
           status.onComplite = oncomplite;
           status.append('movie', json);
