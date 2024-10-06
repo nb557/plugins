@@ -1,4 +1,4 @@
-//05.10.2024 - Fix
+//06.10.2024 - Fix
 
 (function () {
     'use strict';
@@ -4807,6 +4807,18 @@
       var select_title = '';
       var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true;
       var prox = component.proxy('fancdn');
+      var host = 'https://m1.fanserialstv.net';
+      var ref = host + '/';
+      var headers = Lampa.Platform.is('android') ? {
+        'Origin': host,
+        'Referer': ref
+      } : {};
+
+      if (prox) {
+        prox += 'param/Origin=' + encodeURIComponent(host) + '/';
+        prox += 'param/Referer=' + encodeURIComponent(ref) + '/';
+      }
+
       var embed = (prefer_http ? 'http:' : 'https:') + '//fancdn.net/ember/';
       var filter_items = {};
       var choice = {
@@ -4838,7 +4850,8 @@
         }, function (a, c) {
           component.empty(network.errorDecode(a, c));
         }, false, {
-          dataType: 'text'
+          dataType: 'text',
+          headers: headers
         });
       };
 
@@ -15421,7 +15434,7 @@
       };
     }
 
-    var mod_version = '05.10.2024';
+    var mod_version = '06.10.2024';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
