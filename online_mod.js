@@ -3317,7 +3317,7 @@
       var prefer_mp4 = Lampa.Storage.field('online_mod_prefer_mp4') === true;
       var prox = component.proxy('cdnmovies');
       var stream_prox = prox;
-      var iframe_proxy = !prox && Lampa.Storage.field('online_mod_iframe_proxy') === true && !startsWith(window.location.protocol, 'http');
+      var iframe_proxy = !prox && Lampa.Storage.field('online_mod_iframe_proxy') === true && (!startsWith(window.location.protocol, 'http') || window.location.origin.indexOf('lampa') !== -1) && !Lampa.Platform.is('android');
       var host = 'https://cdnmovies.net';
       var ref = host + '/';
       var user_agent = 'Mozilla/5.0 (Linux; Android 10; K; client) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.6167.178 Mobile Safari/537.36';
