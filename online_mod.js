@@ -1,4 +1,4 @@
-//06.10.2024 - Fix
+//07.10.2024 - Fix
 
 (function () {
     'use strict';
@@ -3360,7 +3360,7 @@
         };
 
         if (iframe_proxy) {
-          component.proxyCall2('GET', embed + api, 10000, null, call_success, call_error);
+          component.proxyCall('GET', embed + api, 10000, null, call_success, call_error);
         } else {
           var meta = $('head meta[name="referrer"]');
           var referrer = meta.attr('content') || 'never';
@@ -15434,7 +15434,7 @@
       };
     }
 
-    var mod_version = '06.10.2024';
+    var mod_version = '07.10.2024';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
