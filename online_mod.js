@@ -1,4 +1,4 @@
-//08.10.2024 - Fix
+//09.10.2024 - Fix
 
 (function () {
     'use strict';
@@ -3319,7 +3319,7 @@
       var prox = component.proxy('cdnmovies');
       var stream_prox = prox;
       var iframe_proxy = !prox && Lampa.Storage.field('online_mod_iframe_proxy') === true && (!startsWith(window.location.protocol, 'http') || window.location.origin.indexOf('lampa') !== -1) && !Lampa.Platform.is('android');
-      var host = 'https://cdnmovies.net';
+      var host = 'https://torrent-film.online';
       var ref = host + '/';
       var user_agent = 'Mozilla/5.0 (Linux; Android 10; K; client) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.6167.178 Mobile Safari/537.36';
       var headers = Lampa.Platform.is('android') ? {
@@ -4843,6 +4843,7 @@
         }
 
         var url = embed + kinopoisk_id;
+        url = Lampa.Utils.addUrlComponent(url, 'token=abcd1234abcd1234abcd1234abcd1234');
         network.clear();
         network.timeout(10000);
         network["native"](prox + url, function (str) {
@@ -14678,8 +14679,7 @@
         source: new cdnmovies(this, object),
         search: false,
         kp: true,
-        imdb: true,
-        disabled: disable_dbg
+        imdb: true
       }, {
         name: 'filmix',
         title: 'Filmix',
@@ -15903,7 +15903,7 @@
       };
     }
 
-    var mod_version = '08.10.2024';
+    var mod_version = '09.10.2024';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
