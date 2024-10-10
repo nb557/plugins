@@ -1,4 +1,4 @@
-//09.10.2024 - Fix
+//10.10.2024 - Fix
 
 (function () {
     'use strict';
@@ -78,7 +78,7 @@
     function proxy(name) {
       var ip = getMyIp() || '';
       var param_ip = Lampa.Storage.field('online_mod_proxy_find_ip') === true ? 'ip' + ip + '/' : '';
-      var proxy1 = 'https://cors.nb557.workers.dev:8443/';
+      var proxy1 = 'https://cors.nb557.workers.dev/';
       var proxy2 = (window.location.protocol === 'https:' ? 'https://' : 'http://') + 'iqslgbok.deploy.cx/?';
       var proxy3 = 'https://cors557.deno.dev/';
       var proxy_apn0 = (window.location.protocol === 'https:' ? 'https://' : 'http://') + 'byzkhkgr.deploy.cx/';
@@ -137,7 +137,7 @@
     function get(method, oncomplite, onerror) {
       var use_proxy = total_cnt >= 10 && good_cnt > total_cnt / 2;
       if (!use_proxy) total_cnt++;
-      var kp_prox = 'https://cors.kp556.workers.dev:8443/';
+      var kp_prox = 'https://cors.kp556.workers.dev/';
       var url = 'https://kinopoiskapiunofficial.tech/';
       url += method;
       network$1.timeout(15000);
@@ -14701,7 +14701,8 @@
         source: new fancdn(this, object),
         search: false,
         kp: true,
-        imdb: true
+        imdb: true,
+        disabled: disable_dbg
       }, {
         name: 'fanserials',
         title: 'FanSerials',
@@ -15903,7 +15904,7 @@
       };
     }
 
-    var mod_version = '09.10.2024';
+    var mod_version = '10.10.2024';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
