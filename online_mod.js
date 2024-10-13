@@ -3336,13 +3336,6 @@
         prox += 'param/User-Agent=' + encodeURIComponent(user_agent) + '/';
       }
 
-      if (stream_prox) {
-        stream_prox += 'param/X-Forwarded-For=/';
-        stream_prox += 'param/X-Forwarded-Proto=/';
-        stream_prox += 'param/X-Real-IP=/';
-        stream_prox += 'param/cf-connecting-ip=/';
-      }
-
       var embed = 'https://cdnmovies-stream.online/';
       var filter_items = {};
       var choice = {
