@@ -1,4 +1,4 @@
-//13.10.2024 - Fix
+//14.10.2024 - Fix
 
 (function () {
     'use strict';
@@ -4803,7 +4803,7 @@
       var select_title = '';
       var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true;
       var prox = component.proxy('fancdn');
-      var host = 'https://m1.fanserialstv.net';
+      var host = 'https://s2.fanserialstv.net';
       var ref = host + '/';
       var headers = Lampa.Platform.is('android') ? {
         'Origin': host,
@@ -4815,7 +4815,7 @@
         prox += 'param/Referer=' + encodeURIComponent(ref) + '/';
       }
 
-      var embed = (prefer_http ? 'http:' : 'https:') + '//fancdn.net/video/';
+      var embed = ref;
       var filter_items = {};
       var choice = {
         season: 0,
@@ -4828,28 +4828,149 @@
        * @param {String} kinopoisk_id
        */
 
-      this.search = function (_object, kinopoisk_id) {
+      this.search = function (_object, kinopoisk_id, data) {
+        var _this = this;
+
         object = _object;
         select_title = object.search || object.movie.title;
+        if (this.wait_similars && data && data[0].is_similars) return getPage(data[0].link);
+        var search_date = object.search_date || !object.clarification && (object.movie.release_date || object.movie.first_air_date || object.movie.last_air_date) || '0000';
+        var search_year = parseInt((search_date + '').slice(0, 4));
+        var orig = object.movie.original_title || object.movie.original_name;
 
-        if (isNaN(kinopoisk_id)) {
-          component.emptyForQuery(select_title);
-          return;
-        }
+        var display = function display(links) {
+          if (links && links.length) {
+            var is_sure = false;
+            var items = links.map(function (l) {
+              var li = $(l + '</div>');
+              var link = $('a', li);
+              var orig_div = $('div.name-origin-search', li);
+              var titl = link.text().trim() || '';
+              var orig_title = orig_div.text().trim() || '';
+              var year;
+              var found = orig_title.match(/^(.*)\((\d{4}\s*)\)$/);
 
-        var url = embed + kinopoisk_id;
-        url = Lampa.Utils.addUrlComponent(url, 'token=abcd1234abcd1234abcd1234abcd1234');
+              if (found) {
+                year = parseInt(found[2]);
+                orig_title = found[1].trim();
+              }
+
+              return {
+                year: year,
+                title: titl,
+                orig_title: orig_title,
+                link: link.attr('href') || ''
+              };
+            });
+            var cards = items;
+
+            if (cards.length) {
+              if (orig) {
+                var tmp = cards.filter(function (c) {
+                  return component.containsTitle(c.orig_title, orig) || component.containsTitle(c.title, orig);
+                });
+
+                if (tmp.length) {
+                  cards = tmp;
+                  is_sure = true;
+                }
+              }
+
+              if (select_title) {
+                var _tmp = cards.filter(function (c) {
+                  return component.containsTitle(c.title, select_title) || component.containsTitle(c.orig_title, select_title);
+                });
+
+                if (_tmp.length) {
+                  cards = _tmp;
+                  is_sure = true;
+                }
+              }
+
+              if (cards.length > 1 && search_year) {
+                var _tmp2 = cards.filter(function (c) {
+                  return c.year == search_year;
+                });
+
+                if (!_tmp2.length) _tmp2 = cards.filter(function (c) {
+                  return c.year && c.year > search_year - 2 && c.year < search_year + 2;
+                });
+                if (_tmp2.length) cards = _tmp2;
+              }
+            }
+
+            if (cards.length == 1 && is_sure) {
+              if (search_year && cards[0].year) {
+                is_sure = cards[0].year > search_year - 2 && cards[0].year < search_year + 2;
+              }
+
+              if (is_sure) {
+                is_sure = false;
+
+                if (orig) {
+                  is_sure |= component.equalTitle(cards[0].orig_title, orig) || component.equalTitle(cards[0].title, orig);
+                }
+
+                if (select_title) {
+                  is_sure |= component.equalTitle(cards[0].title, select_title) || component.equalTitle(cards[0].orig_title, select_title);
+                }
+              }
+            }
+
+            if (cards.length == 1 && is_sure) getPage(cards[0].link);else if (items.length) {
+              _this.wait_similars = true;
+              items.forEach(function (c) {
+                c.is_similars = true;
+              });
+              component.similars(items);
+              component.loading(false);
+            } else component.emptyForQuery(select_title);
+          } else component.emptyForQuery(select_title);
+        };
+
+        var url = embed + 'index.php?do=search';
+        var postdata = 'do=search&subaction=search&search_start=0&full_search=1&result_from=1&story=' + encodeURIComponent(select_title) + '&titleonly=3&searchuser=&replyless=0&replylimit=0&searchdate=0&beforeafter=after&sortby=title&resorder=asc&showposts=0&catlist%5B%5D=10';
         network.clear();
         network.timeout(10000);
         network["native"](prox + url, function (str) {
-          parse(str);
+          str = (str || '').replace(/\n/g, '');
+          var links = str.match(/<div class="item-search-header">\s*<h2>\s*<a [^>]*>[^<]*<\/a>\s*<\/h2>\s*<div class="name-origin-search">[^<]*<\/div>/g);
+          display(links);
+        }, function (a, c) {
+          component.empty(network.errorDecode(a, c));
+        }, postdata, {
+          dataType: 'text',
+          headers: headers
+        });
+      };
+
+      function getPage(url) {
+        url = component.fixLink(url, prox, ref);
+        network.clear();
+        network.timeout(10000);
+        network["native"](url, function (str) {
+          str = (str || '').replace(/\n/g, '');
+          var player = str.match(/<iframe id="iframe-player" src="(https?:\/\/fancdn.net\/[^"]*)"/);
+
+          if (player) {
+            network.clear();
+            network.timeout(10000);
+            network["native"](prox + player[1], function (str) {
+              parse(str);
+            }, function (a, c) {
+              component.empty(network.errorDecode(a, c));
+            }, false, {
+              dataType: 'text',
+              headers: headers
+            });
+          } else component.emptyForQuery(select_title);
         }, function (a, c) {
           component.empty(network.errorDecode(a, c));
         }, false, {
           dataType: 'text',
           headers: headers
         });
-      };
+      }
 
       this.extendChoice = function (saved) {
         Lampa.Arrays.extend(choice, saved, true);
@@ -5279,7 +5400,7 @@
       var select_id = '';
       var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true;
       var prox = component.proxy('fanserials');
-      var host = 'https://m1.fanserialstv.net';
+      var host = 'https://s2.fanserialstv.net';
       var ref = host + '/';
       var headers = Lampa.Platform.is('android') ? {
         'Origin': host,
@@ -15075,10 +15196,9 @@
         name: 'fancdn',
         title: 'FanCDN',
         source: new fancdn(this, object),
-        search: false,
-        kp: true,
-        imdb: true,
-        disabled: disable_dbg
+        search: true,
+        kp: false,
+        imdb: false
       }, {
         name: 'fanserials',
         title: 'FanSerials',
@@ -16289,7 +16409,7 @@
       };
     }
 
-    var mod_version = '13.10.2024';
+    var mod_version = '14.10.2024';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
