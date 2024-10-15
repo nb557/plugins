@@ -1,4 +1,4 @@
-//14.10.2024 - Fix
+//15.10.2024 - Fix
 
 (function () {
     'use strict';
@@ -3841,7 +3841,7 @@
       var prox = component.proxy('filmix');
       var prox2 = component.proxy('filmix_site');
       var embed = 'http://filmixapp.cyou/api/v2/';
-      var site = 'https://filmix.biz/';
+      var site = 'https://filmix.fm/';
       var select_title = '';
       var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true;
       var filter_items = {};
@@ -3995,29 +3995,34 @@
       };
 
       function find(filmix_id, abuse) {
-        var url = embed;
-
-        if (!debug && !window.mod_filmix.is_max_qualitie && token) {
+        if (!debug && !window.mod_filmix.is_max_qualitie) {
           window.mod_filmix.is_max_qualitie = true;
           token = Lampa.Storage.get('filmix_token', '') + '';
           dev_token = Utils.filmixToken(Lampa.Utils.uid(16), token || 'aaaabbbbccccddddeeeeffffaaaabbbb');
+
+          if (token) {
+            var url = embed + 'user_profile' + dev_token;
+            network.clear();
+            network.timeout(10000);
+            network["native"](prox + url, function (found) {
+              if (found && found.user_data) {
+                window.mod_filmix.max_qualitie = 720;
+                if (found.user_data.is_pro) window.mod_filmix.max_qualitie = 1080;
+                if (found.user_data.is_pro_plus) window.mod_filmix.max_qualitie = 2160;
+              }
+
+              end_search();
+            }, function (a, c) {
+              end_search();
+            });
+          } else end_search();
+        } else end_search();
+
+        function end_search() {
+          var url = embed + 'post/' + filmix_id + (abuse ? abuse_token : dev_token);
           network.clear();
           network.timeout(10000);
-          network["native"](prox + url + 'user_profile' + dev_token, function (found) {
-            if (found && found.user_data) {
-              window.mod_filmix.max_qualitie = 720;
-              if (found.user_data.is_pro) window.mod_filmix.max_qualitie = 1080;
-              if (found.user_data.is_pro_plus) window.mod_filmix.max_qualitie = 2160;
-            }
-
-            end_search(filmix_id);
-          });
-        } else end_search(filmix_id);
-
-        function end_search(filmix_id) {
-          network.clear();
-          network.timeout(10000);
-          network["native"](prox + url + 'post/' + filmix_id + (abuse ? abuse_token : dev_token), function (found) {
+          network["native"](prox + url, function (found) {
             if (found && Object.keys(found).length) {
               if (!abuse && abuse_token && checkAbuse(found)) find(filmix_id, true);else success(found);
             } else component.emptyForQuery(select_title);
@@ -16409,7 +16414,7 @@
       };
     }
 
-    var mod_version = '14.10.2024';
+    var mod_version = '15.10.2024';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
@@ -16847,11 +16852,11 @@
         zh: '将设备添加到 Filmix'
       },
       online_mod_filmix_modal_text: {
-        ru: 'Введите его на странице https://filmix.biz/consoles в вашем авторизованном аккаунте!',
-        uk: 'Введіть його на сторінці https://filmix.biz/consoles у вашому авторизованому обліковому записі!',
-        be: 'Увядзіце яго на старонцы https://filmix.biz/consoles у вашым аўтарызаваным акаўнце!',
-        en: 'Enter it at https://filmix.biz/consoles in your authorized account!',
-        zh: '在您的授权帐户中的 https://filmix.biz/consoles 中输入！'
+        ru: 'Введите его на странице https://filmix.fm/consoles в вашем авторизованном аккаунте!',
+        uk: 'Введіть його на сторінці https://filmix.fm/consoles у вашому авторизованому обліковому записі!',
+        be: 'Увядзіце яго на старонцы https://filmix.fm/consoles у вашым аўтарызаваным акаўнце!',
+        en: 'Enter it at https://filmix.fm/consoles in your authorized account!',
+        zh: '在您的授权帐户中的 https://filmix.fm/consoles 中输入！'
       },
       online_mod_filmix_modal_wait: {
         ru: 'Ожидаем код',
