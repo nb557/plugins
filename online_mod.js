@@ -1,4 +1,4 @@
-//15.10.2024 - Fix
+//16.10.2024 - Full episode title format
 
 (function () {
     'use strict';
@@ -725,7 +725,7 @@
 
                     if (media && media.items && media.items.length) {
                       filtred.push({
-                        title: 'S' + media.season_num + ' / ' + Lampa.Lang.translate('torrent_serial_episode') + ' ' + media.episode_num,
+                        title: component.formatEpisodeTitle(media.season_num, media.episode_num),
                         quality: media.items[0].label,
                         info: ' / ' + (media.alt_voice || filter_items.voice[choice.voice]),
                         season: media.season_num,
@@ -737,7 +737,7 @@
                 } else {
                   if (elem && elem.items && elem.items.length) {
                     filtred.push({
-                      title: 'S' + elem.season_num + ' / ' + Lampa.Lang.translate('torrent_serial_episode') + ' ' + elem.episode_num,
+                      title: component.formatEpisodeTitle(elem.season_num, elem.episode_num),
                       quality: elem.items[0].label,
                       info: ' / ' + (elem.alt_voice || filter_items.voice[choice.voice]),
                       season: elem.season_num,
@@ -1296,7 +1296,7 @@
           var voice = getChoiceVoice();
           extract.episode.forEach(function (episode) {
             items.push({
-              title: 'S' + ses + ' / ' + episode.name,
+              title: component.formatEpisodeTitle(ses, null, episode.name),
               quality: '360p ~ 1080p',
               info: ' / ' + voice.name,
               season: parseInt(ses),
@@ -2193,7 +2193,7 @@
           extract.episode.forEach(function (episode) {
             if (episode.season_id == season_id) {
               filtred.push({
-                title: 'S' + episode.season_id + ' / ' + episode.name,
+                title: component.formatEpisodeTitle(episode.season_id, null, episode.name),
                 quality: '360p ~ 1080p',
                 info: ' / ' + voice,
                 season: parseInt(episode.season_id),
@@ -2580,7 +2580,7 @@
                 var episode = parseInt(title);
                 if (isNaN(episode)) episode = index + 1;
                 filtred.push({
-                  title: 'S' + season + ' / ' + title,
+                  title: component.formatEpisodeTitle(season, null, title),
                   quality: items[0].quality + 'p' + (quality_type ? ' - ' + quality_type : ''),
                   info: info ? ' / ' + info : '',
                   season: season,
@@ -3681,7 +3681,7 @@
                         var episode_num = parseInt(e_title.match(/\d+/));
                         var season_num = parseInt(s_title.match(/\d+/));
                         filtred.push({
-                          title: 'S' + season_num + ' / ' + Lampa.Lang.translate('torrent_serial_episode') + ' ' + episode_num,
+                          title: component.formatEpisodeTitle(season_num, episode_num),
                           quality: '360p ~ 1080p',
                           info: ' / ' + Lampa.Utils.shortText(voice, 50),
                           season: season_num,
@@ -3702,7 +3702,7 @@
                         var episode_num = parseInt(e_title.match(/\d+/));
                         var season_num = parseInt(s_title.match(/\d+/));
                         filtred.push({
-                          title: 'S' + season_num + ' / ' + Lampa.Lang.translate('torrent_serial_episode') + ' ' + episode_num,
+                          title: component.formatEpisodeTitle(season_num, episode_num),
                           quality: '360p ~ 1080p',
                           info: ' / ' + Lampa.Utils.shortText(voice, 50),
                           season: season_num,
@@ -4326,7 +4326,7 @@
           var items = voice.items || [];
           items.forEach(function (media) {
             filtred.push({
-              title: 'S' + media.season + ' / ' + Lampa.Lang.translate('torrent_serial_episode') + ' ' + media.episode,
+              title: component.formatEpisodeTitle(media.season, media.episode),
               quality: media.quality + 'p',
               info: voice_name ? ' / ' + voice_name : '',
               season: media.season,
@@ -4669,7 +4669,7 @@
                   var episode_num = parseInt(e_title.match(/\d+/));
                   var season_num = choice.season + 1;
                   filtred.push({
-                    title: 'S' + season_num + ' / ' + Lampa.Lang.translate('torrent_serial_episode') + ' ' + episode_num,
+                    title: component.formatEpisodeTitle(season_num, episode_num),
                     quality: max_quality.label || '360p ~ 1080p',
                     info: ' / ' + Lampa.Utils.shortText(voice, 50),
                     season: season_num,
@@ -5270,7 +5270,7 @@
                       var episode_num = parseInt(e_title.match(/\d+/));
                       var season_num = parseInt(s_title.match(/\d+/));
                       filtred.push({
-                        title: 'S' + season_num + ' / ' + Lampa.Lang.translate('torrent_serial_episode') + ' ' + episode_num,
+                        title: component.formatEpisodeTitle(season_num, episode_num),
                         quality: '360p ~ 1080p',
                         info: ' / ' + Lampa.Utils.shortText(voice, 50),
                         season: season_num,
@@ -5734,7 +5734,7 @@
               translations.forEach(function (translation) {
                 if (translation.voice_id == v_id) {
                   filtred.push({
-                    title: 'S' + s_num + ' / ' + Lampa.Lang.translate('torrent_serial_episode') + ' ' + e_num,
+                    title: component.formatEpisodeTitle(s_num, e_num),
                     quality: '360p ~ 1080p',
                     info: ' / ' + Lampa.Utils.shortText(voice, 50),
                     season: s_num,
@@ -11888,7 +11888,7 @@
 
               if (translations[v_id]) {
                 filtred.push({
-                  title: 'S' + s_num + ' / ' + Lampa.Lang.translate('torrent_serial_episode') + ' ' + e_num,
+                  title: component.formatEpisodeTitle(s_num, e_num),
                   quality: '360p ~ 1080p',
                   info: ' / ' + Lampa.Utils.shortText(voice, 50),
                   season: s_num,
@@ -12827,9 +12827,8 @@
             if (data.season == season_id) {
               if (data.folder) {
                 data.folder.forEach(function (ep) {
-                  var title = 'S' + season_id + ' / ' + Lampa.Lang.translate('torrent_serial_episode') + ' ' + ep.episode;
                   filtred.push({
-                    title: title,
+                    title: component.formatEpisodeTitle(season_id, ep.episode),
                     quality: '360p ~ 1080p',
                     info: ep.id ? ' / id: ' + ep.id : '',
                     data_id: ep.id,
@@ -12839,9 +12838,8 @@
                   });
                 });
               } else {
-                var title = 'S' + season_id + ' / ' + Lampa.Lang.translate('torrent_serial_episode') + ' ' + data.episode;
                 filtred.push({
-                  title: title,
+                  title: component.formatEpisodeTitle(season_id, data.episode),
                   quality: '360p ~ 1080p',
                   info: data.id ? ' / id: ' + data.id : '',
                   data_id: data.id,
@@ -13197,11 +13195,8 @@
 
               var _items = extractItems(host, _episode.hls);
 
-              var title = Lampa.Lang.translate('torrent_serial_episode') + ' ' + _episode.episode;
-
-              if (_episode.name) title += ' - ' + _episode.name;
               filtred.push({
-                title: title,
+                title: component.formatEpisodeTitle(null, _episode.episode, _episode.name),
                 orig_title: extract.en_title || extract.ru_title || select_title,
                 quality: _items[0] ? _items[0].label : '360p ~ 1080p',
                 info: '',
@@ -13571,10 +13566,8 @@
           } else {
             extract.episodes.forEach(function (episode) {
               var items = extractItems(episode);
-              var title = Lampa.Lang.translate('torrent_serial_episode') + ' ' + episode.ordinal;
-              if (episode.name) title += ' - ' + episode.name;
               filtred.push({
-                title: title,
+                title: component.formatEpisodeTitle(null, episode.ordinal, episode.name),
                 orig_title: extract.en_title || extract.ru_title || select_title,
                 quality: items[0] ? items[0].label : '360p ~ 1080p',
                 info: '',
@@ -14063,9 +14056,8 @@
 
             for (var episode_id in episodes) {
               var link = episodes[episode_id];
-              var title = 'S' + season_id + ' / ' + Lampa.Lang.translate('torrent_serial_episode') + ' ' + episode_id;
               filtred.push({
-                title: title,
+                title: component.formatEpisodeTitle(season_id, episode_id),
                 orig_title: translation.title_orig || translation.title || select_title,
                 quality: translation.quality || '360p ~ 1080p',
                 info: ' / ' + voice_name,
@@ -14888,9 +14880,8 @@
               });
               voice_name = component.uniqueNamesShortText(voice_names, 80);
             }
-            var title = 'S' + season.number + ' / ' + Lampa.Lang.translate('torrent_serial_episode') + ' ' + episode.number + (episode.title ? ' - ' + episode.title : '');
             filtred.push({
-              title: title,
+              title: component.formatEpisodeTitle(season.number, episode.number, episode.title),
               orig_title: extract.title || select_title,
               quality: extract.quality ? extract.quality + 'p' : '360p ~ 1080p',
               info: voice_name ? ' / ' + voice_name : '',
@@ -15831,6 +15822,19 @@
         return link;
       };
 
+      this.formatEpisodeTitle = function (s_num, e_num, name) {
+        var title = '';
+        var full = Lampa.Storage.field('online_mod_full_episode_title') === true;
+
+        if (s_num != null) {
+          title = (full ? Lampa.Lang.translate('torrent_serial_season') + ' ' : 'S') + s_num + ' / ';
+        }
+
+        if (name == null) name = Lampa.Lang.translate('torrent_serial_episode') + ' ' + e_num;else if (e_num != null) name = Lampa.Lang.translate('torrent_serial_episode') + ' ' + e_num + ' - ' + name;
+        title += name;
+        return title;
+      };
+
       this.proxyUrlCall = function (proxy_url, method, url, timeout, post_data, call_success, call_fail, withCredentials) {
         proxy_url = this.proxy('iframe') + proxy_url;
 
@@ -16414,7 +16418,7 @@
       };
     }
 
-    var mod_version = '15.10.2024';
+    var mod_version = '16.10.2024';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
@@ -16471,6 +16475,7 @@
     Lampa.Params.trigger('online_mod_prefer_mp4', true);
     Lampa.Params.trigger('online_mod_prefer_dash', false);
     Lampa.Params.trigger('online_mod_collaps_lampa_player', false);
+    Lampa.Params.trigger('online_mod_full_episode_title', false);
     Lampa.Params.trigger('online_mod_av1_support', true);
     Lampa.Params.trigger('online_mod_save_last_balanser', false);
     Lampa.Params.trigger('online_mod_rezka2_fix_stream', false);
@@ -16696,6 +16701,13 @@
         be: 'Collaps: Убудаваны плэер',
         en: 'Collaps: Lampa player',
         zh: 'Collaps： Lampa播放器'
+      },
+      online_mod_full_episode_title: {
+        ru: 'Полный формат названия серии',
+        uk: 'Повний формат назви серії',
+        be: 'Поўны фармат назвы серыі',
+        en: 'Full episode title format',
+        zh: '完整剧集标题格式'
       },
       online_mod_av1_support: {
         ru: 'AV1 поддерживается',
@@ -17264,6 +17276,7 @@
       template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_prefer_dash\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_prefer_dash}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_collaps_lampa_player\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_collaps_lampa_player}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
     }
 
+    template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_full_episode_title\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_full_episode_title}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
     template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_save_last_balanser\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_save_last_balanser}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_clear_last_balanser\" data-static=\"true\">\n        <div class=\"settings-param__name\">#{online_mod_clear_last_balanser}</div>\n        <div class=\"settings-param__status\"></div>\n    </div>";
 
     if (Utils.isDebug()) {
