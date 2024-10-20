@@ -1,4 +1,4 @@
-//17.10.2024 - Fix
+//20.10.2024 - Fix
 
 (function () {
     'use strict';
@@ -116,6 +116,32 @@
       return '';
     }
 
+    function randomWords(words, len) {
+      words = words || [];
+      len = len || 0;
+      var words_len = words.length;
+      if (!words_len) return '';
+      var str = '';
+
+      for (var i = 0; i < len; i++) {
+        str += words[Math.floor(Math.random() * words_len)];
+      }
+
+      return str;
+    }
+
+    function randomChars(chars, len) {
+      return randomWords((chars || '').split(''), len);
+    }
+
+    function randomHex(len) {
+      return randomChars('0123456789abcdef', len);
+    }
+
+    function randomId(len) {
+      return randomChars('0123456789abcdefghijklmnopqrstuvwxyz', len);
+    }
+
     var Utils = {
       decodeSecret: decodeSecret,
       isDebug: isDebug,
@@ -125,7 +151,11 @@
       filmixToken: filmixToken,
       setMyIp: setMyIp,
       getMyIp: getMyIp,
-      proxy: proxy
+      proxy: proxy,
+      randomWords: randomWords,
+      randomChars: randomChars,
+      randomHex: randomHex,
+      randomId: randomId
     };
 
     var network$1 = new Lampa.Reguest();
@@ -1430,7 +1460,7 @@
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36'
       } : {};
       var cookie = Lampa.Storage.get('online_mod_rezka2_cookie', '') + '';
-      if (cookie.indexOf('PHPSESSID=') == -1) cookie = 'PHPSESSID=' + Lampa.Utils.uid(26) + (cookie ? '; ' + cookie : '');
+      if (cookie.indexOf('PHPSESSID=') == -1) cookie = 'PHPSESSID=' + Utils.randomId(26) + (cookie ? '; ' + cookie : '');
 
       if (cookie) {
         if (Lampa.Platform.is('android') && !logged_in) {
@@ -3868,7 +3898,7 @@
       }
 
       var token = Lampa.Storage.get('filmix_token', '') + '';
-      var dev_token = Utils.filmixToken(Lampa.Utils.uid(16), token || 'aaaabbbbccccddddeeeeffffaaaabbbb');
+      var dev_token = Utils.filmixToken(Utils.randomHex(16), token || 'aaaabbbbccccddddeeeeffffaaaabbbb');
       var abuse_token = '';
       /**
        * Начать поиск
@@ -3998,7 +4028,7 @@
         if (!debug && !window.mod_filmix.is_max_qualitie) {
           window.mod_filmix.is_max_qualitie = true;
           token = Lampa.Storage.get('filmix_token', '') + '';
-          dev_token = Utils.filmixToken(Lampa.Utils.uid(16), token || 'aaaabbbbccccddddeeeeffffaaaabbbb');
+          dev_token = Utils.filmixToken(Utils.randomHex(16), token || 'aaaabbbbccccddddeeeeffffaaaabbbb');
 
           if (token) {
             var url = embed + 'user_profile' + dev_token;
@@ -4814,10 +4844,26 @@
         'Origin': host,
         'Referer': ref
       } : {};
+      var headers2 = Lampa.Platform.is('android') ? {
+        'Origin': host,
+        'Referer': ref
+      } : {};
 
       if (prox) {
         prox += 'param/Origin=' + encodeURIComponent(host) + '/';
         prox += 'param/Referer=' + encodeURIComponent(ref) + '/';
+      }
+
+      var prox2 = prox;
+      var cookie = Lampa.Storage.get('online_mod_fancdn_cookie', '') + '';
+      if (cookie.indexOf('PHPSESSID=') == -1) cookie = 'PHPSESSID=' + Utils.randomHex(32) + (cookie ? '; ' + cookie : '');
+
+      if (cookie) {
+        if (Lampa.Platform.is('android')) {
+          headers.Cookie = cookie;
+        } else if (prox) {
+          prox += 'param/Cookie=' + encodeURIComponent(cookie) + '/';
+        }
       }
 
       var embed = ref;
@@ -4960,13 +5006,13 @@
           if (player) {
             network.clear();
             network.timeout(10000);
-            network["native"](prox + player[1], function (str) {
+            network["native"](prox2 + player[1], function (str) {
               parse(str);
             }, function (a, c) {
               component.empty(network.errorDecode(a, c));
             }, false, {
               dataType: 'text',
-              headers: headers
+              headers: headers2
             });
           } else component.emptyForQuery(select_title);
         }, function (a, c) {
@@ -16418,7 +16464,7 @@
       };
     }
 
-    var mod_version = '17.10.2024';
+    var mod_version = '20.10.2024';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
@@ -16485,6 +16531,9 @@
     Lampa.Params.select('online_mod_rezka2_name', '', '');
     Lampa.Params.select('online_mod_rezka2_password', '', '');
     Lampa.Params.select('online_mod_rezka2_cookie', '', '');
+    Lampa.Params.select('online_mod_fancdn_name', '', '');
+    Lampa.Params.select('online_mod_fancdn_password', '', '');
+    Lampa.Params.select('online_mod_fancdn_cookie', '', '');
     Lampa.Params.select('online_mod_proxy_other_url', '', '');
     Lampa.Params.select('online_mod_secret_password', '', '');
 
@@ -16763,7 +16812,7 @@
         uk: 'Логін чи email для HDrezka',
         be: 'Лагін ці email для HDrezka',
         en: 'Login or email for HDrezka',
-        zh: 'HDrezka的登录或电子邮件'
+        zh: 'HDrezka的登录名或电子邮件'
       },
       online_mod_rezka2_password: {
         ru: 'Пароль для HDrezka',
@@ -16806,6 +16855,34 @@
         be: 'Фікс відэаструменю для HDrezka',
         en: 'Fix video stream for HDrezka',
         zh: '修复 HDrezka 的视频流'
+      },
+      online_mod_fancdn_name: {
+        ru: 'Логин для FanSerials',
+        uk: 'Логін для FanSerials',
+        be: 'Лагін для FanSerials',
+        en: 'Login for FanSerials',
+        zh: 'FanSerials的登录名'
+      },
+      online_mod_fancdn_password: {
+        ru: 'Пароль для FanSerials',
+        uk: 'Пароль для FanSerials',
+        be: 'Пароль для FanSerials',
+        en: 'Password for FanSerials',
+        zh: 'FanSerials的密码'
+      },
+      online_mod_fancdn_cookie: {
+        ru: 'Куки для FanSerials',
+        uk: 'Кукі для FanSerials',
+        be: 'Кукі для FanSerials',
+        en: 'Cookie for FanSerials',
+        zh: 'FanSerials 的 Cookie'
+      },
+      online_mod_fancdn_fill_cookie: {
+        ru: 'Заполнить куки для FanSerials',
+        uk: 'Заповнити кукі для FanSerials',
+        be: 'Запоўніць кукі для FanSerials',
+        en: 'Fill cookie for FanSerials',
+        zh: '为FanSerials填充Cookie'
       },
       online_mod_secret_password: {
         ru: 'Секретный пароль',
@@ -17023,7 +17100,7 @@
 
     var filmix_prox = Utils.proxy('filmix');
     var api_url = 'http://filmixapp.cyou/api/v2/';
-    var dev_id = Lampa.Utils.uid(16);
+    var dev_id = Utils.randomHex(16);
     var ping_auth;
     Lampa.Params.select('filmix_token', '', '');
     Lampa.Template.add('settings_filmix', "<div>\n    <div class=\"settings-param selector\" data-name=\"filmix_token\" data-type=\"input\" placeholder=\"#{online_mod_filmix_param_placeholder}\">\n        <div class=\"settings-param__name\">#{online_mod_filmix_param_add_title}</div>\n        <div class=\"settings-param__value\"></div>\n        <div class=\"settings-param__descr\">#{online_mod_filmix_param_add_descr}</div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"filmix_add\" data-static=\"true\">\n        <div class=\"settings-param__name\">#{online_mod_filmix_param_add_device}</div>\n    </div>\n</div>");
@@ -17160,9 +17237,16 @@
     }
 
     function rezka2FillCookie(success, error) {
-      var prox = Utils.proxy('cookie') + 'get_cookie/param/Cookie=/';
+      var prox = Utils.proxy('cookie');
       var proxy_mirror = Lampa.Storage.field('online_mod_proxy_rezka2_mirror') === true;
       var host = !proxy_mirror ? 'https://rezka.ag' : Utils.rezka2Mirror();
+
+      if (!prox) {
+        if (error) error();
+        return;
+      }
+
+      prox += 'get_cookie/param/Cookie=/';
       var url = host + '/ajax/login/';
       var postdata = 'login_name=' + encodeURIComponent(Lampa.Storage.get('online_mod_rezka2_name', ''));
       postdata += '&login_password=' + encodeURIComponent(Lampa.Storage.get('online_mod_rezka2_password', ''));
@@ -17195,27 +17279,109 @@
 
         if (cookie) {
           Lampa.Storage.set("online_mod_rezka2_cookie", cookie);
-          if (cookie.indexOf('PHPSESSID=') == -1) cookie = 'PHPSESSID=' + (sid || Lampa.Utils.uid(26)) + (cookie ? '; ' + cookie : '');
+          if (cookie.indexOf('PHPSESSID=') == -1) cookie = 'PHPSESSID=' + (sid || Utils.randomId(26)) + (cookie ? '; ' + cookie : '');
           prox += 'param/Cookie=' + encodeURIComponent(cookie) + '/';
           network.clear();
           network.timeout(8000);
           network.silent(prox + host + '/', function (json) {
-            json.cookie.forEach(function (param) {
-              var parts = param.split(';')[0].split("=");
+            if (json && json.cookie && json.cookie.forEach) {
+              json.cookie.forEach(function (param) {
+                var parts = param.split(';')[0].split("=");
 
-              if (parts[0]) {
-                if (parts[1] === 'deleted') delete values[parts[0]];else values[parts[0]] = parts[1] || '';
+                if (parts[0]) {
+                  if (parts[1] === 'deleted') delete values[parts[0]];else values[parts[0]] = parts[1] || '';
+                }
+              });
+              delete values['PHPSESSID'];
+              var _cookies = [];
+
+              for (var _name in values) {
+                _cookies.push(_name + '=' + values[_name]);
               }
-            });
-            delete values['PHPSESSID'];
-            var cookies = [];
 
-            for (var _name in values) {
-              cookies.push(_name + '=' + values[_name]);
+              cookie = _cookies.join("; ");
+              if (cookie) Lampa.Storage.set("online_mod_rezka2_cookie", cookie);
             }
 
-            cookie = cookies.join("; ");
-            if (cookie) Lampa.Storage.set("online_mod_rezka2_cookie", cookie);
+            if (success) success();
+          }, function (a, c) {
+            if (success) success();
+          });
+        } else {
+          if (error) error();
+        }
+      }, function (a, c) {
+        Lampa.Noty.show(network.errorDecode(a, c));
+        if (error) error();
+      }, postdata);
+    }
+
+    function fancdnFillCookie(success, error) {
+      var prox = Utils.proxy('fancdn');
+      var host = 'https://s2.fanserialstv.net';
+
+      if (!prox) {
+        if (error) error();
+        return;
+      }
+
+      prox += 'get_cookie/param/Cookie=/';
+      var url = host + '/';
+      var postdata = 'login_name=' + encodeURIComponent(Lampa.Storage.get('online_mod_fancdn_name', ''));
+      postdata += '&login_password=' + encodeURIComponent(Lampa.Storage.get('online_mod_fancdn_password', ''));
+      postdata += '&login=submit';
+      network.clear();
+      network.timeout(8000);
+      network.silent(prox + url, function (json) {
+        var cookie = '';
+        var values = {};
+        var sid = '';
+
+        if (json && json.cookie && json.cookie.forEach) {
+          json.cookie.forEach(function (param) {
+            var parts = param.split(';')[0].split("=");
+
+            if (parts[0]) {
+              if (parts[1] === 'deleted') delete values[parts[0]];else values[parts[0]] = parts[1] || '';
+            }
+          });
+          sid = values['PHPSESSID'];
+          delete values['PHPSESSID'];
+          var cookies = [];
+
+          for (var name in values) {
+            cookies.push(name + '=' + values[name]);
+          }
+
+          cookie = cookies.join("; ");
+        }
+
+        if (cookie) {
+          Lampa.Storage.set("online_mod_fancdn_cookie", cookie);
+          if (cookie.indexOf('PHPSESSID=') == -1) cookie = 'PHPSESSID=' + (sid || Utils.randomHex(32)) + (cookie ? '; ' + cookie : '');
+          prox += 'param/Cookie=' + encodeURIComponent(cookie) + '/';
+          network.clear();
+          network.timeout(8000);
+          network.silent(prox + host + '/', function (json) {
+            if (json && json.cookie && json.cookie.forEach) {
+              json.cookie.forEach(function (param) {
+                var parts = param.split(';')[0].split("=");
+
+                if (parts[0]) {
+                  if (parts[1] === 'deleted') delete values[parts[0]];else values[parts[0]] = parts[1] || '';
+                }
+              });
+              delete values['PHPSESSID'];
+              var _cookies2 = [];
+
+              for (var _name2 in values) {
+                _cookies2.push(_name2 + '=' + values[_name2]);
+              }
+
+              cookie = _cookies2.join("; ");
+              if (cookie) Lampa.Storage.set("online_mod_fancdn_cookie", cookie);
+            }
+
             if (success) success();
           }, function (a, c) {
             if (success) success();
@@ -17302,6 +17468,8 @@
       template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_rezka2_fix_stream\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_rezka2_fix_stream}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
     }
 
+    template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_fancdn_name\" data-type=\"input\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{online_mod_fancdn_name}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_fancdn_password\" data-type=\"input\" data-string=\"true\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{online_mod_fancdn_password}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
+    template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_fancdn_cookie\" data-type=\"input\" data-string=\"true\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{online_mod_fancdn_cookie}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_fancdn_fill_cookie\" data-static=\"true\">\n        <div class=\"settings-param__name\">#{online_mod_fancdn_fill_cookie}</div>\n        <div class=\"settings-param__status\"></div>\n    </div>";
     template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_use_stream_proxy\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_use_stream_proxy}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_find_ip\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_find_ip}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_other\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_other}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_other_url\" data-type=\"input\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_other_url}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_secret_password\" data-type=\"input\" data-string=\"true\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{online_mod_secret_password}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
 
     if (Utils.isDebug()) {
@@ -17360,6 +17528,16 @@
             Lampa.Params.update(e.body.find('[data-name="online_mod_rezka2_cookie"]'), [], e.body);
           }, function () {
             rezka2_fill_cookie_status.removeClass('active error wait').addClass('error');
+          });
+        });
+        var fancdn_fill_cookie = e.body.find('[data-name="online_mod_fancdn_fill_cookie"]');
+        fancdn_fill_cookie.unbind('hover:enter').on('hover:enter', function () {
+          var fancdn_fill_cookie_status = $('.settings-param__status', fancdn_fill_cookie).removeClass('active error wait').addClass('wait');
+          fancdnFillCookie(function () {
+            fancdn_fill_cookie_status.removeClass('active error wait').addClass('active');
+            Lampa.Params.update(e.body.find('[data-name="online_mod_fancdn_cookie"]'), [], e.body);
+          }, function () {
+            fancdn_fill_cookie_status.removeClass('active error wait').addClass('error');
           });
         });
       }
