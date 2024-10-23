@@ -1,4 +1,4 @@
-//20.10.2024 - Fix
+//23.10.2024 - Fix
 
 (function () {
     'use strict';
@@ -3010,7 +3010,9 @@
       var select_title = '';
       var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true;
       var prefer_dash = Lampa.Storage.field('online_mod_prefer_dash') === true;
-      var embed = (prefer_http ? 'http:' : 'https:') + '//api.ninsel.ws/embed/';
+      var host = (prefer_http ? 'http:' : 'https:') + '//api.ninsel.ws';
+      var ref = host + '/';
+      var embed = host + '/embed/';
       var embed2 = (prefer_http ? 'http:' : 'https:') + '//api.kinogram.best/embed/';
       var prox = component.proxy('collaps');
 
@@ -3022,6 +3024,8 @@
 
       if (prox) {
         prox += 'ip/';
+        stream_prox += 'param/Origin=' + encodeURIComponent(host) + '/';
+        stream_prox += 'param/Referer=' + encodeURIComponent(ref) + '/';
       }
 
       var filter_items = {};
@@ -15218,7 +15222,8 @@
         source: new cdnmovies(this, object),
         search: false,
         kp: true,
-        imdb: true
+        imdb: true,
+        disabled: disable_dbg
       }, {
         name: 'filmix',
         title: 'Filmix',
@@ -16464,7 +16469,7 @@
       };
     }
 
-    var mod_version = '20.10.2024';
+    var mod_version = '23.10.2024';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
