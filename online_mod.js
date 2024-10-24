@@ -1,4 +1,4 @@
-//23.10.2024 - Fix
+//24.10.2024 - Fix activity toggle
 
 (function () {
     'use strict';
@@ -16073,6 +16073,11 @@
         scroll.clear();
         scroll.reset();
       };
+
+      this.inActivity = function () {
+        var body = $('body');
+        return !(body.hasClass('settings--open') || body.hasClass('menu--open') || body.hasClass('keyboard-input--visible') || body.hasClass('selectbox--open') || body.hasClass('search--open') || body.hasClass('ambience--enable') || $('div.modal').length);
+      };
       /**
        * Загрузка
        */
@@ -16081,7 +16086,7 @@
       this.loading = function (status) {
         if (status) this.activity.loader(true);else {
           this.activity.loader(false);
-          if (Lampa.Activity.active().activity === this.activity) this.activity.toggle();
+          if (Lampa.Activity.active().activity === this.activity && this.inActivity()) this.activity.toggle();
         }
       };
 
@@ -16443,7 +16448,7 @@
           },
           back: this.back
         });
-        Lampa.Controller.toggle('content');
+        if (this.inActivity()) Lampa.Controller.toggle('content');
       };
 
       this.render = function () {
@@ -16469,7 +16474,7 @@
       };
     }
 
-    var mod_version = '23.10.2024';
+    var mod_version = '24.10.2024';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
