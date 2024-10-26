@@ -1,4 +1,4 @@
-//24.10.2024 - Fix activity toggle
+//26.10.2024 - Fix
 
 (function () {
     'use strict';
@@ -490,7 +490,7 @@
         var fs = client_id && sentry_id && decode(client_id[1], sentry_id[1]);
 
         if (!fs) {
-          var fsv = str.match(/id="[^"]*" value='(\{[^']*)'/);
+          var fsv = str.match(/id="[^"]*" value='(\{"\d+":[^']*)'/);
           fs = fsv && fsv[1];
         }
 
@@ -538,6 +538,7 @@
 
             for (var a in files[i].json) {
               var elem = files[i].json[a];
+              if (_typeof(elem) !== 'object') continue;
 
               if (elem.folder) {
                 season_count++;
@@ -16474,7 +16475,7 @@
       };
     }
 
-    var mod_version = '24.10.2024';
+    var mod_version = '26.10.2024';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
