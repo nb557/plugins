@@ -1,4 +1,4 @@
-//26.10.2024 - Fix
+//27.10.2024 - Fix
 
 (function () {
     'use strict';
@@ -1461,9 +1461,10 @@
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36'
       } : {};
       var cookie = Lampa.Storage.get('online_mod_rezka2_cookie', '') + '';
-      if (cookie.indexOf('PHPSESSID=') == -1) cookie = 'PHPSESSID=' + Utils.randomId(26) + (cookie ? '; ' + cookie : '');
 
       if (cookie) {
+        if (cookie.indexOf('PHPSESSID=') == -1) cookie = 'PHPSESSID=' + Utils.randomId(26) + (cookie ? '; ' + cookie : '');
+
         if (Lampa.Platform.is('android') && !logged_in) {
           headers.Cookie = cookie;
         } else if (prox) {
@@ -1479,6 +1480,7 @@
         voice_name: '',
         season_id: ''
       };
+      var authorization_required = false;
       /**
        * Поиск
        * @param {Object} _object
@@ -1502,6 +1504,8 @@
           network.timeout(10000);
           network_call(prox + url, function (str) {
             str = (str || '').replace(/\n/g, '');
+            var login_form = str.match(/<form id="check-form" class="check-form" method="post" action="\/ajax\/login\/">/);
+            authorization_required = !!login_form;
             var links = str.match(/<div class="b-content__inline_item-link">\s*<a [^>]*>[^<]*<\/a>\s*<div>[^<]*<\/div>\s*<\/div>/g);
             var have_more = !!str.match(/<a [^>]*>\s*<span class="b-navigation__next\b/);
 
@@ -1562,7 +1566,7 @@
               }
 
               component.loading(false);
-            } else component.emptyForQuery(select_title);
+            } else if (authorization_required) component.empty(Lampa.Lang.translate('online_mod_authorization_required'));else component.emptyForQuery(select_title);
           });
         };
 
@@ -1671,7 +1675,7 @@
 
               component.loading(false);
             } else component.emptyForQuery(select_title);
-          } else component.emptyForQuery(select_title);
+          } else if (authorization_required) component.empty(Lampa.Lang.translate('online_mod_authorization_required'));else component.emptyForQuery(select_title);
         };
 
         var query_search = function query_search(query, data, callback) {
@@ -1680,6 +1684,8 @@
           network.timeout(10000);
           network_call(prox + url, function (str) {
             str = (str || '').replace(/\n/g, '');
+            var login_form = str.match(/<form id="check-form" class="check-form" method="post" action="\/ajax\/login\/">/);
+            authorization_required = !!login_form;
             var links = str.match(/<li><a href=.*?<\/li>/g);
             var have_more = str.indexOf('<a class="b-search__live_all"') !== -1;
             if (links && links.length) data = data.concat(links);
@@ -1763,7 +1769,7 @@
 
           if (extract.film_id) {
             getEpisodes(success);
-          } else component.emptyForQuery(select_title);
+          } else if (authorization_required) component.empty(Lampa.Lang.translate('online_mod_authorization_required'));else component.emptyForQuery(select_title);
         }, function (a, c) {
           component.empty(network.errorDecode(a, c));
         }, false, {
@@ -1793,6 +1799,8 @@
         extract.film_id = '';
         extract.favs = '';
         str = (str || '').replace(/\n/g, '');
+        var login_form = str.match(/<form id="check-form" class="check-form" method="post" action="\/ajax\/login\/">/);
+        authorization_required = !!login_form;
         var translation = str.match(/<h2>В переводе<\/h2>:<\/td>\s*(<td>.*?<\/td>)/);
         var cdnSeries = str.match(/\.initCDNSeriesEvents\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,/);
         var cdnMovie = str.match(/\.initCDNMoviesEvents\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,/);
@@ -4861,9 +4869,10 @@
 
       var prox2 = prox;
       var cookie = Lampa.Storage.get('online_mod_fancdn_cookie', '') + '';
-      if (cookie.indexOf('PHPSESSID=') == -1) cookie = 'PHPSESSID=' + Utils.randomHex(32) + (cookie ? '; ' + cookie : '');
 
       if (cookie) {
+        if (cookie.indexOf('PHPSESSID=') == -1) cookie = 'PHPSESSID=' + Utils.randomHex(32) + (cookie ? '; ' + cookie : '');
+
         if (Lampa.Platform.is('android')) {
           headers.Cookie = cookie;
         } else if (prox) {
@@ -4878,6 +4887,7 @@
         voice: 0,
         voice_name: ''
       };
+      var authorization_required = !cookie;
       /**
        * Начать поиск
        * @param {Object} _object
@@ -4981,7 +4991,7 @@
               component.similars(items);
               component.loading(false);
             } else component.emptyForQuery(select_title);
-          } else component.emptyForQuery(select_title);
+          } else if (authorization_required) component.empty(Lampa.Lang.translate('online_mod_authorization_required'));else component.emptyForQuery(select_title);
         };
 
         var url = embed + 'index.php?do=search';
@@ -5019,7 +5029,7 @@
               dataType: 'text',
               headers: headers2
             });
-          } else component.emptyForQuery(select_title);
+          } else if (authorization_required) component.empty(Lampa.Lang.translate('online_mod_authorization_required'));else component.emptyForQuery(select_title);
         }, function (a, c) {
           component.empty(network.errorDecode(a, c));
         }, false, {
@@ -16894,6 +16904,13 @@
         be: 'Запоўніць кукі для FanSerials',
         en: 'Fill cookie for FanSerials',
         zh: '为FanSerials填充Cookie'
+      },
+      online_mod_authorization_required: {
+        ru: 'Требуется авторизация',
+        uk: 'Потрібна авторизація',
+        be: 'Патрабуецца аўтарызацыя',
+        en: 'Authorization required',
+        zh: '需要授权'
       },
       online_mod_secret_password: {
         ru: 'Секретный пароль',
