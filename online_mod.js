@@ -15674,17 +15674,15 @@
         };
 
         var vcdn_search = function vcdn_search(fallback) {
-          if (!fallback) {
-            fallback = function fallback() {
-              display([]);
-            };
-          }
+          var error = function error() {
+            if (fallback) fallback();else display([]);
+          };
 
           vcdn_search_by_id(function (data) {
             if (data && data.length) display(data);else vcdn_search_by_title(function (data) {
-              if (data && data.length) display(data);else fallback();
-            }, fallback);
-          }, fallback);
+              if (data && data.length) display(data);else error();
+            }, error);
+          }, error);
         };
 
         var kp_search_by_title = function kp_search_by_title(callback, error) {
@@ -15702,17 +15700,15 @@
         };
 
         var kp_search = function kp_search(fallback) {
-          if (!fallback) {
-            fallback = function fallback() {
-              display([]);
-            };
-          }
+          var error = function error() {
+            if (fallback) fallback();else display([]);
+          };
 
           kp_search_by_id(function (data) {
             if (data && data.length) display(data);else kp_search_by_title(function (data) {
-              if (data && data.length) display(data);else fallback();
-            }, fallback);
-          }, fallback);
+              if (data && data.length) display(data);else error();
+            }, error);
+          }, error);
         };
 
         var vcdn_search_imdb = function vcdn_search_imdb() {
@@ -16485,7 +16481,7 @@
       };
     }
 
-    var mod_version = '26.10.2024';
+    var mod_version = '27.10.2024';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
