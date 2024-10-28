@@ -1566,7 +1566,7 @@
               }
 
               component.loading(false);
-            } else if (authorization_required) component.empty(Lampa.Lang.translate('online_mod_authorization_required'));else component.emptyForQuery(select_title);
+            } else if (authorization_required) component.empty(Lampa.Lang.translate('online_mod_authorization_required') + ' HDrezka');else component.emptyForQuery(select_title);
           });
         };
 
@@ -1675,7 +1675,7 @@
 
               component.loading(false);
             } else component.emptyForQuery(select_title);
-          } else if (authorization_required) component.empty(Lampa.Lang.translate('online_mod_authorization_required'));else component.emptyForQuery(select_title);
+          } else if (authorization_required) component.empty(Lampa.Lang.translate('online_mod_authorization_required') + ' HDrezka');else component.emptyForQuery(select_title);
         };
 
         var query_search = function query_search(query, data, callback) {
@@ -1769,7 +1769,7 @@
 
           if (extract.film_id) {
             getEpisodes(success);
-          } else if (authorization_required) component.empty(Lampa.Lang.translate('online_mod_authorization_required'));else component.emptyForQuery(select_title);
+          } else if (authorization_required) component.empty(Lampa.Lang.translate('online_mod_authorization_required') + ' HDrezka');else component.emptyForQuery(select_title);
         }, function (a, c) {
           component.empty(network.errorDecode(a, c));
         }, false, {
@@ -4991,7 +4991,7 @@
               component.similars(items);
               component.loading(false);
             } else component.emptyForQuery(select_title);
-          } else if (authorization_required) component.empty(Lampa.Lang.translate('online_mod_authorization_required'));else component.emptyForQuery(select_title);
+          } else if (authorization_required) component.empty(Lampa.Lang.translate('online_mod_authorization_required') + ' FanSerials');else component.emptyForQuery(select_title);
         };
 
         var url = embed + 'index.php?do=search';
@@ -5029,7 +5029,7 @@
               dataType: 'text',
               headers: headers2
             });
-          } else if (authorization_required) component.empty(Lampa.Lang.translate('online_mod_authorization_required'));else component.emptyForQuery(select_title);
+          } else if (authorization_required) component.empty(Lampa.Lang.translate('online_mod_authorization_required') + ' FanSerials');else component.emptyForQuery(select_title);
         }, function (a, c) {
           component.empty(network.errorDecode(a, c));
         }, false, {
