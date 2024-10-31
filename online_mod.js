@@ -95,6 +95,7 @@
       if (name === 'zetflix') return proxy_apn;
       if (name === 'allohacdn') return proxy_other ? proxy_secret : proxy_apn;
       if (name === 'cookie') return user_proxy1;
+      if (name === 'cookie2') return user_proxy2;
 
       if (Lampa.Storage.field('online_mod_proxy_' + name) === true) {
         if (name === 'iframe') return user_proxy2;
@@ -4548,7 +4549,7 @@
 
         var url = Lampa.Utils.addUrlComponent(embed, 'kinopoisk_id=' + select_id);
         if (s) url = Lampa.Utils.addUrlComponent(url, 's=' + s);
-        url = Lampa.Utils.addUrlComponent(url, 'origsource=true');
+        url = Lampa.Utils.addUrlComponent(url, 'orightml=true');
 
         var call_success = function call_success(str) {
           parse(str);
@@ -17453,7 +17454,7 @@
     }
 
     function fancdnFillCookie(success, error) {
-      var prox = Utils.proxy('fancdn');
+      var prox = Utils.proxy('cookie2');
       var host = 'https://s2.fanserialstv.net';
 
       if (!prox) {
