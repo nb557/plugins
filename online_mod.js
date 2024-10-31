@@ -1,4 +1,4 @@
-//27.10.2024 - Fix
+//31.10.2024 - Fix
 
 (function () {
     'use strict';
@@ -481,13 +481,24 @@
         }).join('');
       }
 
+      function searchFs(client_id, str) {
+        var regex = /id="[^"]*" value='([0-9a-f]+)'/g;
+        var found;
+
+        while ((found = regex.exec(str)) !== null) {
+          var fs = decode(client_id, found[1]);
+          if (startsWith(fs, '{"')) return fs;
+        }
+
+        return '';
+      }
+
       function parse(str) {
         component.loading(false);
         str = (str || '').replace(/\n/g, '');
         var voices = str.match(/<div class="translations">\s*(<select>.*?<\/select>)/);
         var client_id = str.match(/id="client_id" value="([^"]*)"/);
-        var sentry_id = str.match(/id="sentry_id" value="([^"]*)"/);
-        var fs = client_id && sentry_id && decode(client_id[1], sentry_id[1]);
+        var fs = client_id && searchFs(client_id[1], str);
 
         if (!fs) {
           var fsv = str.match(/id="[^"]*" value='(\{"\d+":[^']*)'/);
@@ -1494,7 +1505,16 @@
         if (this.wait_similars && data && data[0].is_similars) return getPage(data[0].link);
         var search_date = object.search_date || !object.clarification && (object.movie.release_date || object.movie.first_air_date || object.movie.last_air_date) || '0000';
         var search_year = parseInt((search_date + '').slice(0, 4));
-        var orig = object.movie.original_title || object.movie.original_name;
+        var orig_titles = [];
+
+        if (object.movie.alternative_titles && object.movie.alternative_titles.results) {
+          orig_titles = object.movie.alternative_titles.results.map(function (t) {
+            return t.title;
+          });
+        }
+
+        if (object.movie.original_title) orig_titles.push(object.movie.original_title);
+        if (object.movie.original_name) orig_titles.push(object.movie.original_name);
         var url = embed + 'engine/ajax/search.php';
         var more_url = embed + 'search/?do=search&subaction=search';
 
@@ -1605,9 +1625,9 @@
             var cards = items;
 
             if (cards.length) {
-              if (orig) {
+              if (orig_titles.length) {
                 var tmp = cards.filter(function (c) {
-                  return component.containsTitle(c.orig_title, orig) || component.containsTitle(c.title, orig);
+                  return component.containsAnyTitle([c.orig_title, c.title], orig_titles);
                 });
 
                 if (tmp.length) {
@@ -1618,7 +1638,7 @@
 
               if (select_title) {
                 var _tmp = cards.filter(function (c) {
-                  return component.containsTitle(c.title, select_title) || component.containsTitle(c.orig_title, select_title);
+                  return component.containsAnyTitle([c.title, c.orig_title], [select_title]);
                 });
 
                 if (_tmp.length) {
@@ -1647,12 +1667,12 @@
               if (is_sure) {
                 is_sure = false;
 
-                if (orig) {
-                  is_sure |= component.equalTitle(cards[0].orig_title, orig) || component.equalTitle(cards[0].title, orig);
+                if (orig_titles.length) {
+                  is_sure |= component.equalAnyTitle([cards[0].orig_title, cards[0].title], orig_titles);
                 }
 
                 if (select_title) {
-                  is_sure |= component.equalTitle(cards[0].title, select_title) || component.equalTitle(cards[0].orig_title, select_title);
+                  is_sure |= component.equalAnyTitle([cards[0].title, cards[0].orig_title], [select_title]);
                 }
               }
             }
@@ -3927,7 +3947,16 @@
         if (this.wait_similars && data && data[0].is_similars) return find(data[0].id);
         var search_date = object.search_date || !object.clarification && (object.movie.release_date || object.movie.first_air_date || object.movie.last_air_date) || '0000';
         var search_year = parseInt((search_date + '').slice(0, 4));
-        var orig = object.movie.original_title || object.movie.original_name;
+        var orig_titles = [];
+
+        if (object.movie.alternative_titles && object.movie.alternative_titles.results) {
+          orig_titles = object.movie.alternative_titles.results.map(function (t) {
+            return t.title;
+          });
+        }
+
+        if (object.movie.original_title) orig_titles.push(object.movie.original_title);
+        if (object.movie.original_name) orig_titles.push(object.movie.original_name);
         var clean_title = component.cleanTitle(select_title).replace(/\b(\d\d\d\d+)\b/g, '+$1');
         var object_date = object.movie.release_date || object.movie.first_air_date || object.movie.last_air_date || '0000';
         var object_year = parseInt((object_date + '').slice(0, 4));
@@ -3945,9 +3974,9 @@
           var cards = json;
 
           if (cards.length) {
-            if (orig) {
+            if (orig_titles.length) {
               var tmp = cards.filter(function (c) {
-                return component.containsTitle(c.orig_title, orig) || component.containsTitle(c.title, orig);
+                return component.containsAnyTitle([c.orig_title, c.title], orig_titles);
               });
 
               if (tmp.length) {
@@ -3958,7 +3987,7 @@
 
             if (select_title) {
               var _tmp = cards.filter(function (c) {
-                return component.containsTitle(c.title, select_title) || component.containsTitle(c.orig_title, select_title);
+                return component.containsAnyTitle([c.title, c.orig_title], [select_title]);
               });
 
               if (_tmp.length) {
@@ -3987,12 +4016,12 @@
             if (is_sure) {
               is_sure = false;
 
-              if (orig) {
-                is_sure |= component.equalTitle(cards[0].orig_title, orig) || component.equalTitle(cards[0].title, orig);
+              if (orig_titles.length) {
+                is_sure |= component.equalAnyTitle([cards[0].orig_title, cards[0].title], orig_titles);
               }
 
               if (select_title) {
-                is_sure |= component.equalTitle(cards[0].title, select_title) || component.equalTitle(cards[0].orig_title, select_title);
+                is_sure |= component.equalAnyTitle([cards[0].title, cards[0].orig_title], [select_title]);
               }
             }
           }
@@ -4902,7 +4931,16 @@
         if (this.wait_similars && data && data[0].is_similars) return getPage(data[0].link);
         var search_date = object.search_date || !object.clarification && (object.movie.release_date || object.movie.first_air_date || object.movie.last_air_date) || '0000';
         var search_year = parseInt((search_date + '').slice(0, 4));
-        var orig = object.movie.original_title || object.movie.original_name;
+        var orig_titles = [];
+
+        if (object.movie.alternative_titles && object.movie.alternative_titles.results) {
+          orig_titles = object.movie.alternative_titles.results.map(function (t) {
+            return t.title;
+          });
+        }
+
+        if (object.movie.original_title) orig_titles.push(object.movie.original_title);
+        if (object.movie.original_name) orig_titles.push(object.movie.original_name);
 
         var display = function display(links) {
           if (links && links.length) {
@@ -4931,9 +4969,9 @@
             var cards = items;
 
             if (cards.length) {
-              if (orig) {
+              if (orig_titles.length) {
                 var tmp = cards.filter(function (c) {
-                  return component.containsTitle(c.orig_title, orig) || component.containsTitle(c.title, orig);
+                  return component.containsAnyTitle([c.orig_title, c.title], orig_titles);
                 });
 
                 if (tmp.length) {
@@ -4944,7 +4982,7 @@
 
               if (select_title) {
                 var _tmp = cards.filter(function (c) {
-                  return component.containsTitle(c.title, select_title) || component.containsTitle(c.orig_title, select_title);
+                  return component.containsAnyTitle([c.title, c.orig_title], [select_title]);
                 });
 
                 if (_tmp.length) {
@@ -4973,12 +5011,12 @@
               if (is_sure) {
                 is_sure = false;
 
-                if (orig) {
-                  is_sure |= component.equalTitle(cards[0].orig_title, orig) || component.equalTitle(cards[0].title, orig);
+                if (orig_titles.length) {
+                  is_sure |= component.equalAnyTitle([cards[0].orig_title, cards[0].title], orig_titles);
                 }
 
                 if (select_title) {
-                  is_sure |= component.equalTitle(cards[0].title, select_title) || component.equalTitle(cards[0].orig_title, select_title);
+                  is_sure |= component.equalAnyTitle([cards[0].title, cards[0].orig_title], [select_title]);
                 }
               }
             }
@@ -12311,7 +12349,16 @@
         if (this.wait_similars && data && data[0].is_similars) return getPage(data[0]);
         var search_date = object.search_date || !object.clarification && (object.movie.release_date || object.movie.first_air_date || object.movie.last_air_date) || '0000';
         var search_year = parseInt((search_date + '').slice(0, 4));
-        var orig = object.movie.original_title || object.movie.original_name;
+        var orig_titles = [];
+
+        if (object.movie.alternative_titles && object.movie.alternative_titles.results) {
+          orig_titles = object.movie.alternative_titles.results.map(function (t) {
+            return t.title;
+          });
+        }
+
+        if (object.movie.original_title) orig_titles.push(object.movie.original_title);
+        if (object.movie.original_name) orig_titles.push(object.movie.original_name);
         var url = embed + 'index.php?do=search';
 
         var display = function display(links) {
@@ -12335,9 +12382,9 @@
             var cards = items;
 
             if (cards.length) {
-              if (orig) {
+              if (orig_titles.length) {
                 var tmp = cards.filter(function (c) {
-                  return component.containsTitle(c.orig_title, orig) || component.containsTitle(c.title, orig);
+                  return component.containsAnyTitle([c.orig_title, c.title], orig_titles);
                 });
 
                 if (tmp.length) {
@@ -12348,7 +12395,7 @@
 
               if (select_title) {
                 var _tmp = cards.filter(function (c) {
-                  return component.containsTitle(c.title, select_title) || component.containsTitle(c.orig_title, select_title);
+                  return component.containsAnyTitle([c.title, c.orig_title], [select_title]);
                 });
 
                 if (_tmp.length) {
@@ -12377,12 +12424,12 @@
               if (is_sure) {
                 is_sure = false;
 
-                if (orig) {
-                  is_sure |= component.equalTitle(cards[0].orig_title, orig) || component.equalTitle(cards[0].title, orig);
+                if (orig_titles.length) {
+                  is_sure |= component.equalAnyTitle([cards[0].orig_title, cards[0].title], orig_titles);
                 }
 
                 if (select_title) {
-                  is_sure |= component.equalTitle(cards[0].title, select_title) || component.equalTitle(cards[0].orig_title, select_title);
+                  is_sure |= component.equalAnyTitle([cards[0].title, cards[0].orig_title], [select_title]);
                 }
               }
             }
@@ -13021,7 +13068,16 @@
         select_title = object.search || object.movie.title;
         if (this.wait_similars && data && data[0].is_similars) return getRelease(data[0]);
         var search_year = object.search_date;
-        var orig = object.movie.original_title || object.movie.original_name;
+        var orig_titles = [];
+
+        if (object.movie.alternative_titles && object.movie.alternative_titles.results) {
+          orig_titles = object.movie.alternative_titles.results.map(function (t) {
+            return t.title;
+          });
+        }
+
+        if (object.movie.original_title) orig_titles.push(object.movie.original_title);
+        if (object.movie.original_name) orig_titles.push(object.movie.original_name);
 
         var display = function display(items) {
           if (items && items.length) {
@@ -13035,9 +13091,9 @@
             var cards = items;
 
             if (cards.length) {
-              if (orig) {
+              if (orig_titles.length) {
                 var tmp = cards.filter(function (c) {
-                  return component.containsTitle(c.en_title, orig) || component.containsTitle(c.ru_title, orig) || component.containsTitle(c.alt_title, orig);
+                  return component.containsAnyTitle([c.en_title, c.ru_title, c.alt_title], orig_titles);
                 });
 
                 if (tmp.length) {
@@ -13048,7 +13104,7 @@
 
               if (select_title) {
                 var _tmp = cards.filter(function (c) {
-                  return component.containsTitle(c.ru_title, select_title) || component.containsTitle(c.en_title, select_title) || component.containsTitle(c.alt_title, select_title);
+                  return component.containsAnyTitle([c.ru_title, c.en_title, c.alt_title], [select_title]);
                 });
 
                 if (_tmp.length) {
@@ -13077,12 +13133,12 @@
               if (is_sure) {
                 is_sure = false;
 
-                if (orig) {
-                  is_sure |= component.equalTitle(cards[0].en_title, orig) || component.equalTitle(cards[0].ru_title, orig) || component.equalTitle(cards[0].alt_title, orig);
+                if (orig_titles.length) {
+                  is_sure |= component.equalAnyTitle([cards[0].en_title, cards[0].ru_title, cards[0].alt_title], orig_titles);
                 }
 
                 if (select_title) {
-                  is_sure |= component.equalTitle(cards[0].ru_title, select_title) || component.equalTitle(cards[0].en_title, select_title) || component.equalTitle(cards[0].alt_title, select_title);
+                  is_sure |= component.equalAnyTitle([cards[0].ru_title, cards[0].en_title, cards[0].alt_title], [select_title]);
                 }
               }
             }
@@ -13394,7 +13450,16 @@
         select_title = object.search || object.movie.title;
         if (this.wait_similars && data && data[0].is_similars) return getRelease(data[0]);
         var search_year = object.search_date;
-        var orig = object.movie.original_title || object.movie.original_name;
+        var orig_titles = [];
+
+        if (object.movie.alternative_titles && object.movie.alternative_titles.results) {
+          orig_titles = object.movie.alternative_titles.results.map(function (t) {
+            return t.title;
+          });
+        }
+
+        if (object.movie.original_title) orig_titles.push(object.movie.original_title);
+        if (object.movie.original_name) orig_titles.push(object.movie.original_name);
 
         var display = function display(items) {
           if (items && items.length) {
@@ -13407,9 +13472,9 @@
             var cards = items;
 
             if (cards.length) {
-              if (orig) {
+              if (orig_titles.length) {
                 var tmp = cards.filter(function (c) {
-                  return component.containsTitle(c.en_title, orig) || component.containsTitle(c.ru_title, orig) || component.containsTitle(c.alt_title, orig);
+                  return component.containsAnyTitle([c.en_title, c.ru_title, c.alt_title], orig_titles);
                 });
 
                 if (tmp.length) {
@@ -13420,7 +13485,7 @@
 
               if (select_title) {
                 var _tmp = cards.filter(function (c) {
-                  return component.containsTitle(c.ru_title, select_title) || component.containsTitle(c.en_title, select_title) || component.containsTitle(c.alt_title, select_title);
+                  return component.containsAnyTitle([c.ru_title, c.en_title, c.alt_title], [select_title]);
                 });
 
                 if (_tmp.length) {
@@ -13449,12 +13514,12 @@
               if (is_sure) {
                 is_sure = false;
 
-                if (orig) {
-                  is_sure |= component.equalTitle(cards[0].en_title, orig) || component.equalTitle(cards[0].ru_title, orig) || component.equalTitle(cards[0].alt_title, orig);
+                if (orig_titles.length) {
+                  is_sure |= component.equalAnyTitle([cards[0].en_title, cards[0].ru_title, cards[0].alt_title], orig_titles);
                 }
 
                 if (select_title) {
-                  is_sure |= component.equalTitle(cards[0].ru_title, select_title) || component.equalTitle(cards[0].en_title, select_title) || component.equalTitle(cards[0].alt_title, select_title);
+                  is_sure |= component.equalAnyTitle([cards[0].ru_title, cards[0].en_title, cards[0].alt_title], [select_title]);
                 }
               }
             }
@@ -13782,7 +13847,16 @@
         select_title = object.search || object.movie.title;
         if (this.wait_similars && data && data[0].is_similars) return success(data[0]);
         var search_year = object.search_date;
-        var orig = object.movie.original_title || object.movie.original_name;
+        var orig_titles = [];
+
+        if (object.movie.alternative_titles && object.movie.alternative_titles.results) {
+          orig_titles = object.movie.alternative_titles.results.map(function (t) {
+            return t.title;
+          });
+        }
+
+        if (object.movie.original_title) orig_titles.push(object.movie.original_title);
+        if (object.movie.original_name) orig_titles.push(object.movie.original_name);
 
         var display = function display(results, empty) {
           if (results && results.length) {
@@ -13831,9 +13905,9 @@
             var cards = items;
 
             if (cards.length) {
-              if (orig) {
+              if (orig_titles.length) {
                 var _tmp = cards.filter(function (c) {
-                  return component.containsTitle(c.orig_title, orig) || component.containsTitle(c.title, orig) || component.containsTitle(c.other_title, orig);
+                  return component.containsAnyTitle([c.orig_title, c.title, c.other_title], orig_titles);
                 });
 
                 if (_tmp.length) {
@@ -13844,7 +13918,7 @@
 
               if (select_title) {
                 var _tmp2 = cards.filter(function (c) {
-                  return component.containsTitle(c.title, select_title) || component.containsTitle(c.orig_title, select_title) || component.containsTitle(c.other_title, select_title);
+                  return component.containsAnyTitle([c.title, c.orig_title, c.other_title], [select_title]);
                 });
 
                 if (_tmp2.length) {
@@ -13876,12 +13950,12 @@
               if (is_sure) {
                 is_sure = false;
 
-                if (orig) {
-                  is_sure |= component.equalTitle(cards[0].orig_title, orig) || component.equalTitle(cards[0].title, orig) || component.equalTitle(cards[0].other_title, orig);
+                if (orig_titles.length) {
+                  is_sure |= component.equalAnyTitle([cards[0].orig_title, cards[0].title, cards[0].other_title], orig_titles);
                 }
 
                 if (select_title) {
-                  is_sure |= component.equalTitle(cards[0].title, select_title) || component.equalTitle(cards[0].orig_title, select_title) || component.equalTitle(cards[0].other_title, select_title);
+                  is_sure |= component.equalAnyTitle([cards[0].title, cards[0].orig_title, cards[0].other_title], [select_title]);
                 }
               }
             }
@@ -14440,7 +14514,16 @@
         if (this.wait_similars && data && data[0].is_similars) return success(data[0]);
         var search_date = object.search_date || !object.clarification && (object.movie.release_date || object.movie.first_air_date || object.movie.last_air_date) || '0000';
         var search_year = parseInt((search_date + '').slice(0, 4));
-        var orig = object.movie.original_title || object.movie.original_name;
+        var orig_titles = [];
+
+        if (object.movie.alternative_titles && object.movie.alternative_titles.results) {
+          orig_titles = object.movie.alternative_titles.results.map(function (t) {
+            return t.title;
+          });
+        }
+
+        if (object.movie.original_title) orig_titles.push(object.movie.original_title);
+        if (object.movie.original_name) orig_titles.push(object.movie.original_name);
 
         var display = function display(items) {
           if (items && items.length) {
@@ -14473,9 +14556,9 @@
             var cards = items;
 
             if (cards.length) {
-              if (orig) {
+              if (orig_titles.length) {
                 var _tmp = cards.filter(function (c) {
-                  return component.containsTitle(c.orig_title, orig) || component.containsTitle(c.title, orig) || component.containsTitle(c.full_title, orig);
+                  return component.containsAnyTitle([c.orig_title, c.title, c.full_title], orig_titles);
                 });
 
                 if (_tmp.length) {
@@ -14486,7 +14569,7 @@
 
               if (select_title) {
                 var _tmp2 = cards.filter(function (c) {
-                  return component.containsTitle(c.title, select_title) || component.containsTitle(c.orig_title, select_title) || component.containsTitle(c.full_title, select_title);
+                  return component.containsAnyTitle([c.title, c.orig_title, c.full_title], [select_title]);
                 });
 
                 if (_tmp2.length) {
@@ -14515,12 +14598,12 @@
               if (is_sure) {
                 is_sure = false;
 
-                if (orig) {
-                  is_sure |= component.equalTitle(cards[0].orig_title, orig) || component.equalTitle(cards[0].title, orig) || component.equalTitle(cards[0].full_title, orig);
+                if (orig_titles.length) {
+                  is_sure |= component.equalAnyTitle([cards[0].orig_title, cards[0].title, cards[0].full_title], orig_titles);
                 }
 
                 if (select_title) {
-                  is_sure |= component.equalTitle(cards[0].title, select_title) || component.equalTitle(cards[0].orig_title, select_title) || component.equalTitle(cards[0].full_title, select_title);
+                  is_sure |= component.equalAnyTitle([cards[0].title, cards[0].orig_title, cards[0].full_title], [select_title]);
                 }
               }
             }
@@ -15472,6 +15555,26 @@
         return typeof str === 'string' && typeof title === 'string' && this.normalizeTitle(str).indexOf(this.normalizeTitle(title)) !== -1;
       };
 
+      this.equalAnyTitle = function (strings, titles) {
+        var _this2 = this;
+
+        return titles.some(function (title) {
+          return title && strings.some(function (str) {
+            return str && _this2.equalTitle(str, title);
+          });
+        });
+      };
+
+      this.containsAnyTitle = function (strings, titles) {
+        var _this3 = this;
+
+        return titles.some(function (title) {
+          return title && strings.some(function (str) {
+            return str && _this3.containsTitle(str, title);
+          });
+        });
+      };
+
       this.uniqueNamesShortText = function (names, limit) {
         var unique = [];
         names.forEach(function (name) {
@@ -15531,12 +15634,21 @@
       };
 
       this.find = function () {
-        var _this2 = this;
+        var _this4 = this;
 
         var query = object.search || object.movie.title;
         var search_date = object.search_date || !object.clarification && (object.movie.release_date || object.movie.first_air_date || object.movie.last_air_date) || '0000';
         var search_year = parseInt((search_date + '').slice(0, 4));
-        var orig = object.movie.original_title || object.movie.original_name;
+        var orig_titles = [];
+
+        if (object.movie.alternative_titles && object.movie.alternative_titles.results) {
+          orig_titles = object.movie.alternative_titles.results.map(function (t) {
+            return t.title;
+          });
+        }
+
+        if (object.movie.original_title) orig_titles.push(object.movie.original_title);
+        if (object.movie.original_name) orig_titles.push(object.movie.original_name);
 
         var display = function display(items) {
           if (items && items.length) {
@@ -15566,9 +15678,9 @@
             var cards = items;
 
             if (cards.length) {
-              if (orig) {
+              if (orig_titles.length) {
                 var _tmp = cards.filter(function (c) {
-                  return _this2.containsTitle(c.orig_title || c.nameOriginal, orig) || _this2.containsTitle(c.en_title || c.nameEn, orig) || _this2.containsTitle(c.title || c.ru_title || c.nameRu, orig);
+                  return _this4.containsAnyTitle([c.orig_title || c.nameOriginal, c.en_title || c.nameEn, c.title || c.ru_title || c.nameRu], orig_titles);
                 });
 
                 if (_tmp.length) {
@@ -15579,7 +15691,7 @@
 
               if (query) {
                 var _tmp2 = cards.filter(function (c) {
-                  return _this2.containsTitle(c.title || c.ru_title || c.nameRu, query) || _this2.containsTitle(c.en_title || c.nameEn, query) || _this2.containsTitle(c.orig_title || c.nameOriginal, query);
+                  return _this4.containsAnyTitle([c.title || c.ru_title || c.nameRu, c.en_title || c.nameEn, c.orig_title || c.nameOriginal], [query]);
                 });
 
                 if (_tmp2.length) {
@@ -15608,18 +15720,18 @@
               if (is_sure) {
                 is_sure = false;
 
-                if (orig) {
-                  is_sure |= _this2.equalTitle(cards[0].orig_title || cards[0].nameOriginal, orig) || _this2.equalTitle(cards[0].en_title || cards[0].nameEn, orig) || _this2.equalTitle(cards[0].title || cards[0].ru_title || cards[0].nameRu, orig);
+                if (orig_titles.length) {
+                  is_sure |= _this4.equalAnyTitle([cards[0].orig_title || cards[0].nameOriginal, cards[0].en_title || cards[0].nameEn, cards[0].title || cards[0].ru_title || cards[0].nameRu], orig_titles);
                 }
 
                 if (query) {
-                  is_sure |= _this2.equalTitle(cards[0].title || cards[0].ru_title || cards[0].nameRu, query) || _this2.equalTitle(cards[0].en_title || cards[0].nameEn, query) || _this2.equalTitle(cards[0].orig_title || cards[0].nameOriginal, query);
+                  is_sure |= _this4.equalAnyTitle([cards[0].title || cards[0].ru_title || cards[0].nameRu, cards[0].en_title || cards[0].nameEn, cards[0].orig_title || cards[0].nameOriginal], [query]);
                 }
               }
             }
 
             if (cards.length == 1 && is_sure) {
-              _this2.extendChoice();
+              _this4.extendChoice();
 
               sources[balanser].search(object, cards[0].kp_id || cards[0].kinopoisk_id || cards[0].kinopoiskId || cards[0].filmId || cards[0].imdb_id, cards);
             } else {
@@ -15636,11 +15748,11 @@
                 }
               });
 
-              _this2.similars(items);
+              _this4.similars(items);
 
-              _this2.loading(false);
+              _this4.loading(false);
             }
-          } else _this2.emptyForQuery(query);
+          } else _this4.emptyForQuery(query);
         };
 
         var vcdn_search_by_title = function vcdn_search_by_title(callback, error) {
@@ -15648,11 +15760,11 @@
           params = Lampa.Utils.addUrlComponent(params, 'query=' + encodeURIComponent(query));
           params = Lampa.Utils.addUrlComponent(params, 'field=title');
 
-          _this2.vcdn_api_search('movies' + params, [], function (data) {
-            _this2.vcdn_api_search('animes' + params, data, function (data) {
-              _this2.vcdn_api_search('tv-series' + params, data, function (data) {
-                _this2.vcdn_api_search('anime-tv-series' + params, data, function (data) {
-                  _this2.vcdn_api_search('show-tv-series' + params, data, callback, error);
+          _this4.vcdn_api_search('movies' + params, [], function (data) {
+            _this4.vcdn_api_search('animes' + params, data, function (data) {
+              _this4.vcdn_api_search('tv-series' + params, data, function (data) {
+                _this4.vcdn_api_search('anime-tv-series' + params, data, function (data) {
+                  _this4.vcdn_api_search('show-tv-series' + params, data, callback, error);
                 }, error);
               }, error);
             }, error);
@@ -15665,9 +15777,9 @@
             var imdb_params = object.movie.imdb_id ? Lampa.Utils.addUrlComponent(params, 'imdb_id=' + encodeURIComponent(object.movie.imdb_id)) : '';
             var kp_params = +object.movie.kinopoisk_id ? Lampa.Utils.addUrlComponent(params, 'kinopoisk_id=' + encodeURIComponent(+object.movie.kinopoisk_id)) : '';
 
-            _this2.vcdn_api_search('short' + (imdb_params || kp_params), [], function (data) {
+            _this4.vcdn_api_search('short' + (imdb_params || kp_params), [], function (data) {
               if (data && data.length) callback(data);else if (imdb_params && kp_params) {
-                _this2.vcdn_api_search('short' + kp_params, [], callback, error);
+                _this4.vcdn_api_search('short' + kp_params, [], callback, error);
               } else callback([]);
             }, error);
           } else callback([]);
@@ -15686,16 +15798,16 @@
         };
 
         var kp_search_by_title = function kp_search_by_title(callback, error) {
-          var url = 'api/v2.1/films/search-by-keyword?keyword=' + encodeURIComponent(_this2.kpCleanTitle(query));
+          var url = 'api/v2.1/films/search-by-keyword?keyword=' + encodeURIComponent(_this4.kpCleanTitle(query));
 
-          _this2.kp_api_search(url, callback, error);
+          _this4.kp_api_search(url, callback, error);
         };
 
         var kp_search_by_id = function kp_search_by_id(callback, error) {
           if (!object.clarification && object.movie.imdb_id) {
             var url = 'api/v2.2/films?imdbId=' + encodeURIComponent(object.movie.imdb_id);
 
-            _this2.kp_api_search(url, callback, error);
+            _this4.kp_api_search(url, callback, error);
           } else callback([]);
         };
 
@@ -15713,7 +15825,7 @@
 
         var vcdn_search_imdb = function vcdn_search_imdb() {
           var error = function error() {
-            _this2.extendChoice();
+            _this4.extendChoice();
 
             sources[balanser].search(object, object.movie.imdb_id);
           };
@@ -15731,13 +15843,13 @@
 
         var letgo = function letgo() {
           if (!object.clarification && +object.movie.kinopoisk_id && kp_sources.indexOf(balanser) >= 0) {
-            _this2.extendChoice();
+            _this4.extendChoice();
 
             sources[balanser].search(object, +object.movie.kinopoisk_id);
           } else if (!object.clarification && object.movie.imdb_id && kp_sources.indexOf(balanser) >= 0) {
             kp_search_imdb();
           } else if (search_sources.indexOf(balanser) >= 0) {
-            _this2.extendChoice();
+            _this4.extendChoice();
 
             sources[balanser].search(object);
           } else {
@@ -15884,11 +15996,11 @@
         var title = '';
         var full = Lampa.Storage.field('online_mod_full_episode_title') === true;
 
-        if (s_num != null) {
+        if (s_num != null && s_num !== '') {
           title = (full ? Lampa.Lang.translate('torrent_serial_season') + ' ' : 'S') + s_num + ' / ';
         }
 
-        if (name == null) name = Lampa.Lang.translate('torrent_serial_episode') + ' ' + e_num;else if (e_num != null) name = Lampa.Lang.translate('torrent_serial_episode') + ' ' + e_num + ' - ' + name;
+        if (name == null || name === '') name = Lampa.Lang.translate('torrent_serial_episode') + ' ' + e_num;else if (e_num != null && e_num !== '') name = Lampa.Lang.translate('torrent_serial_episode') + ' ' + e_num + ' - ' + name;
         title += name;
         return title;
       };
@@ -16020,7 +16132,7 @@
 
 
       this.similars = function (json, search_more, more_params) {
-        var _this3 = this;
+        var _this5 = this;
 
         json.forEach(function (elem) {
           var title = elem.title || elem.ru_title || elem.nameRu || elem.en_title || elem.nameEn || elem.orig_title || elem.nameOriginal;
@@ -16035,20 +16147,20 @@
           elem.info = info.length ? ' / ' + info.join(' / ') : '';
           var item = Lampa.Template.get('online_mod_folder', elem);
           item.on('hover:enter', function () {
-            _this3.activity.loader(true);
+            _this5.activity.loader(true);
 
-            _this3.reset();
+            _this5.reset();
 
             object.search = elem.title;
             object.search_date = year;
             selected_id = elem.id;
 
-            _this3.extendChoice();
+            _this5.extendChoice();
 
             sources[balanser].search(object, elem.kp_id || elem.kinopoisk_id || elem.kinopoiskId || elem.filmId || elem.imdb_id, [elem]);
           });
 
-          _this3.append(item);
+          _this5.append(item);
         });
 
         if (search_more) {
@@ -16059,9 +16171,9 @@
           };
           var item = Lampa.Template.get('online_mod_folder', elem);
           item.on('hover:enter', function () {
-            _this3.activity.loader(true);
+            _this5.activity.loader(true);
 
-            _this3.reset();
+            _this5.reset();
 
             search_more(more_params);
           });
@@ -16481,7 +16593,7 @@
       };
     }
 
-    var mod_version = '27.10.2024';
+    var mod_version = '31.10.2024';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
