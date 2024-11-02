@@ -1,4 +1,4 @@
-//01.11.2024 - Fix
+//02.11.2024 - Fix
 
 (function () {
     'use strict';
@@ -89,7 +89,7 @@
       var user_proxy1 = (proxy_other_url || proxy1) + param_ip;
       var user_proxy2 = (proxy_other_url || proxy2) + param_ip;
       var user_proxy3 = (proxy_other_url || proxy3) + param_ip;
-      if (name === 'filmix') return window.location.protocol === 'https:' && !Lampa.Platform.is('android') ? user_proxy3 : '';
+      if (name === 'filmix') return window.location.protocol === 'https:' && !Lampa.Platform.is('android') ? user_proxy1 : '';
       if (name === 'filmix_site') return user_proxy2;
       if (name === 'svetacdn') return '';
       if (name === 'zetflix') return proxy_apn;
@@ -3386,7 +3386,7 @@
       var prox = component.proxy('cdnmovies');
       var stream_prox = prox;
       var iframe_proxy = !prox && Lampa.Storage.field('online_mod_iframe_proxy') === true && (!startsWith(window.location.protocol, 'http') || window.location.origin.indexOf('lampa') !== -1) && !Lampa.Platform.is('android');
-      var host = 'https://random.net';
+      var host = Utils.decodeSecret([80, 68, 77, 68, 64, 3, 27, 31, 66, 81, 84, 92, 91, 91, 93, 26, 95, 90, 84, 89, 87, 81]);
       var ref = host + '/';
       var user_agent = 'Mozilla/5.0 (Linux; Android 10; K; client) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.6167.178 Mobile Safari/537.36';
       var headers = Lampa.Platform.is('android') ? {
@@ -16595,7 +16595,7 @@
       };
     }
 
-    var mod_version = '01.11.2024';
+    var mod_version = '02.11.2024';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
