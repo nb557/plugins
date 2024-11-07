@@ -1,4 +1,4 @@
-//06.11.2024 - Fix
+//07.11.2024 - Fix
 
 (function () {
     'use strict';
@@ -324,7 +324,7 @@
       var prox = component.proxy('svetacdn');
       var host = (prefer_http ? 'http:' : 'https:') + '//videocdn.tv';
       var ref = host + '/';
-      var embed = '//93703.svetacdn.in/0HlZgU1l1mw5';
+      var embed = atob('Ly85MzcwMy5hbm5hY2RuLmNjL3I5WHJPUW1wRlZ4Tw==');
       var filter_items = {};
       var choice = {
         season: 0,
@@ -374,7 +374,7 @@
         select_title = object.search || object.movie.title;
         var error = component.empty.bind(component);
         var iframe_src = data[0] && data[0].iframe_src;
-        var src = iframe_src ? iframe_src : Lampa.Utils.addUrlComponent(embed, (+kinopoisk_id ? 'kp_id=' : 'imdb_id=') + kinopoisk_id);
+        var src = iframe_src ? iframe_src.replace(/^\/\/[^\/]+\/[^\/?]+/, embed) : Lampa.Utils.addUrlComponent(embed, (+kinopoisk_id ? 'kp_id=' : 'imdb_id=') + kinopoisk_id);
         videocdn_search(src, function (str) {
           if (str) parse(str);else if (!iframe_src && !object.clarification && object.movie.imdb_id && kinopoisk_id != object.movie.imdb_id) {
             var src2 = Lampa.Utils.addUrlComponent(embed, 'imdb_id=' + object.movie.imdb_id);
@@ -16173,7 +16173,7 @@
 
       this.vcdn_api_search = function (api, data, callback, error) {
         var prox = this.proxy('videocdn');
-        var url = (prefer_http ? 'http:' : 'https:') + '//videocdn.tv/api/';
+        var url = 'https://portal.lumex.host/api/';
         network.clear();
         network.timeout(1000 * 20);
         network.silent(prox + url + api, function (json) {
@@ -16321,7 +16321,7 @@
         };
 
         var vcdn_search_by_title = function vcdn_search_by_title(callback, error) {
-          var params = Lampa.Utils.addUrlComponent('', 'api_token=3i40G5TSECmLF77oAqnEgbx61ZWaOYaE');
+          var params = Lampa.Utils.addUrlComponent('', atob('YXBpX3Rva2VuPUM3WnhESHVuNGM2TURtTk55aXZEdUxkVlFQVWtKSDdp'));
           params = Lampa.Utils.addUrlComponent(params, 'query=' + encodeURIComponent(query));
           params = Lampa.Utils.addUrlComponent(params, 'field=title');
 
@@ -16338,7 +16338,7 @@
 
         var vcdn_search_by_id = function vcdn_search_by_id(callback, error) {
           if (!object.clarification && (object.movie.imdb_id || +object.movie.kinopoisk_id)) {
-            var params = Lampa.Utils.addUrlComponent('', 'api_token=3i40G5TSECmLF77oAqnEgbx61ZWaOYaE');
+            var params = Lampa.Utils.addUrlComponent('', atob('YXBpX3Rva2VuPUM3WnhESHVuNGM2TURtTk55aXZEdUxkVlFQVWtKSDdp'));
             var imdb_params = object.movie.imdb_id ? Lampa.Utils.addUrlComponent(params, 'imdb_id=' + encodeURIComponent(object.movie.imdb_id)) : '';
             var kp_params = +object.movie.kinopoisk_id ? Lampa.Utils.addUrlComponent(params, 'kinopoisk_id=' + encodeURIComponent(+object.movie.kinopoisk_id)) : '';
 
@@ -17159,7 +17159,7 @@
       };
     }
 
-    var mod_version = '06.11.2024';
+    var mod_version = '07.11.2024';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
