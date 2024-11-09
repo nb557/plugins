@@ -1,4 +1,4 @@
-//07.11.2024 - Fix
+//09.11.2024 - Fix
 
 (function () {
     'use strict';
@@ -15859,7 +15859,7 @@
         source: new rezka2(this, object),
         search: true,
         kp: false,
-        imdb: true
+        imdb: false
       }, {
         name: 'kinobase',
         title: 'Kinobase',
@@ -15896,7 +15896,7 @@
         source: new zetflix(this, object),
         search: false,
         kp: true,
-        imdb: true,
+        imdb: false,
         disabled: disable_dbg
       }, {
         name: 'fancdn',
@@ -15912,7 +15912,7 @@
         source: new fanserials(this, object),
         search: false,
         kp: true,
-        imdb: true,
+        imdb: false,
         disabled: disable_dbg && !Lampa.Platform.is('android')
       }, {
         name: 'redheadsound',
@@ -15927,7 +15927,7 @@
         source: new cdnvideohub(this, object),
         search: false,
         kp: true,
-        imdb: true
+        imdb: false
       }, {
         name: 'anilibria',
         title: 'AniLibria',
@@ -16176,7 +16176,7 @@
         var url = 'https://portal.lumex.host/api/';
         network.clear();
         network.timeout(1000 * 20);
-        network.silent(prox + url + api, function (json) {
+        network["native"](prox + url + api, function (json) {
           if (json.data && json.data.length) data = data.concat(json.data);
           if (callback) callback(data);
         }, function (a, c) {
@@ -16390,9 +16390,23 @@
 
         var vcdn_search_imdb = function vcdn_search_imdb() {
           var error = function error() {
-            _this4.extendChoice();
+            if (imdb_sources.indexOf(balanser) >= 0) {
+              _this4.extendChoice();
 
-            sources[balanser].search(object, object.movie.imdb_id);
+              sources[balanser].search(object, object.movie.imdb_id);
+            } else if (search_sources.indexOf(balanser) >= 0) {
+              _this4.extendChoice();
+
+              sources[balanser].search(object);
+            } else {
+              var error2 = function error2() {
+                display([]);
+              };
+
+              kp_search_by_title(function (data) {
+                if (data && data.length) display(data);else error2();
+              }, error2);
+            }
           };
 
           vcdn_search_by_id(function (data) {
@@ -16424,7 +16438,7 @@
           }
         };
 
-        if (!object.movie.imdb_id && (object.movie.source == 'tmdb' || object.movie.source == 'cub') && imdb_sources.indexOf(balanser) >= 0) {
+        if (!object.movie.imdb_id && (object.movie.source == 'tmdb' || object.movie.source == 'cub') && (imdb_sources.indexOf(balanser) >= 0 || kp_sources.indexOf(balanser) >= 0)) {
           var tmdburl = (object.movie.name ? 'tv' : 'movie') + '/' + object.movie.id + '/external_ids?api_key=4ef0d7355d9ffb5151e987764708ce96&language=ru';
           var baseurl = typeof Lampa.TMDB !== 'undefined' ? Lampa.TMDB.api(tmdburl) : 'http://api.themoviedb.org/3/' + tmdburl;
           network.clear();
@@ -17159,7 +17173,7 @@
       };
     }
 
-    var mod_version = '07.11.2024';
+    var mod_version = '09.11.2024';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
