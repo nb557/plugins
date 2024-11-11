@@ -1,4 +1,4 @@
-//09.11.2024 - Fix
+//11.11.2024 - Fix
 
 (function () {
     'use strict';
@@ -3205,6 +3205,12 @@
         if (!filter_items.season[choice.season]) choice.season = 0;
         component.filter(filter_items, choice);
       }
+
+      function fixUrl(url) {
+        url = (url || '').replace(atob('Ly9oeWUxZWFpcGJ5NHcubWF0aGFtLndzLw=='), atob('Ly9hYi5tYXRoYW0ud3Mv'));
+        if (prefer_http) url = url.replace('https://', 'http://');
+        return url;
+      }
       /**
        * Отфильтровать файлы
        * @returns array
@@ -3238,8 +3244,7 @@
                 }).filter(function (name) {
                   return name && name !== 'delete';
                 });
-                var file = prefer_dash && episode.dash || episode.hls || '';
-                if (prefer_http) file = file.replace('https://', 'http://');
+                var file = fixUrl(prefer_dash && episode.dash || episode.hls || '');
                 filtred.push({
                   title: episode.title,
                   quality: '360p ~ 1080p',
@@ -3248,8 +3253,7 @@
                   episode: parseInt(episode.episode),
                   file: component.fixLink(file, stream_prox),
                   subtitles: episode.cc ? episode.cc.map(function (c) {
-                    var url = c.url || '';
-                    if (prefer_http) url = url.replace('https://', 'http://');
+                    var url = fixUrl(c.url || '');
                     return {
                       label: c.name,
                       url: component.fixLink(url, stream_prox)
@@ -3283,16 +3287,14 @@
           }).filter(function (name) {
             return name && name !== 'delete';
           });
-          var file = prefer_dash && extract.source.dash || extract.source.hls || '';
-          if (prefer_http) file = file.replace('https://', 'http://');
+          var file = fixUrl(prefer_dash && extract.source.dash || extract.source.hls || '');
           filtred.push({
             title: extract.title || select_title,
             quality: max_quality ? max_quality + 'p' : '360p ~ 1080p',
             info: audio_names.length ? ' / ' + component.uniqueNamesShortText(audio_names, 80) : '',
             file: component.fixLink(file, stream_prox),
             subtitles: extract.source.cc ? extract.source.cc.map(function (c) {
-              var url = c.url || '';
-              if (prefer_http) url = url.replace('https://', 'http://');
+              var url = fixUrl(c.url || '');
               return {
                 label: c.name,
                 url: component.fixLink(url, stream_prox)
@@ -15791,7 +15793,7 @@
       });
       var files = new Lampa.Explorer(object);
       var filter = new Lampa.Filter(object);
-      var balanser = Lampa.Storage.get('online_mod_balanser', 'videocdn') + '';
+      var balanser = Lampa.Storage.get('online_mod_balanser', 'collaps') + '';
       var last_bls = Lampa.Storage.field('online_mod_save_last_balanser') === true ? Lampa.Storage.cache('online_mod_last_balanser', 200, {}) : {};
       var use_stream_proxy = Lampa.Storage.field('online_mod_use_stream_proxy') === true;
       var rezka2_fix_stream = Lampa.Storage.field('online_mod_rezka2_fix_stream') === true;
@@ -15844,7 +15846,8 @@
         source: new videocdn(this, object),
         search: false,
         kp: false,
-        imdb: true
+        imdb: true,
+        disabled: disable_dbg
       }, {
         name: 'rezka',
         title: 'Voidboost',
@@ -16000,7 +16003,7 @@
       }); // шаловливые ручки
 
       if (filter_sources.indexOf(balanser) == -1) {
-        balanser = 'videocdn';
+        balanser = 'collaps';
         Lampa.Storage.set('online_mod_balanser', balanser);
       }
 
@@ -16173,7 +16176,7 @@
 
       this.vcdn_api_search = function (api, data, callback, error) {
         var prox = this.proxy('videocdn');
-        var url = 'https://portal.lumex.host/api/';
+        var url = 'https://portal.lumex.bar/api/';
         network.clear();
         network.timeout(1000 * 20);
         network["native"](prox + url + api, function (json) {
@@ -17173,7 +17176,7 @@
       };
     }
 
-    var mod_version = '09.11.2024';
+    var mod_version = '11.11.2024';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
@@ -17937,7 +17940,8 @@
 
 
     function rezka2Login(success, error) {
-      var url = Utils.rezka2Mirror() + '/ajax/login/';
+      var host = Utils.rezka2Mirror();
+      var url = host + '/ajax/login/';
       var postdata = 'login_name=' + encodeURIComponent(Lampa.Storage.get('online_mod_rezka2_name', ''));
       postdata += '&login_password=' + encodeURIComponent(Lampa.Storage.get('online_mod_rezka2_password', ''));
       postdata += '&login_not_save=0';
@@ -17946,7 +17950,15 @@
       network.silent(url, function (json) {
         if (json && (json.success || json.message == 'Уже авторизован на сайте. Необходимо обновить страницу!')) {
           Lampa.Storage.set("online_mod_rezka2_status", 'true');
-          if (success) success();
+          network.clear();
+          network.timeout(8000);
+          network.silent(host + '/', function (json) {
+            if (success) success();
+          }, function (a, c) {
+            if (success) success();
+          }, false, {
+            withCredentials: true
+          });
         } else {
           Lampa.Storage.set("online_mod_rezka2_status", 'false');
           if (json && json.message) Lampa.Noty.show(json.message);
