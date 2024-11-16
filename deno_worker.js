@@ -17,6 +17,8 @@ async function handle(request, connInfo) {
       let ip = "";
       let redirect = request.method === "POST" ? "manual" : "follow";
       let get_cookie = false;
+      let cookie_plus = false;
+      let remove_zstd = false;
       let params = [];
       let cdn_info = "cdn_pDvQc7ZT";
 
@@ -27,7 +29,7 @@ async function handle(request, connInfo) {
           body += "connInfo" + " = " + JSON.stringify(connInfo.remoteAddr) + "\n";
         }
         body += "request_url" + " = " + request.url + "\n";
-        body += "worker_version = 1.07\n";
+        body += "worker_version = 1.08\n";
         return new Response(body, corsHeaders);
       }
 
@@ -64,6 +66,11 @@ async function handle(request, connInfo) {
           get_cookie = true;
           api_pos += 11;
           api = api.substring(11);
+        } else if (api.startsWith("cookie_plus/")) {
+          cookie_plus = true;
+          remove_zstd = true;
+          api_pos += 12;
+          api = api.substring(12);
         } else if (api.startsWith("param?") || api.startsWith("param/")) {
           api_pos += 6;
           api = api.substring(6);
@@ -93,7 +100,7 @@ async function handle(request, connInfo) {
 
       let forwarded_proto = request.headers.get("X-Forwarded-Proto");
       if (forwarded_proto) forwarded_proto = forwarded_proto.split(",")[0].trim();
-      if (forwarded_proto === "https") proxy = proxy.replace('http://', 'https://');
+      if (forwarded_proto === "https") proxy = proxy.replace("http://", "https://");
 
       if (!ip) {
         let forwarded_for = request.headers.get("X-Forwarded-For");
@@ -159,18 +166,25 @@ async function handle(request, connInfo) {
         request.headers.set("cf-connecting-ip", ip);
       }
       if (apiUrl.hostname === "rezka.ag" || apiUrl.hostname === "hdrezka.ag" || apiUrl.hostname === "hdrezka.me" || apiUrl.hostname === "hdrezka.sh" || apiUrl.hostname === "hdrezka.cm" || apiUrl.hostname === "hdrezka.kim" || apiUrl.hostname === "hdrezka.la" || apiUrl.hostname === "rezka.pub" || apiUrl.hostname === "kinopub.me") {
-        request.headers.set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36");
+        request.headers.set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36");
       }
       if (apiUrl.hostname.endsWith(".svetacdn.in")) {
         request.headers.set("Origin", "https://videocdn.tv");
         request.headers.set("Referer", "https://videocdn.tv/");
+      }
+      if (apiUrl.hostname === "api.lumex.pw") {
+        request.headers.set("Origin", "https://p.lumex.pw");
+        request.headers.set("Referer", "https://p.lumex.pw/");
+        request.headers.set("Sec-Fetch-Dest", "empty");
+        request.headers.set("Sec-Fetch-Mode", "cors");
+        request.headers.set("Sec-Fetch-Site", "same-site");
       }
       if (apiUrl.hostname.endsWith("cdnmovies-stream.online") || apiUrl.hostname.endsWith("cdnmovies-hls-stream.online") || apiUrl.hostname.endsWith(".sarnage.cc")) {
         request.headers.set("Origin", "https://cdnmovies.net");
         request.headers.set("Referer", "https://cdnmovies.net/");
       }
       if (apiUrl.hostname.endsWith(".bazon.site")) {
-        request.headers.set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36");
+        request.headers.set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36");
         request.headers.set("Origin", "https://bazon.cc");
         request.headers.set("Referer", "https://bazon.cc/");
       }
@@ -180,6 +194,13 @@ async function handle(request, connInfo) {
       }
       if (apiUrl.hostname === "kinoplay.site" || apiUrl.hostname === "kinoplay1.site" || apiUrl.hostname === "kinoplay2.site") {
         request.headers.set("Cookie", "invite=a246a3f46c82fe439a45c3dbbbb24ad5");
+      }
+      if (remove_zstd) {
+        let encoding = (request.headers.get("Accept-Encoding") || "");
+        if (encoding.includes("zstd")) {
+          encoding = encoding.split(",").filter(enc=>!enc.includes("zstd")).join(",") || "identity";
+          request.headers.set("Accept-Encoding", encoding);
+        }
       }
       params.forEach(param => {
         if (param[0]) {
@@ -204,9 +225,24 @@ async function handle(request, connInfo) {
       response.headers.append("Vary", "Origin");
 
       if (response.status >= 200 && response.status < 300) {
-        if (get_cookie) {
+        let ctype = (response.headers.get("Content-Type") || "").split(";")[0].toLowerCase();
+        if (get_cookie || cookie_plus) {
           let json = {};
           json.cookie = response.headers.getSetCookie();
+          if (cookie_plus) {
+            let headers = {};
+            for (let key of response.headers.keys()) {
+              if (key === 'set-cookie') {
+                headers[key] = json.cookie;
+              } else {
+                headers[key] = response.headers.get(key);
+              }
+            }
+            json.headers = headers;
+            if (ctype.startsWith("text/") || ["application/json", "application/xml", "application/x-mpegurl", "application/vnd.apple.mpegurl", "application/dash+xml"].indexOf(ctype) !== -1) {
+              json.body = await response.text();
+            }
+          }
           return new Response(JSON.stringify(json), {
             headers: {
               "Access-Control-Allow-Origin": "*",
