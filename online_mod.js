@@ -1,4 +1,4 @@
-//17.11.2024 - Fix
+//21.11.2024 - Fix
 
 (function () {
     'use strict';
@@ -3287,7 +3287,7 @@
                 var file = fixUrl(prefer_dash && episode.dash || episode.hls || '');
                 filtred.push({
                   title: episode.title,
-                  quality: '360p ~ 1080p',
+                  quality: '360p ~ ' + (prefer_dash ? '1080p' : '720p'),
                   info: audio_names.length ? ' / ' + component.uniqueNamesShortText(audio_names, 80) : '',
                   season: season.season,
                   episode: parseInt(episode.episode),
@@ -3305,8 +3305,12 @@
             }
           });
         } else if (extract.source) {
-          var resolution = Lampa.Arrays.getKeys(extract.qualityByWidth).pop();
-          var max_quality = extract.qualityByWidth ? extract.qualityByWidth[resolution] || 0 : 0;
+          var max_quality = 0;
+          extract.qualityByWidth && Lampa.Arrays.getKeys(extract.qualityByWidth).forEach(function (resolution) {
+            var quality = extract.qualityByWidth[resolution] || 0;
+            if (!prefer_dash && quality > 720) quality = 0;
+            if (quality > max_quality) max_quality = quality;
+          });
           var audio_tracks = extract.source.audio.names.map(function (name) {
             return {
               language: name
@@ -3330,7 +3334,7 @@
           var file = fixUrl(prefer_dash && extract.source.dash || extract.source.hls || '');
           filtred.push({
             title: extract.title || select_title,
-            quality: max_quality ? max_quality + 'p' : '360p ~ 1080p',
+            quality: max_quality ? max_quality + 'p' : '360p ~ ' + (prefer_dash ? '1080p' : '720p'),
             info: audio_names.length ? ' / ' + component.uniqueNamesShortText(audio_names, 80) : '',
             file: component.fixLink(file, stream_prox),
             subtitles: extract.source.cc ? extract.source.cc.map(function (c) {
@@ -15858,7 +15862,7 @@
       this.proxyStream = function (url, name) {
         if (url && use_stream_proxy) {
           if (name === 'rezka2') {
-            return url.replace(/\/\/(stream\.voidboost\.(cc|top|link|club)|vdbmate.org|femeretes.org)\//, '//prx.ukrtelcdn.net/');
+            return url.replace(/\/\/(stream\.voidboost\.(cc|top|link|club)|vdbmate.org|sambray.org|femeretes.org)\//, '//prx.ukrtelcdn.net/');
           }
 
           return (prefer_http ? 'http://apn.cfhttp.top/' : 'https://apn.watch/') + url;
@@ -17218,7 +17222,7 @@
       };
     }
 
-    var mod_version = '17.11.2024';
+    var mod_version = '21.11.2024';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
