@@ -1,4 +1,4 @@
-//21.11.2024 - Fix
+//23.11.2024 - Fix
 
 (function () {
     'use strict';
@@ -68,7 +68,11 @@
     }
 
     function filmixToken(dev_id, token) {
-      return '?user_dev_id=' + dev_id + '&user_dev_name=Xiaomi&user_dev_token=' + token + '&user_dev_vendor=Xiaomi&user_dev_os=14&user_dev_apk=2.1.8&app_lang=ru-rRU';
+      return '?user_dev_id=' + dev_id + '&user_dev_name=Xiaomi&user_dev_token=' + token + '&user_dev_vendor=Xiaomi&user_dev_os=14&user_dev_apk=2.2.0&app_lang=ru-rRU';
+    }
+
+    function filmixUserAgent() {
+      return 'okhttp/3.10.0';
     }
 
     function setMyIp(ip) {
@@ -100,7 +104,6 @@
       var user_proxy1 = (proxy_other_url || proxy1) + param_ip;
       var user_proxy2 = (proxy_other_url || proxy2) + param_ip;
       var user_proxy3 = (proxy_other_url || proxy3) + param_ip;
-      if (name === 'filmix') return window.location.protocol === 'https:' && !Lampa.Platform.is('android') ? user_proxy1 : '';
       if (name === 'filmix_site') return user_proxy2;
       if (name === 'zetflix') return proxy_apn;
       if (name === 'allohacdn') return proxy_other ? proxy_secret : proxy_apn;
@@ -116,6 +119,7 @@
         if (name === 'kinobase') return proxy_apn;
         if (name === 'collaps') return proxy_other ? proxy_secret : proxy_apn0;
         if (name === 'cdnmovies') return proxy_other ? proxy_secret : proxy_apn;
+        if (name === 'filmix') return user_proxy1;
         if (name === 'videodb') return user_proxy2;
         if (name === 'fancdn') return user_proxy3;
         if (name === 'fanserials') return user_proxy2;
@@ -178,6 +182,7 @@
       kinobaseMirror: kinobaseMirror,
       fanserialsHost: fanserialsHost,
       filmixToken: filmixToken,
+      filmixUserAgent: filmixUserAgent,
       setMyIp: setMyIp,
       getMyIp: getMyIp,
       proxy: proxy,
@@ -3960,6 +3965,14 @@
       var debug = _debug;
       var prox = component.proxy('filmix');
       var prox2 = component.proxy('filmix_site');
+      var headers = Lampa.Platform.is('android') ? {
+        'User-Agent': Utils.filmixUserAgent()
+      } : {};
+
+      if (prox) {
+        prox += 'param/User-Agent=' + encodeURIComponent(Utils.filmixUserAgent()) + '/';
+      }
+
       var embed = 'http://filmixapp.cyou/api/v2/';
       var site = 'https://filmix.fm/';
       var select_title = '';
@@ -4119,6 +4132,8 @@
             if (json && json.length) display(json);else siteSearch();
           }, function (a, c) {
             siteSearch();
+          }, false, {
+            headers: headers
           });
         });
       };
@@ -4143,6 +4158,8 @@
               end_search();
             }, function (a, c) {
               end_search();
+            }, false, {
+              headers: headers
             });
           } else end_search();
         } else end_search();
@@ -4157,6 +4174,8 @@
             } else component.emptyForQuery(select_title);
           }, function (a, c) {
             component.empty(network.errorDecode(a, c));
+          }, false, {
+            headers: headers
           });
         }
       }
@@ -17222,7 +17241,7 @@
       };
     }
 
-    var mod_version = '21.11.2024';
+    var mod_version = '23.11.2024';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
@@ -17246,6 +17265,7 @@
       Lampa.Storage.set('online_mod_proxy_redheadsound', 'false');
     }
 
+    Lampa.Storage.set('online_mod_proxy_filmix', Lampa.Platform.is('android') ? 'false' : 'true');
     Lampa.Storage.set('online_mod_proxy_videodb', 'false');
     Lampa.Storage.set('online_mod_proxy_zetflix', 'false');
     Lampa.Storage.set('online_mod_proxy_kinopub', 'true');
@@ -17264,6 +17284,7 @@
     Lampa.Params.trigger('online_mod_proxy_kinobase', false);
     Lampa.Params.trigger('online_mod_proxy_collaps', false);
     Lampa.Params.trigger('online_mod_proxy_cdnmovies', false);
+    Lampa.Params.trigger('online_mod_proxy_filmix', false);
     Lampa.Params.trigger('online_mod_proxy_videodb', false);
     Lampa.Params.trigger('online_mod_proxy_zetflix', false);
     Lampa.Params.trigger('online_mod_proxy_fancdn', false);
@@ -17873,7 +17894,9 @@
     } ///////FILMIX/////////
 
 
-    var filmix_prox = Utils.proxy('filmix');
+    var filmix_headers = Lampa.Platform.is('android') ? {
+      'User-Agent': Utils.filmixUserAgent()
+    } : {};
     var api_url = 'http://filmixapp.cyou/api/v2/';
     var dev_id = Utils.randomHex(16);
     var ping_auth;
@@ -17910,6 +17933,12 @@
         e.body.find('[data-name="filmix_add"]').unbind('hover:enter').on('hover:enter', function () {
           var user_code = '';
           var user_token = '';
+          var filmix_prox = Utils.proxy('filmix');
+
+          if (filmix_prox) {
+            filmix_prox += 'param/User-Agent=' + encodeURIComponent(Utils.filmixUserAgent()) + '/';
+          }
+
           var modal = $('<div><div class="broadcast__text">' + Lampa.Lang.translate('online_mod_filmix_modal_text') + '</div><div class="broadcast__device selector" style="text-align: center">' + Lampa.Lang.translate('online_mod_filmix_modal_wait') + '...</div><br><div class="broadcast__scan"><div></div></div></div></div>');
           Lampa.Modal.open({
             title: '',
@@ -17948,6 +17977,8 @@
             }
           }, function (a, c) {
             Lampa.Noty.show(network.errorDecode(a, c));
+          }, false, {
+            headers: filmix_headers
           });
         });
         showStatus();
@@ -17968,6 +17999,12 @@
     }
 
     function checkPro(token, call) {
+      var filmix_prox = Utils.proxy('filmix');
+
+      if (filmix_prox) {
+        filmix_prox += 'param/User-Agent=' + encodeURIComponent(Utils.filmixUserAgent()) + '/';
+      }
+
       network.clear();
       network.timeout(8000);
       network["native"](filmix_prox + api_url + 'user_profile' + Utils.filmixToken(dev_id, token), function (json) {
@@ -17983,6 +18020,8 @@
         }
       }, function (a, c) {
         Lampa.Noty.show(network.errorDecode(a, c));
+      }, false, {
+        headers: filmix_headers
       });
     } ///////Rezka2/////////
 
@@ -18251,6 +18290,7 @@
       template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_kinobase\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} Kinobase</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
       template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_collaps\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} Collaps</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
       template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_cdnmovies\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} CDNMovies</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
+      template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_filmix\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} Filmix</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
     }
 
     if (Utils.isDebug()) {
