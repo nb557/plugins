@@ -127,7 +127,7 @@
         if (name === 'kinobase') return proxy_apn;
         if (name === 'collaps') return proxy_other ? proxy_secret : proxy_apn0;
         if (name === 'cdnmovies') return proxy_other ? proxy_secret : proxy_apn;
-        if (name === 'filmix') return user_proxy1;
+        if (name === 'filmix') return proxy_secret || user_proxy1;
         if (name === 'videodb') return user_proxy2;
         if (name === 'fancdn') return user_proxy3;
         if (name === 'fanserials') return user_proxy2;
