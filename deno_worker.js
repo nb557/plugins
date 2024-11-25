@@ -21,6 +21,7 @@ async function handle(request, connInfo) {
       let remove_zstd = false;
       let params = [];
       let cdn_info = "cdn_pDvQc7ZT";
+      let user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36";
 
       if (api === "headers") {
         let body = "";
@@ -166,13 +167,14 @@ async function handle(request, connInfo) {
         request.headers.set("cf-connecting-ip", ip);
       }
       if (apiUrl.hostname === "rezka.ag" || apiUrl.hostname === "hdrezka.ag" || apiUrl.hostname === "hdrezka.me" || apiUrl.hostname === "hdrezka.sh" || apiUrl.hostname === "hdrezka.cm" || apiUrl.hostname === "hdrezka.kim" || apiUrl.hostname === "hdrezka.la" || apiUrl.hostname === "rezka.pub" || apiUrl.hostname === "kinopub.me") {
-        request.headers.set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36");
+        request.headers.set("User-Agent", user_agent);
       }
       if (apiUrl.hostname.endsWith(".svetacdn.in")) {
         request.headers.set("Origin", "https://videocdn.tv");
         request.headers.set("Referer", "https://videocdn.tv/");
       }
       if (apiUrl.hostname === "api.lumex.pw") {
+        request.headers.set("User-Agent", user_agent);
         request.headers.set("Origin", "https://p.lumex.pw");
         request.headers.set("Referer", "https://p.lumex.pw/");
         request.headers.set("Sec-Fetch-Dest", "empty");
@@ -184,7 +186,7 @@ async function handle(request, connInfo) {
         request.headers.set("Referer", "https://cdnmovies.net/");
       }
       if (apiUrl.hostname.endsWith(".bazon.site")) {
-        request.headers.set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36");
+        request.headers.set("User-Agent", user_agent);
         request.headers.set("Origin", "https://bazon.cc");
         request.headers.set("Referer", "https://bazon.cc/");
       }

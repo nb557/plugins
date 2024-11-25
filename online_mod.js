@@ -100,11 +100,13 @@
       var proxy_apn0 = '';
       var proxy_apn = '';
       var proxy_secret = '';
+      var proxy_secret_ip = '';
 
       if (isDebug()) {
         proxy_apn0 = (window.location.protocol === 'https:' ? 'https://' : 'http://') + decodeSecret([83, 85, 76, 77, 71, 82, 76, 65, 26, 92, 85, 73, 88, 92, 64, 26, 83, 76, 23]);
         proxy_apn = proxy_apn0 + '?';
         proxy_secret = decodeSecret([80, 68, 77, 68, 64, 3, 27, 31, 85, 72, 94, 20, 89, 81, 12, 1, 6, 26, 83, 95, 64, 81, 81, 23, 85, 64, 68, 23]);
+        proxy_secret_ip = proxy_secret + (param_ip || 'ip/');
       }
 
       var proxy_other = Lampa.Storage.field('online_mod_proxy_other') === true;
@@ -127,7 +129,7 @@
         if (name === 'kinobase') return proxy_apn;
         if (name === 'collaps') return proxy_other ? proxy_secret : proxy_apn0;
         if (name === 'cdnmovies') return proxy_other ? proxy_secret : proxy_apn;
-        if (name === 'filmix') return proxy_secret || user_proxy1;
+        if (name === 'filmix') return proxy_secret_ip || user_proxy1;
         if (name === 'videodb') return user_proxy2;
         if (name === 'fancdn') return user_proxy3;
         if (name === 'fanserials') return user_proxy2;
