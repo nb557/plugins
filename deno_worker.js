@@ -18,7 +18,7 @@ async function handle(request, connInfo) {
       let redirect = request.method === "POST" ? "manual" : "follow";
       let get_cookie = false;
       let cookie_plus = false;
-      let remove_zstd = false;
+      let remove_compression = false;
       let params = [];
       let cdn_info = "cdn_pDvQc7ZT";
       let user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36";
@@ -30,7 +30,7 @@ async function handle(request, connInfo) {
           body += "connInfo" + " = " + JSON.stringify(connInfo.remoteAddr) + "\n";
         }
         body += "request_url" + " = " + request.url + "\n";
-        body += "worker_version = 1.08\n";
+        body += "worker_version = 1.09\n";
         return new Response(body, corsHeaders);
       }
 
@@ -69,7 +69,7 @@ async function handle(request, connInfo) {
           api = api.substring(11);
         } else if (api.startsWith("cookie_plus/")) {
           cookie_plus = true;
-          remove_zstd = true;
+          remove_compression = true;
           api_pos += 12;
           api = api.substring(12);
         } else if (api.startsWith("param?") || api.startsWith("param/")) {
@@ -197,10 +197,10 @@ async function handle(request, connInfo) {
       if (apiUrl.hostname === "kinoplay.site" || apiUrl.hostname === "kinoplay1.site" || apiUrl.hostname === "kinoplay2.site") {
         request.headers.set("Cookie", "invite=a246a3f46c82fe439a45c3dbbbb24ad5");
       }
-      if (remove_zstd) {
+      if (remove_compression) {
         let encoding = (request.headers.get("Accept-Encoding") || "");
-        if (encoding.includes("zstd")) {
-          encoding = encoding.split(",").filter(enc=>!enc.includes("zstd")).join(",") || "identity";
+        if (encoding.includes("zstd") || encoding.includes("deflate")) {
+          encoding = encoding.split(",").filter(enc=>!(enc.includes("zstd") || enc.includes("deflate"))).join(",") || "identity";
           request.headers.set("Accept-Encoding", encoding);
         }
       }
