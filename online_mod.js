@@ -1,4 +1,4 @@
-//24.11.2024 - Fix
+//28.11.2024 - Fix
 
 (function () {
     'use strict';
@@ -1521,10 +1521,9 @@
       var prox = component.proxy('rezka2');
       var host = prox && !proxy_mirror ? 'https://rezka.ag' : Utils.rezka2Mirror();
       var ref = host + '/';
-      var logged_in = Lampa.Storage.get('online_mod_rezka2_status', '') === true && !prox;
-      var network_call = logged_in ? network.silent : network["native"];
+      var logged_in = !(prox || Lampa.Platform.is('android'));
       var user_agent = Utils.baseUserAgent();
-      var headers = Lampa.Platform.is('android') && !logged_in ? {
+      var headers = Lampa.Platform.is('android') ? {
         'Origin': host,
         'Referer': ref,
         'User-Agent': user_agent
@@ -1537,11 +1536,10 @@
       }
 
       var cookie = Lampa.Storage.get('online_mod_rezka2_cookie', '') + '';
+      if (cookie.indexOf('PHPSESSID=') == -1) cookie = 'PHPSESSID=' + Utils.randomId(26) + (cookie ? '; ' + cookie : '');
 
       if (cookie) {
-        if (cookie.indexOf('PHPSESSID=') == -1) cookie = 'PHPSESSID=' + Utils.randomId(26) + (cookie ? '; ' + cookie : '');
-
-        if (Lampa.Platform.is('android') && !logged_in) {
+        if (Lampa.Platform.is('android')) {
           headers.Cookie = cookie;
         }
 
@@ -1589,7 +1587,7 @@
           var url = more_url + '&q=' + encodeURIComponent(query) + '&page=' + encodeURIComponent(page);
           network.clear();
           network.timeout(10000);
-          network_call(prox + url, function (str) {
+          network["native"](prox + url, function (str) {
             str = (str || '').replace(/\n/g, '');
             var login_form = str.match(/<form id="check-form" class="check-form" method="post" action="\/ajax\/login\/">/);
             authorization_required = !!login_form;
@@ -1769,7 +1767,7 @@
           var postdata = 'q=' + encodeURIComponent(query);
           network.clear();
           network.timeout(10000);
-          network_call(prox + url, function (str) {
+          network["native"](prox + url, function (str) {
             str = (str || '').replace(/\n/g, '');
             var login_form = str.match(/<form id="check-form" class="check-form" method="post" action="\/ajax\/login\/">/);
             authorization_required = !!login_form;
@@ -1851,7 +1849,7 @@
         url = component.fixLink(url, prox, ref);
         network.clear();
         network.timeout(10000);
-        network_call(url, function (str) {
+        network["native"](url, function (str) {
           extractData(str);
 
           if (extract.film_id) {
@@ -2013,7 +2011,7 @@
               postdata += '&action=get_episodes';
               network.clear();
               network.timeout(10000);
-              network_call(prox + url, function (json) {
+              network["native"](prox + url, function (json) {
                 extractEpisodes(json, translator_id);
                 call();
               }, function (a, c) {
@@ -2142,7 +2140,7 @@
 
         network.clear();
         network.timeout(10000);
-        network_call(prox + url, function (json) {
+        network["native"](prox + url, function (json) {
           if (json && json.url) {
             var video = decode(json.url),
                 file = '',
@@ -5000,10 +4998,10 @@
 
       var prox2 = prox;
       var cookie = Lampa.Storage.get('online_mod_fancdn_cookie', '') + '';
+      var authorization_required = !cookie;
+      if (cookie.indexOf('PHPSESSID=') == -1) cookie = 'PHPSESSID=' + Utils.randomHex(32) + (cookie ? '; ' + cookie : '');
 
       if (cookie) {
-        if (cookie.indexOf('PHPSESSID=') == -1) cookie = 'PHPSESSID=' + Utils.randomHex(32) + (cookie ? '; ' + cookie : '');
-
         if (Lampa.Platform.is('android')) {
           headers.Cookie = cookie;
         }
@@ -5020,7 +5018,6 @@
         voice: 0,
         voice_name: ''
       };
-      var authorization_required = !cookie;
       /**
        * Начать поиск
        * @param {Object} _object
@@ -17269,7 +17266,7 @@
       };
     }
 
-    var mod_version = '24.11.2024';
+    var mod_version = '28.11.2024';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
