@@ -1,4 +1,4 @@
-//28.11.2024 - Fix
+//30.11.2024 - Fix
 
 (function () {
     'use strict';
@@ -794,7 +794,7 @@
                 var pos = url.lastIndexOf('/', url.length);
                 res.push({
                   label: pos !== -1 ? url.substring(pos + 1) : url,
-                  url: url
+                  url: component.convertVttToSrt(url)
                 });
               }
 
@@ -1180,7 +1180,7 @@
 
             return {
               label: item.label,
-              url: link
+              url: component.convertVttToSrt(link)
             };
           });
         }
@@ -2291,7 +2291,7 @@
 
             return {
               label: item.label,
-              url: link
+              url: component.convertVttToSrt(link)
             };
           });
         }
@@ -2739,7 +2739,7 @@
           var link = item.links[0] || '';
           return {
             label: item.label,
-            url: component.fixLink(link, stream_prox)
+            url: component.convertVttToSrt(component.fixLink(link, stream_prox))
           };
         });
         return subtitles.length ? subtitles : false;
@@ -3325,7 +3325,7 @@
                     var url = fixUrl(c.url || '');
                     return {
                       label: c.name,
-                      url: component.fixLink(url, stream_prox)
+                      url: component.convertVttToSrt(component.fixLink(url, stream_prox))
                     };
                   }) : false,
                   audio_tracks: audio_tracks.length ? audio_tracks : false
@@ -3370,7 +3370,7 @@
               var url = fixUrl(c.url || '');
               return {
                 label: c.name,
-                url: component.fixLink(url, stream_prox)
+                url: component.convertVttToSrt(component.fixLink(url, stream_prox))
               };
             }) : false,
             audio_tracks: audio_tracks.length ? audio_tracks : false
@@ -3796,7 +3796,7 @@
           if (prefer_http) link = link.replace('https://', 'http://');
           return {
             label: item.label,
-            url: component.fixLink(link, stream_prox)
+            url: component.convertVttToSrt(component.fixLink(link, stream_prox))
           };
         });
         return subtitles.length ? subtitles : false;
@@ -5385,7 +5385,7 @@
           if (prefer_http) link = link.replace('https://', 'http://');
           return {
             label: item.label,
-            url: component.proxyStream(component.fixLink(link, '', url), 'fancdn')
+            url: component.proxyStreamSubs(component.fixLink(link, '', url), 'fancdn')
           };
         });
         return subtitles.length ? subtitles : false;
@@ -5732,7 +5732,7 @@
             if (link) {
               subtitles.push({
                 label: sub.replace('data-', '').replace('_subtitle', ''),
-                url: component.fixLink(link, '', url)
+                url: component.convertVttToSrt(component.fixLink(link, '', url))
               });
             }
           });
@@ -11886,7 +11886,7 @@
           var link = item.links[0] || '';
           return {
             label: item.label,
-            url: component.fixLink(link, prox2 ? prox2 + extract.stream_prox2 : '')
+            url: component.convertVttToSrt(component.fixLink(link, prox2 ? prox2 + extract.stream_prox2 : ''))
           };
         });
         return subtitles.length ? subtitles : false;
@@ -12693,7 +12693,7 @@
           var link = item.links[0] || '';
           return {
             label: item.label,
-            url: component.fixLink(link, prox, url)
+            url: component.convertVttToSrt(component.fixLink(link, prox, url))
           };
         });
         return subtitles.length ? subtitles : false;
@@ -14219,7 +14219,7 @@
             subtitles = player.subtitles.map(function (item) {
               return {
                 label: item.format || item.filename || '',
-                url: item.src || ''
+                url: component.convertVttToSrt(item.src || '')
               };
             });
           }
@@ -15402,7 +15402,7 @@
                   subtitles = media.subtitles.map(function (sub) {
                     return {
                       label: sub.lang + (sub.forced ? ' - forced' : ''),
-                      url: sub.file ? base_url + '/subtitles' + (startsWith(sub.file, '/') ? '' : '/') + sub.file + '?loc=' + server : ''
+                      url: component.convertVttToSrt(sub.file ? base_url + '/subtitles' + (startsWith(sub.file, '/') ? '' : '/') + sub.file + '?loc=' + server : '')
                     };
                   });
                   if (!subtitles.length) subtitles = false;
@@ -15886,6 +15886,7 @@
       var use_stream_proxy = Lampa.Storage.field('online_mod_use_stream_proxy') === true;
       var rezka2_fix_stream = Lampa.Storage.field('online_mod_rezka2_fix_stream') === true;
       var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true;
+      var convert_vtt_to_srt = Lampa.Storage.field('online_mod_convert_vtt_to_srt') === true;
       var forcedQuality = '';
       var qualityFilter = {
         title: Lampa.Lang.translate('settings_player_quality'),
@@ -15917,6 +15918,26 @@
         }
 
         return url;
+      };
+
+      this.convertVttToSrt = function (url) {
+        if (url && convert_vtt_to_srt) {
+          var posEnd = url.lastIndexOf('?');
+          var posStart = url.lastIndexOf('://');
+          if (posEnd == -1 || posEnd <= posStart) posEnd = url.length;
+
+          if (posEnd >= 4 && url.substring(posEnd - 4, posEnd).toLowerCase() === '.vtt') {
+            return (prefer_http ? 'http:' : 'https:') + '//epg.rootu.top/vtt2srt/' + url;
+          }
+        }
+
+        return url;
+      };
+
+      this.proxyStreamSubs = function (url, name) {
+        var srtUrl = this.convertVttToSrt(url);
+        if (srtUrl !== url) return srtUrl;
+        return this.proxyStream(url, name);
       };
 
       var last;
@@ -17266,7 +17287,7 @@
       };
     }
 
-    var mod_version = '28.11.2024';
+    var mod_version = '30.11.2024';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
@@ -17329,6 +17350,7 @@
     Lampa.Params.trigger('online_mod_prefer_dash', false);
     Lampa.Params.trigger('online_mod_collaps_lampa_player', false);
     Lampa.Params.trigger('online_mod_full_episode_title', false);
+    Lampa.Params.trigger('online_mod_convert_vtt_to_srt', false);
     Lampa.Params.trigger('online_mod_av1_support', true);
     Lampa.Params.trigger('online_mod_save_last_balanser', false);
     Lampa.Params.trigger('online_mod_rezka2_fix_stream', false);
@@ -17564,6 +17586,13 @@
         be: 'Поўны фармат назвы серыі',
         en: 'Full episode title format',
         zh: '完整剧集标题格式'
+      },
+      online_mod_convert_vtt_to_srt: {
+        ru: 'Конвертировать VTT в SRT',
+        uk: 'Конвертувати VTT в SRT',
+        be: 'Канвертаваць VTT у SRT',
+        en: 'Convert VTT to SRT',
+        zh: '将 VTT 转换为 SRT'
       },
       online_mod_av1_support: {
         ru: 'AV1 поддерживается',
@@ -18338,6 +18367,7 @@
     }
 
     template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_full_episode_title\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_full_episode_title}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
+    template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_convert_vtt_to_srt\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_convert_vtt_to_srt}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
     template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_save_last_balanser\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_save_last_balanser}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_clear_last_balanser\" data-static=\"true\">\n        <div class=\"settings-param__name\">#{online_mod_clear_last_balanser}</div>\n        <div class=\"settings-param__status\"></div>\n    </div>";
 
     if (Utils.isDebug()) {
