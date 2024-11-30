@@ -15927,7 +15927,8 @@
           if (posEnd == -1 || posEnd <= posStart) posEnd = url.length;
 
           if (posEnd >= 4 && url.substring(posEnd - 4, posEnd).toLowerCase() === '.vtt') {
-            return (prefer_http ? 'http:' : 'https:') + '//epg.rootu.top/vtt2srt/' + url;
+            var posName = url.lastIndexOf('/', posEnd - 4);
+            return (prefer_http ? 'http:' : 'https:') + '//epg.rootu.top/vtt2srt/' + url + '/' + (posName !== -1 ? url.substring(posName + 1, posEnd - 4) + '.srt' : 'subs.srt');
           }
         }
 
