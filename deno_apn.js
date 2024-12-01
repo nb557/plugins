@@ -14,6 +14,10 @@ async function handle(request, connInfo) {
       const url = new URL(request.url);
       let api_pos = url.origin.length + 1;
       let api = url.href.substring(api_pos);
+      let proxy_url = url.href;
+      let proxy = "";
+      let proxy_enc = "";
+      let enc = "";
       let ip = "no";
       let redirect = request.method === "POST" ? "manual" : "follow";
       let get_cookie = false;
@@ -30,7 +34,7 @@ async function handle(request, connInfo) {
           body += "connInfo" + " = " + JSON.stringify(connInfo.remoteAddr) + "\n";
         }
         body += "request_url" + " = " + request.url + "\n";
-        body += "apn_version = 1.09\n";
+        body += "apn_version = 1.10\n";
         return new Response(body, corsHeaders);
       }
 
@@ -92,12 +96,33 @@ async function handle(request, connInfo) {
           } else {
             params.push([param]);
           }
+        } else if (api.startsWith("enc/") || api.startsWith("enc1/") || api.startsWith("enc2/")) {
+          let cur_enc = api.substring(0, api.indexOf("/"));
+          if (enc) {
+            proxy_enc += proxy_url.substring(0, api_pos);
+          } else {
+            proxy += proxy_url.substring(0, api_pos);
+            enc = cur_enc;
+          }
+          api = api.substring(cur_enc.length + 1);
+          let pos = api.indexOf("/");
+          if (pos !== -1) {
+            api = atob(decodeURIComponent(api.substring(0, pos))) + (cur_enc === "enc2" ? "" : api.substring(pos + 1));
+          } else {
+            api = atob(decodeURIComponent(api.substring(0)));
+          }
+          proxy_url = api;
+          api_pos = 0;
         } else {
           next_param = false;
         }
       }
 
-      let proxy = url.href.substring(0, api_pos);
+      if (enc) {
+        proxy_enc += proxy_url.substring(0, api_pos);
+      } else {
+        proxy += proxy_url.substring(0, api_pos);
+      }
 
       let forwarded_proto = request.headers.get("X-Forwarded-Proto");
       if (forwarded_proto) forwarded_proto = forwarded_proto.split(",")[0].trim();
@@ -238,7 +263,7 @@ async function handle(request, connInfo) {
           if (cookie_plus) {
             let headers = {};
             for (let key of response.headers.keys()) {
-              if (key === 'set-cookie') {
+              if (key === "set-cookie") {
                 headers[key] = json.cookie;
               } else {
                 headers[key] = response.headers.get(key);
@@ -258,14 +283,14 @@ async function handle(request, connInfo) {
           });
         }
         if (["application/x-mpegurl", "application/vnd.apple.mpegurl"].indexOf(ctype) !== -1) {
-          let body = edit_m3u8(await response.text(), proxy, apiUrl, apiBase);
+          let body = edit_m3u8(await response.text(), apiUrl, apiBase, proxy, proxy_enc, enc);
           response.headers.delete("Content-Length");
           response.headers.delete("Content-Range");
           response.headers.set("Accept-Ranges", "none");
           return new Response(body, response);
         }
         if (["application/dash+xml"].indexOf(ctype) !== -1) {
-          let body = edit_mpd(await response.text(), proxy, apiUrl, apiBase);
+          let body = edit_mpd(await response.text(), apiUrl, apiBase, proxy, proxy_enc, enc);
           response.headers.delete("Content-Length");
           response.headers.delete("Content-Range");
           response.headers.set("Accept-Ranges", "none");
@@ -277,26 +302,56 @@ async function handle(request, connInfo) {
       if (response.status >= 300 && response.status < 400) {
         let target = response.headers.get("Location");
         if (target) {
-          response.headers.set("Location", fixLink(target, proxy, apiUrl, apiBase));
+          response.headers.set("Location", proxyLink(fixLink(target, apiUrl, apiBase), proxy, proxy_enc, enc));
         }
       }
 
       return response;
     }
 
-    function fixLink(link, proxy, url, base) {
+    function fixLink(link, url, base) {
       if (link) {
-        if (link.indexOf("://") !== -1) return proxy + link;
-        if (link.startsWith("//")) return proxy + url.protocol + link;
-        if (link.startsWith("/")) return proxy + url.origin + link;
-        if (link.startsWith("?")) return proxy + url.origin + url.pathname + link;
-        if (link.startsWith("#")) return proxy + url.origin + url.pathname + url.search + link;
-        return proxy + base + link;
+        if (link.indexOf("://") !== -1) return link;
+        if (link.startsWith("//")) return url.protocol + link;
+        if (link.startsWith("/")) return url.origin + link;
+        if (link.startsWith("?")) return url.origin + url.pathname + link;
+        if (link.startsWith("#")) return url.origin + url.pathname + url.search + link;
+        return base + link;
       }
       return link;
     }
 
-    function edit_m3u8(m3u8, proxy, url, base) {
+    function proxyLink(link, proxy, proxy_enc, enc) {
+      if (link) {
+        if (enc === "enc") {
+          let pos = link.indexOf("/");
+          if (pos !== -1 && link.charAt(pos + 1) === "/") pos++;
+          let part1 = pos !== -1 ? link.substring(0, pos + 1) : "";
+          let part2 = pos !== -1 ? link.substring(pos + 1) : link;
+          return proxy + "enc/" + encodeURIComponent(btoa(proxy_enc + part1)) + "/" + part2;
+        }
+        if (enc === "enc1") {
+          let pos = link.lastIndexOf("/");
+          let part1 = pos !== -1 ? link.substring(0, pos + 1) : "";
+          let part2 = pos !== -1 ? link.substring(pos + 1) : link;
+          return proxy + "enc1/" + encodeURIComponent(btoa(proxy_enc + part1)) + "/" + part2;
+        }
+        if (enc === "enc2") {
+          let posEnd = link.lastIndexOf("?");
+          let posStart = link.lastIndexOf("://");
+          if (posEnd === -1 || posEnd <= posStart) posEnd = link.length;
+          if (posStart === -1) posStart = -3;
+          let name = link.substring(posStart + 3, posEnd);
+          posStart = name.lastIndexOf("/");
+          name = posStart !== -1 ? name.substring(posStart + 1) : "";
+          return proxy + "enc2/" + encodeURIComponent(btoa(proxy_enc + link)) + "/" + name;
+        }
+        return proxy + proxy_enc + link;
+      }
+      return link;
+    }
+
+    function edit_m3u8(m3u8, url, base, proxy, proxy_enc, enc) {
       try {
         return m3u8.split("\n").map(org_line => {
           let line = org_line.trim();
@@ -304,12 +359,12 @@ async function handle(request, connInfo) {
             return org_line.replace(/\bURI="([^"]*)"/g, (str, link) => {
               link = link.trim();
               if (link) {
-                return 'URI="' + fixLink(link, proxy, url, base) + '"';
+                return 'URI="' + proxyLink(fixLink(link, url, base), proxy, proxy_enc, enc) + '"';
               }
               return str;
             });
           } else if(line) {
-            return fixLink(line, proxy, url, base);
+            return proxyLink(fixLink(line, url, base), proxy, proxy_enc, enc);
           }
           return org_line;
         }).join("\n");
@@ -342,12 +397,12 @@ async function handle(request, connInfo) {
       });
     }
 
-    function edit_mpd(mpd, proxy, url, base) {
+    function edit_mpd(mpd, url, base, proxy, proxy_enc, enc) {
       try {
         return mpd.replace(/<BaseURL>([^<]*)/g, (str, link) => {
           link = link.trim();
           if (link) {
-            return "<BaseURL>" + escapeXml(fixLink(unescapeXml(link), proxy, url, base));
+            return "<BaseURL>" + escapeXml(proxyLink(fixLink(unescapeXml(link), url, base), proxy, proxy_enc, (enc === "enc2" ? "enc1" : enc)));
           }
           return str;
         });
