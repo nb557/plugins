@@ -1,4 +1,4 @@
-//30.11.2024 - Fix
+//01.12.2024 - Fix
 
 (function () {
     'use strict';
@@ -95,16 +95,14 @@
       var ip = getMyIp() || '';
       var param_ip = Lampa.Storage.field('online_mod_proxy_find_ip') === true ? 'ip' + ip + '/' : '';
       var proxy1 = 'https://cors.nb557.workers.dev:8443/';
-      var proxy2 = (window.location.protocol === 'https:' ? 'https://' : 'http://') + 'iqslgbok.deploy.cx/?';
+      var proxy2 = (window.location.protocol === 'https:' ? 'https://' : 'http://') + 'iqslgbok.deploy.cx/';
       var proxy3 = 'https://cors557.deno.dev/';
-      var proxy_apn0 = '';
       var proxy_apn = '';
       var proxy_secret = '';
       var proxy_secret_ip = '';
 
       if (isDebug()) {
-        proxy_apn0 = (window.location.protocol === 'https:' ? 'https://' : 'http://') + decodeSecret([83, 85, 76, 77, 71, 82, 76, 65, 26, 92, 85, 73, 88, 92, 64, 26, 83, 76, 23]);
-        proxy_apn = proxy_apn0 + '?';
+        proxy_apn = (window.location.protocol === 'https:' ? 'https://' : 'http://') + decodeSecret([83, 85, 76, 77, 71, 82, 76, 65, 26, 92, 85, 73, 88, 92, 64, 26, 83, 76, 23]);
         proxy_secret = decodeSecret([80, 68, 77, 68, 64, 3, 27, 31, 85, 72, 94, 20, 89, 81, 12, 1, 6, 26, 83, 95, 64, 81, 81, 23, 85, 64, 68, 23]);
         proxy_secret_ip = proxy_secret + (param_ip || 'ip/');
       }
@@ -127,7 +125,7 @@
         if (name === 'rezka') return user_proxy2;
         if (name === 'rezka2') return user_proxy2;
         if (name === 'kinobase') return proxy_apn;
-        if (name === 'collaps') return proxy_other ? proxy_secret : proxy_apn0;
+        if (name === 'collaps') return proxy_other ? proxy_secret : proxy_apn;
         if (name === 'cdnmovies') return proxy_other ? proxy_secret : proxy_apn;
         if (name === 'filmix') return proxy_secret_ip || user_proxy1;
         if (name === 'videodb') return user_proxy2;
@@ -141,6 +139,61 @@
       }
 
       return '';
+    }
+
+    function fixLink(link, referrer) {
+      if (link) {
+        if (!referrer || link.indexOf('://') !== -1) return link;
+        var url = new URL(referrer);
+        if (startsWith(link, '//')) return url.protocol + link;
+        if (startsWith(link, '/')) return url.origin + link;
+        if (startsWith(link, '?')) return url.origin + url.pathname + link;
+        if (startsWith(link, '#')) return url.origin + url.pathname + url.search + link;
+        var base = url.href.substring(0, url.href.lastIndexOf('/') + 1);
+        return base + link;
+      }
+
+      return link;
+    }
+
+    function proxyLink(link, proxy, proxy_enc, enc) {
+      if (link && proxy) {
+        if (proxy_enc == null) proxy_enc = '';
+        if (enc == null) enc = 'enc';
+
+        if (enc === 'enc') {
+          var pos = link.indexOf('/');
+          if (pos !== -1 && link.charAt(pos + 1) === '/') pos++;
+          var part1 = pos !== -1 ? link.substring(0, pos + 1) : '';
+          var part2 = pos !== -1 ? link.substring(pos + 1) : link;
+          return proxy + 'enc/' + encodeURIComponent(btoa(proxy_enc + part1)) + '/' + part2;
+        }
+
+        if (enc === 'enc1') {
+          var _pos = link.lastIndexOf('/');
+
+          var _part = _pos !== -1 ? link.substring(0, _pos + 1) : '';
+
+          var _part2 = _pos !== -1 ? link.substring(_pos + 1) : link;
+
+          return proxy + 'enc1/' + encodeURIComponent(btoa(proxy_enc + _part)) + '/' + _part2;
+        }
+
+        if (enc === 'enc2') {
+          var posEnd = link.lastIndexOf('?');
+          var posStart = link.lastIndexOf('://');
+          if (posEnd === -1 || posEnd <= posStart) posEnd = link.length;
+          if (posStart === -1) posStart = -3;
+          var name = link.substring(posStart + 3, posEnd);
+          posStart = name.lastIndexOf('/');
+          name = posStart !== -1 ? name.substring(posStart + 1) : '';
+          return proxy + 'enc2/' + encodeURIComponent(btoa(proxy_enc + link)) + '/' + name;
+        }
+
+        return proxy + proxy_enc + link;
+      }
+
+      return link;
     }
 
     function randomWords(words, len) {
@@ -198,6 +251,8 @@
       setMyIp: setMyIp,
       getMyIp: getMyIp,
       proxy: proxy,
+      fixLink: fixLink,
+      proxyLink: proxyLink,
       randomWords: randomWords,
       randomChars: randomChars,
       randomHex: randomHex,
@@ -370,17 +425,18 @@
         'Cookie': '',
         'x-csrf-token': ''
       } : {};
+      var prox_enc = '';
 
       if (prox) {
-        prox += 'param/Origin=' + encodeURIComponent(host) + '/';
-        prox += 'param/Referer=' + encodeURIComponent(ref) + '/';
-        prox += 'param/User-Agent=' + encodeURIComponent(user_agent) + '/';
-        prox += 'param/Sec-Fetch-Dest=empty/';
-        prox += 'param/Sec-Fetch-Mode=cors/';
-        prox += 'param/Sec-Fetch-Site=same-site/';
+        prox_enc += 'param/Origin=' + encodeURIComponent(host) + '/';
+        prox_enc += 'param/Referer=' + encodeURIComponent(ref) + '/';
+        prox_enc += 'param/User-Agent=' + encodeURIComponent(user_agent) + '/';
+        prox_enc += 'param/Sec-Fetch-Dest=empty/';
+        prox_enc += 'param/Sec-Fetch-Mode=cors/';
+        prox_enc += 'param/Sec-Fetch-Site=same-site/';
       }
 
-      var prox2 = prox;
+      var prox_enc2 = prox_enc;
       var embed = atob('aHR0cHM6Ly9hcGkubHVtZXgucHcv');
       var suffix = atob('Y2xpZW50SWQ9Q1dmS1hMYzFhaklkJmRvbWFpbj1tb3ZpZWxhYi5vbmUmdXJsPW1vdmllbGFiLm9uZQ==');
       var filter_items = {};
@@ -399,10 +455,10 @@
         };
 
         var returnHeaders = true;
-        var cookie_prox = prox;
+        var prox_enc_cookie = prox_enc;
 
-        if (cookie_prox) {
-          cookie_prox += 'cookie_plus/param/Cookie=/';
+        if (prox) {
+          prox_enc_cookie += 'cookie_plus/param/Cookie=/';
           returnHeaders = false;
         }
 
@@ -438,7 +494,7 @@
 
         network.clear();
         network.timeout(10000);
-        network["native"](cookie_prox + api, success_check, error_check, false, {
+        network["native"](component.proxyLink(api, prox, prox_enc_cookie), success_check, error_check, false, {
           headers: headers,
           returnHeaders: returnHeaders
         });
@@ -459,7 +515,7 @@
 
         if (data[0] && data[0].content_type && data[0].id) {
           found = true;
-          src = Lampa.Utils.addUrlComponent(src, 'contentType=' + encodeURIComponent(data[0].content_type));
+          src = Lampa.Utils.addUrlComponent(src, 'contentType=' + encodeURIComponent(data[0].content_type.replace(/_/g, '-')));
           src = Lampa.Utils.addUrlComponent(src, 'contentId=' + encodeURIComponent(data[0].id));
         } else {
           src = Lampa.Utils.addUrlComponent(src, 'contentType=short');
@@ -535,11 +591,11 @@
         component.loading(false);
 
         if (json && json.player && json.player.media && json.player.media.length) {
-          prox2 = prox;
+          prox_enc2 = prox_enc;
 
-          if (prox2) {
-            prox2 += 'param/Cookie=' + encodeURIComponent(cookie) + '/';
-            prox2 += 'param/x-csrf-token=' + encodeURIComponent(json.meta || '') + '/';
+          if (prox) {
+            prox_enc2 += 'param/Cookie=' + encodeURIComponent(cookie) + '/';
+            prox_enc2 += 'param/x-csrf-token=' + encodeURIComponent(json.meta || '') + '/';
           }
 
           if (Lampa.Platform.is('android')) {
@@ -553,8 +609,11 @@
           json.player.media.forEach(function (media) {
             if (media.episodes) {
               season_count++;
-              seasons.push(media);
-              season_num.push(media.season_id != null ? media.season_id : season_count);
+
+              if (media.episodes.length) {
+                seasons.push(media);
+                season_num.push(media.season_id != null ? media.season_id : season_count);
+              }
             } else if (media.media && media.episode_id != null && !season_count) {
               season_count++;
               seasons.push({
@@ -710,7 +769,7 @@
             return {
               label: quality ? quality + 'p' : '360p ~ 1080p',
               quality: quality,
-              file: component.proxyStream(component.fixLink(link, '', url), 'lumex')
+              file: component.proxyStream(component.fixLink(link, url), 'lumex')
             };
           });
           items.sort(function (a, b) {
@@ -782,19 +841,19 @@
 
       function getSubtitles(res, subtitles, call) {
         if (subtitles && subtitles.length) {
-          var url = component.fixLink(subtitles.shift(), '', embed);
+          var url = component.fixLink(subtitles.shift(), embed);
 
           if (url) {
             network.clear();
             network.timeout(10000);
-            network["native"](prox2 + url, function (json) {
+            network["native"](component.proxyLink(url, prox, prox_enc2), function (json) {
               var url = json && json.url ? (prefer_http ? 'http:' : 'https:') + json.url : '';
 
               if (url) {
                 var pos = url.lastIndexOf('/', url.length);
                 res.push({
                   label: pos !== -1 ? url.substring(pos + 1) : url,
-                  url: component.convertVttToSrt(url)
+                  url: component.proxyStreamSubs(url, 'lumex')
                 });
               }
 
@@ -816,10 +875,10 @@
       function getStream(element, call, error) {
         if (element.stream) return call(element);
         if (!element.media.playlist) error();
-        var url = component.fixLink(element.media.playlist, '', embed);
+        var url = component.fixLink(element.media.playlist, embed);
         network.clear();
         network.timeout(10000);
-        network["native"](prox2 + url, function (json) {
+        network["native"](component.proxyLink(url, prox, prox_enc2), function (json) {
           var url = json && json.url ? (prefer_http ? 'http:' : 'https:') + json.url : '';
 
           if (url) {
@@ -1038,7 +1097,7 @@
         if (voice.d) url += '&d=' + encodeURIComponent(voice.d);
         network.clear();
         network.timeout(10000);
-        network["native"](prox + url, function (str) {
+        network["native"](component.proxyLink(url, prox), function (str) {
           extractData(str);
           call();
         }, function (a, c) {
@@ -1067,7 +1126,7 @@
       function getFirstTranlate(id, call) {
         network.clear();
         network.timeout(10000);
-        network["native"](prox + embed + 'embed/' + id, function (str) {
+        network["native"](component.proxyLink(embed + 'embed/' + id, prox), function (str) {
           extractData(str);
 
           if (extract.voice.length) {
@@ -1088,7 +1147,7 @@
       function getEmbed(url) {
         network.clear();
         network.timeout(10000);
-        network["native"](prox + url, function (str) {
+        network["native"](component.proxyLink(url, prox), function (str) {
           component.loading(false);
           extractData(str);
           filter();
@@ -1180,7 +1239,7 @@
 
             return {
               label: item.label,
-              url: component.convertVttToSrt(link)
+              url: component.processSubs(link)
             };
           });
         }
@@ -1292,7 +1351,7 @@
         } else {
           network.clear();
           network.timeout(5000);
-          network["native"](prox + url, call_success, call_error, false, {
+          network["native"](component.proxyLink(url, prox), call_success, call_error, false, {
             dataType: 'text'
           });
         }
@@ -1528,11 +1587,12 @@
         'Referer': ref,
         'User-Agent': user_agent
       } : {};
+      var prox_enc = '';
 
       if (prox) {
-        prox += 'param/Origin=' + encodeURIComponent(host) + '/';
-        prox += 'param/Referer=' + encodeURIComponent(ref) + '/';
-        prox += 'param/User-Agent=' + encodeURIComponent(user_agent) + '/';
+        prox_enc += 'param/Origin=' + encodeURIComponent(host) + '/';
+        prox_enc += 'param/Referer=' + encodeURIComponent(ref) + '/';
+        prox_enc += 'param/User-Agent=' + encodeURIComponent(user_agent) + '/';
       }
 
       var cookie = Lampa.Storage.get('online_mod_rezka2_cookie', '') + '';
@@ -1544,7 +1604,7 @@
         }
 
         if (prox) {
-          prox += 'param/Cookie=' + encodeURIComponent(cookie) + '/';
+          prox_enc += 'param/Cookie=' + encodeURIComponent(cookie) + '/';
         }
       }
 
@@ -1587,7 +1647,7 @@
           var url = more_url + '&q=' + encodeURIComponent(query) + '&page=' + encodeURIComponent(page);
           network.clear();
           network.timeout(10000);
-          network["native"](prox + url, function (str) {
+          network["native"](component.proxyLink(url, prox, prox_enc, prox_enc), function (str) {
             str = (str || '').replace(/\n/g, '');
             var login_form = str.match(/<form id="check-form" class="check-form" method="post" action="\/ajax\/login\/">/);
             authorization_required = !!login_form;
@@ -1767,7 +1827,7 @@
           var postdata = 'q=' + encodeURIComponent(query);
           network.clear();
           network.timeout(10000);
-          network["native"](prox + url, function (str) {
+          network["native"](component.proxyLink(url, prox, prox_enc), function (str) {
             str = (str || '').replace(/\n/g, '');
             var login_form = str.match(/<form id="check-form" class="check-form" method="post" action="\/ajax\/login\/">/);
             authorization_required = !!login_form;
@@ -1846,10 +1906,10 @@
       };
 
       function getPage(url) {
-        url = component.fixLink(url, prox, ref);
+        url = component.fixLink(url, ref);
         network.clear();
         network.timeout(10000);
-        network["native"](url, function (str) {
+        network["native"](component.proxyLink(url, prox, prox_enc), function (str) {
           extractData(str);
 
           if (extract.film_id) {
@@ -2011,7 +2071,7 @@
               postdata += '&action=get_episodes';
               network.clear();
               network.timeout(10000);
-              network["native"](prox + url, function (json) {
+              network["native"](component.proxyLink(url, prox, prox_enc), function (json) {
                 extractEpisodes(json, translator_id);
                 call();
               }, function (a, c) {
@@ -2140,7 +2200,7 @@
 
         network.clear();
         network.timeout(10000);
-        network["native"](prox + url, function (json) {
+        network["native"](component.proxyLink(url, prox, prox_enc), function (json) {
           if (json && json.url) {
             var video = decode(json.url),
                 file = '',
@@ -2291,7 +2351,7 @@
 
             return {
               label: item.label,
-              url: component.convertVttToSrt(link)
+              url: component.processSubs(link)
             };
           });
         }
@@ -2454,13 +2514,13 @@
       var prefer_mp4 = Lampa.Storage.field('online_mod_prefer_mp4') === true;
       var file_type = prefer_mp4 ? 'mp4' : 'hls';
       var prox = component.proxy('kinobase');
-      var stream_prox = prox;
       var host = prox ? 'https://kinobase.org' : Utils.kinobaseMirror();
       var ref = host + '/';
       var embed = ref;
       var logged_in = !(prox || Lampa.Platform.is('android'));
       var user_agent = Utils.baseUserAgent();
       var check_cookie = Lampa.Storage.get('online_mod_kinobase_cookie', '') + '';
+      var prox_enc_stream = '';
       var decrypt = Utils.decodeSecret([26, 69, 74, 81, 19, 74, 64, 66, 93, 91, 68, 27, 15, 19, 17, 82, 69, 90, 91, 68, 80, 91, 93, 17, 71, 83, 70, 81, 64, 77, 5, 31, 25, 71, 83, 70, 81, 64, 77, 6, 31, 25, 71, 68, 70, 20, 16, 105, 120, 114, 96, 113, 98, 107, 108, 105, 105, 113, 31, 25, 114, 121, 120, 125, 111, 109, 109, 99, 124, 24, 16, 65, 75, 85, 75, 24, 19, 79, 91, 84, 29, 67, 16, 79, 85, 65, 25, 70, 85, 71, 24, 13, 25, 111, 110, 2, 20, 70, 85, 74, 16, 73, 88, 82, 64, 81, 66, 20, 5, 16, 87, 65, 95, 85, 15, 16, 66, 89, 66, 25, 80, 92, 90, 65, 93, 81, 86, 68, 25, 9, 19, 17, 90, 85, 67, 24, 116, 118, 121, 99, 88, 70, 67, 81, 74, 25, 23, 68, 82, 75, 71, 85, 114, 74, 95, 84, 103, 71, 75, 93, 94, 83, 16, 18, 5, 92, 86, 88, 80, 14, 8, 23, 88, 92, 85, 87, 7, 8, 82, 91, 92, 73, 7, 8, 28, 91, 91, 84, 77, 6, 18, 21, 20, 17, 77, 81, 72, 64, 23, 88, 77, 89, 95, 27, 29, 11, 20, 78, 81, 75, 20, 67, 88, 65, 67, 81, 103, 68, 80, 89, 86, 25, 9, 16, 4, 3, 16, 79, 85, 65, 25, 82, 102, 91, 81, 84, 25, 9, 19, 95, 65, 94, 87, 76, 89, 86, 90, 27, 16, 79, 77, 15, 24, 70, 88, 70, 19, 95, 125, 94, 64, 24, 13, 25, 82, 70, 87, 87, 68, 93, 87, 94, 17, 29, 72, 25, 70, 85, 64, 77, 66, 87, 20, 2, 2, 20, 77, 15, 24, 70, 88, 70, 19, 97, 121, 124, 124, 76, 68, 73, 102, 86, 72, 65, 85, 71, 76, 16, 4, 20, 85, 76, 90, 83, 64, 81, 95, 87, 20, 107, 116, 120, 120, 64, 76, 64, 107, 81, 66, 76, 81, 67, 64, 16, 25, 66, 20, 71, 81, 93, 67, 26, 87, 64, 92, 90, 19, 4, 20, 86, 65, 86, 83, 77, 93, 92, 87, 28, 93, 24, 24, 69, 16, 79, 19, 75, 81, 67, 26, 72, 69, 74, 92, 27, 66, 20, 69, 70, 84, 10, 25, 65, 19, 68, 29, 11, 20, 69, 11, 25, 64, 91, 80, 71, 30, 71, 93, 94, 93, 20, 14, 25, 82, 69, 90, 91, 68, 80, 91, 93, 17, 29, 75, 73, 3, 16, 68, 15, 19, 79, 85, 66, 20, 104, 92, 88, 77, 86, 75, 94, 67, 20, 5, 16, 95, 65, 93, 90, 64, 89, 91, 86, 16, 105, 88, 82, 64, 81, 66, 94, 75, 24, 86, 68, 71, 16, 79, 16, 68, 84, 81, 64, 81, 65, 25, 9, 16, 91, 72, 68, 2, 20, 78, 2, 20, 70, 85, 74, 16, 91, 85, 88, 8, 6, 3, 20, 5, 16, 66, 20, 82, 83, 85, 72, 103, 93, 68, 76, 68, 9, 25, 16, 30, 85, 82, 81, 65, 103, 86, 77, 65, 64, 24, 24, 83, 86, 91, 88, 80, 81, 10, 20, 28, 30, 90, 91, 92, 82, 93, 85, 24, 24, 81, 83, 85, 75, 3, 20, 20, 26, 89, 90, 88, 76, 31, 25, 83, 85, 64, 2, 16, 29, 26, 84, 92, 64, 28, 20, 72, 95, 74, 64, 9, 25, 16, 30, 68, 87, 67, 77, 24, 19, 94, 81, 68, 103, 91, 66, 80, 68, 71, 3, 20, 20, 26, 95, 85, 77, 103, 80, 75, 93, 64, 64, 20, 16, 74, 81, 71, 109, 93, 93, 81, 87, 69, 77, 14, 19, 78, 93, 94, 80, 87, 71, 23, 71, 86, 77, 96, 89, 89, 93, 95, 76, 64, 31, 25, 87, 92, 81, 89, 66, 109, 93, 94, 92, 91, 69, 64, 2, 16, 78, 93, 93, 93, 91, 71, 26, 91, 92, 92, 85, 65, 109, 93, 93, 81, 87, 69, 77, 24, 19, 74, 81, 68, 125, 86, 68, 92, 70, 69, 88, 88, 10, 20, 79, 89, 87, 80, 92, 78, 26, 67, 81, 76, 121, 87, 64, 86, 75, 66, 81, 88, 20, 16, 90, 88, 86, 88, 70, 121, 90, 76, 85, 75, 66, 82, 85, 14, 16, 67, 81, 94, 93, 91, 68, 23, 87, 92, 81, 89, 66, 112, 90, 71, 92, 70, 70, 85, 84, 28, 25, 87, 92, 87, 71, 95, 88, 93, 10, 25, 67, 90, 87, 80, 95, 67, 22, 83, 86, 90, 64, 86, 88, 85, 24, 24, 96, 85, 85, 74, 92, 70, 90, 71, 2, 16, 78, 93, 93, 93, 91, 71, 26, 104, 92, 88, 77, 86, 75, 94, 67, 24, 24, 86, 87, 107, 90, 87, 93, 68, 14, 24, 20, 23, 82, 93, 23, 93, 94, 93, 76, 28, 25, 82, 93, 102, 70, 85, 85, 92, 73, 3, 20, 23, 23, 82, 94, 26, 74, 85, 88, 80, 74, 21, 20, 111, 14, 24, 18, 27, 20, 78, 2, 20, 68, 70, 65, 16, 66, 20, 71, 75, 77, 16, 79, 24, 20, 23, 85, 89, 88, 76, 99, 81, 76, 69, 73, 20, 14, 25, 16, 30, 87, 87, 95, 82, 93, 86, 25, 9, 16, 82, 110, 95, 80, 80, 8, 25, 16, 30, 85, 82, 81, 65, 20, 14, 25, 82, 69, 90, 91, 68, 80, 91, 93, 17, 71, 85, 64, 76, 89, 87, 83, 64, 16, 79, 16, 93, 94, 16, 17, 71, 86, 77, 64, 89, 90, 95, 67, 23, 89, 86, 77, 92, 95, 80, 24, 13, 4, 9, 19, 27, 124, 117, 117, 124, 18, 25, 72, 79, 25, 71, 85, 64, 76, 89, 87, 83, 64, 23, 64, 73, 68, 93, 16, 4, 9, 14, 25, 22, 120, 113, 121, 116, 27, 29, 72, 25, 93, 86, 20, 16, 67, 92, 64, 71, 80, 90, 87, 71, 22, 67, 76, 87, 80, 92, 71, 67, 29, 24, 67, 92, 64, 71, 80, 90, 87, 71, 22, 67, 76, 87, 80, 92, 71, 67, 28, 86, 69, 85, 88, 31, 25, 22, 67, 65, 91, 83, 92, 71, 64, 27, 24, 16, 79, 69, 25, 2, 20, 90, 95, 20, 24, 71, 93, 68, 77, 93, 93, 94, 71, 30, 87, 87, 93, 73, 88, 86, 77, 81, 25, 20, 75, 85, 77, 64, 90, 87, 83, 67, 26, 91, 95, 84, 68, 95, 92, 64, 85, 28, 67, 77, 21, 20, 17, 74, 65, 83, 87, 93, 67, 74, 22, 26, 2, 20, 77, 20, 93, 92, 74, 81, 19, 80, 82, 16, 28, 77, 67, 92, 70, 19, 31, 18, 16, 28, 23, 108, 22, 65, 64, 92, 70, 111, 80, 89, 68, 88, 27, 26, 23, 64, 85, 71, 76, 24, 74, 81, 71, 77, 93, 94, 83, 75, 30, 76, 70, 95, 16, 29, 75, 20, 81, 86, 25, 28, 64, 92, 64, 68, 93, 86, 87, 74, 26, 64, 76, 87, 83, 81, 75, 67, 16, 20, 64, 92, 64, 68, 93, 86, 87, 74, 26, 64, 76, 87, 83, 81, 75, 67, 17, 65, 64, 92, 70, 28, 20, 26, 67, 76, 87, 80, 92, 71, 67, 22, 20, 16, 66, 73, 26, 2, 20, 77, 20, 93, 92, 74, 81, 19, 80, 82, 16, 28, 78, 95, 93, 20, 21, 31, 20, 24, 27, 100, 31, 98, 106, 111, 22, 105, 26, 104, 23, 108, 93, 31, 28, 16, 26, 68, 81, 75, 68, 17, 71, 86, 77, 64, 89, 90, 95, 67, 23, 65, 65, 85, 29, 25, 79, 24, 89, 95, 20, 27, 74, 81, 68, 64, 81, 94, 94, 71, 29, 74, 65, 83, 87, 93, 67, 74, 29, 19, 74, 81, 68, 64, 81, 94, 94, 71, 29, 74, 65, 83, 87, 93, 67, 74, 28, 69, 86, 80, 28, 20, 26, 67, 76, 87, 80, 92, 71, 67, 22, 20, 16, 66, 73, 26, 2, 20, 77, 20, 93, 92, 74, 81, 19, 80, 82, 16, 28, 75, 85, 77, 64, 90, 87, 83, 67, 26, 77, 66, 85, 29, 19, 75, 81, 67, 26, 72, 69, 74, 92, 27, 66, 64, 73, 68, 93, 10, 25, 22, 82, 83, 85, 72, 22, 20, 16, 76, 70, 95, 3, 20, 67, 81, 76, 68, 80, 90, 84, 74, 26, 69, 70, 84, 28, 25, 68, 82, 75, 85, 93, 71, 2, 16, 74, 81, 71, 77, 93, 94, 83, 75, 30, 93, 85, 71, 88, 73, 25, 15, 24, 77, 2, 20, 23, 23, 83, 85, 64, 24, 13, 25, 82, 70, 87, 87, 68, 93, 87, 94, 17, 65, 65, 85, 24, 16, 80, 89, 68, 88, 29, 72, 25, 70, 85, 71, 22, 64, 76, 71, 91, 17, 79, 68, 77, 72, 85, 3, 20, 17, 94, 81, 68, 22, 20, 16, 76, 70, 95, 3, 20, 69, 70, 84, 28, 25, 68, 82, 75, 85, 93, 71, 2, 16, 93, 85, 71, 88, 73, 25, 15, 24, 77, 2, 20, 23, 23, 68, 95, 71, 76, 16, 4, 20, 85, 76, 90, 83, 64, 81, 95, 87, 28, 70, 75, 88, 28, 20, 92, 81, 77, 85, 26, 66, 20, 66, 81, 75, 30, 73, 65, 64, 81, 28, 75, 64, 65, 64, 92, 14, 19, 27, 68, 95, 71, 76, 18, 21, 20, 70, 75, 88, 10, 20, 77, 66, 85, 24, 19, 73, 85, 66, 85, 85, 67, 3, 20, 87, 88, 64, 81, 73, 17, 11, 25, 73, 8, 25, 16, 30, 83, 93, 68, 106, 87, 65, 80, 68, 68, 20, 5, 16, 95, 65, 93, 90, 64, 89, 91, 86, 24, 76, 70, 95, 16, 79, 16, 70, 93, 67, 23, 68, 70, 74, 92, 24, 79, 76, 73, 73, 81, 9, 25, 22, 87, 81, 76, 99, 90, 70, 90, 73, 64, 18, 24, 24, 69, 75, 88, 9, 25, 65, 66, 88, 20, 16, 73, 85, 65, 88, 89, 67, 14, 24, 75, 27, 107, 17, 3, 20, 116, 85, 76, 85, 23, 90, 92, 78, 28, 25, 73, 69, 25, 2, 20, 78, 2, 20, 71, 93, 86, 84, 86, 67, 29, 74, 81, 68, 96, 81, 93, 92, 91, 70, 77, 20, 13, 20, 79, 89, 87, 80, 92, 78, 26, 67, 81, 76, 121, 87, 64, 86, 75, 66, 81, 88, 24, 13, 25, 82, 122, 87, 64, 11, 20, 79, 89, 87, 80, 92, 78, 26, 83, 88, 93, 81, 75, 96, 90, 84, 81, 95, 65, 76, 16, 4, 20, 68, 80, 90, 84, 91, 79, 30, 90, 88, 86, 88, 70, 121, 90, 76, 85, 75, 66, 82, 85, 20, 13, 20, 94, 102, 86, 93, 87, 2, 20, 71, 93, 86, 84, 86, 67, 29, 90, 91, 94, 71, 87, 92, 92, 20, 14, 25, 79, 77, 15, 24, 71, 80, 90, 87, 86, 67, 30, 100, 84, 81, 64, 81, 65, 83, 71, 16, 9, 24, 96, 85, 85, 74, 92, 70, 90, 71, 3, 16, 29, 26, 85, 87, 26, 89, 90, 81, 68, 25, 9, 19, 95, 65, 94, 87, 76, 89, 86, 90, 27, 74, 24, 16, 87, 20, 16, 75, 29, 72, 25, 87, 16, 9, 24, 83, 25, 72, 79, 25, 80, 95, 87, 77, 93, 92, 90, 71, 2, 20, 66, 81, 76, 69, 75, 90, 19, 87, 81, 71, 20, 90, 81, 82, 5, 1, 10, 26, 86, 90, 103, 89, 87, 93, 71, 17, 71, 28, 20, 91, 28, 25, 70, 26, 2, 20, 77, 15, 24, 20, 23, 82, 93, 23, 70, 85, 85, 92, 73, 25, 9, 19, 95, 65, 94, 87, 76, 89, 86, 90, 27, 81, 29, 75, 20, 74, 85, 77, 65, 65, 87, 20, 88, 20, 30, 22, 25, 92, 27, 16, 15, 16, 73, 3, 16, 78, 93, 93, 93, 91, 71, 26, 104, 124, 120, 109, 118, 107, 107, 100, 109, 104, 117, 25, 9, 19, 105, 120, 113, 109, 125, 98, 102, 96, 106, 105, 113, 11, 20, 79, 89, 87, 80, 92, 78, 26, 118, 125, 116, 117, 102, 96, 106, 105, 113, 16, 9, 24, 118, 112, 120, 118, 102, 96, 105, 100, 125, 11, 25, 93, 85, 25, 28, 67, 87, 74, 89, 73, 64, 2, 16, 20, 24, 4, 20, 16, 92, 66, 82, 85, 29, 24, 71, 91, 66, 80, 68, 71, 8, 29, 11, 20, 81, 86, 25, 28, 64, 90, 70, 89, 68, 76, 2, 16, 20, 27, 9, 24, 16, 81, 78, 81, 85, 29, 27, 74, 87, 66, 93, 72, 68, 11, 29, 8, 25, 81, 70, 85, 84, 24, 74, 64, 65, 16, 15, 16, 73, 24, 86, 80, 90, 82, 85, 88, 73, 20, 67, 16, 29, 26, 82, 83, 85, 72, 103, 93, 68, 76, 68, 19, 4, 20, 82, 85, 83, 1, 11, 7, 29, 88, 94, 81, 76, 107, 85, 77, 65, 67, 2, 20, 20, 26, 91, 95, 86, 95, 90, 92, 20, 13, 20, 90, 81, 82, 5, 1, 10, 26, 83, 91, 87, 91, 80, 81, 8, 25, 16, 30, 85, 82, 81, 65, 20, 14, 25, 86, 81, 95, 9, 2, 10, 26, 82, 83, 85, 72, 15, 24, 20, 23, 83, 86, 77, 20, 13, 20, 90, 81, 82, 5, 1, 10, 26, 87, 81, 76, 11, 25, 16, 29, 73, 91, 67, 64, 24, 13, 25, 86, 82, 82, 5, 2, 7, 22, 64, 86, 71, 71, 2, 20, 20, 26, 95, 85, 77, 103, 80, 75, 93, 64, 64, 24, 13, 25, 86, 82, 82, 5, 2, 7, 22, 87, 92, 64, 96, 90, 70, 89, 68, 76, 11, 25, 67, 90, 87, 80, 95, 67, 22, 67, 92, 64, 103, 80, 89, 85, 91, 77, 68, 25, 9, 19, 91, 85, 91, 5, 10, 3, 23, 71, 86, 77, 96, 89, 89, 93, 95, 76, 64, 8, 25, 67, 89, 90, 92, 95, 78, 26, 80, 85, 81, 81, 70, 108, 89, 84, 81, 92, 76, 64, 16, 9, 24, 82, 88, 95, 2, 11, 7, 30, 87, 84, 85, 88, 70, 103, 80, 89, 85, 91, 77, 68, 2, 20, 68, 80, 90, 84, 91, 79, 30, 74, 81, 71, 112, 90, 68, 81, 74, 70, 88, 88, 19, 4, 20, 82, 85, 83, 1, 11, 7, 29, 74, 81, 68, 125, 86, 68, 92, 70, 69, 88, 88, 11, 20, 79, 89, 87, 80, 92, 78, 26, 83, 88, 93, 81, 75, 125, 93, 77, 81, 66, 66, 89, 92, 25, 9, 19, 91, 85, 91, 5, 10, 3, 23, 87, 95, 92, 85, 66, 125, 86, 68, 92, 70, 69, 88, 88, 11, 20, 79, 89, 87, 80, 92, 78, 26, 83, 91, 86, 67, 86, 88, 86, 25, 9, 16, 86, 89, 91, 8, 6, 0, 23, 87, 95, 90, 75, 95, 85, 81, 8, 25, 67, 89, 90, 92, 95, 78, 26, 99, 85, 85, 73, 81, 74, 90, 74, 20, 14, 25, 86, 81, 95, 9, 2, 10, 26, 99, 85, 85, 73, 81, 74, 90, 74, 15, 19, 29, 26, 86, 90, 22, 89, 87, 93, 71, 25, 9, 16, 86, 89, 91, 8, 6, 0, 23, 82, 94, 107, 81, 94, 80, 64, 8, 25, 16, 30, 82, 86, 30, 75, 81, 82, 93, 77, 16, 9, 24, 82, 88, 95, 2, 11, 7, 30, 70, 93, 81, 93, 77, 8, 25, 73, 16, 73, 24, 83, 88, 64, 80, 81, 20, 24, 81, 17, 75, 25, 73, 19, 79, 85, 66, 20, 72, 81, 75, 85, 94, 74, 20, 13, 20, 67, 77, 2, 20, 65, 92, 71, 30, 82, 87, 66, 124, 85, 80, 81, 28, 86, 65, 86, 83, 77, 93, 92, 87, 20, 24, 68, 17, 75, 25, 93, 85, 25, 28, 24, 27, 100, 31, 76, 71, 86, 75, 107, 84, 85, 76, 81, 22, 29, 29, 77, 81, 67, 64, 16, 64, 23, 65, 65, 85, 29, 25, 20, 72, 81, 75, 85, 94, 74, 26, 69, 71, 93, 66, 25, 9, 19, 73, 15, 16, 93, 94, 16, 17, 28, 28, 101, 27, 107, 106, 100, 31, 100, 30, 111, 22, 104, 84, 31, 23, 25, 23, 64, 86, 74, 64, 24, 68, 22, 69, 75, 88, 26, 16, 20, 64, 85, 74, 81, 84, 71, 29, 79, 91, 84, 20, 5, 16, 73, 15, 19, 68, 29, 11, 20, 72, 81, 75, 85, 94, 74, 26, 64, 88, 89, 73, 92, 70, 19, 4, 20, 64, 88, 89, 73, 92, 70, 8, 25, 70, 85, 64, 77, 66, 87, 20, 67, 88, 70, 81, 89, 75, 11, 25, 73, 26, 23, 87, 81, 88, 84, 24, 66, 73, 31]);
 
       var filter_items = {};
@@ -2488,19 +2548,19 @@
           'User-Agent': user_agent,
           'Cookie': cookie
         } : {};
-        var page_prox = prox;
+        var prox_enc_page = '';
 
-        if (page_prox) {
-          page_prox += 'param/Origin=' + encodeURIComponent(host) + '/';
-          page_prox += 'param/Referer=' + encodeURIComponent(ref) + '/';
-          stream_prox = page_prox;
-          page_prox += 'param/User-Agent=' + encodeURIComponent(user_agent) + '/';
-          page_prox += 'param/Cookie=' + encodeURIComponent(cookie) + '/';
+        if (prox) {
+          prox_enc_page += 'param/Origin=' + encodeURIComponent(host) + '/';
+          prox_enc_page += 'param/Referer=' + encodeURIComponent(ref) + '/';
+          prox_enc_stream = prox_enc_page;
+          prox_enc_page += 'param/User-Agent=' + encodeURIComponent(user_agent) + '/';
+          prox_enc_page += 'param/Cookie=' + encodeURIComponent(cookie) + '/';
         }
 
         network.clear();
         network.timeout(1000 * 10);
-        network["native"](page_prox + url, function (str) {
+        network["native"](component.proxyLink(url, prox, prox_enc_page), function (str) {
           str = (str || '').replace(/\n/g, '');
           var links = object.movie.number_of_seasons ? str.match(/<div class="title"><a href="\/(serial|tv_show)\/([^"]*)"[^>]*>(.*?)<\/a><\/div>/g) : str.match(/<div class="title"><a href="\/film\/([^"]*)"[^>]*>(.*?)<\/a><\/div>/g);
           var search_date = object.search_date || !object.clarification && (object.movie.release_date || object.movie.first_air_date || object.movie.last_air_date) || '0000';
@@ -2739,7 +2799,7 @@
           var link = item.links[0] || '';
           return {
             label: item.label,
-            url: component.convertVttToSrt(component.fixLink(link, stream_prox))
+            url: component.processSubs(component.proxyLink(link, prox, prox_enc_stream))
           };
         });
         return subtitles.length ? subtitles : false;
@@ -2799,7 +2859,7 @@
 
       function getUrlWithParams(url, params) {
         url = url || '';
-        url = component.fixLink(url, '', ref);
+        url = component.fixLink(url, ref);
 
         if (params) {
           for (var name in params) {
@@ -2825,7 +2885,7 @@
       }
 
       function getPage(url) {
-        url = component.fixLink(url, '', ref);
+        url = component.fixLink(url, ref);
         var cookie = (check_cookie ? check_cookie + '; ' : '') + 'player_type=new; file_type=' + file_type;
         var headers = Lampa.Platform.is('android') ? {
           'Origin': host,
@@ -2833,19 +2893,19 @@
           'User-Agent': user_agent,
           'Cookie': cookie
         } : {};
-        var page_prox = prox;
+        var prox_enc_page = '';
 
-        if (page_prox) {
-          page_prox += 'param/Origin=' + encodeURIComponent(host) + '/';
-          page_prox += 'param/Referer=' + encodeURIComponent(url) + '/';
-          stream_prox = page_prox;
-          page_prox += 'param/User-Agent=' + encodeURIComponent(user_agent) + '/';
-          page_prox += 'param/Cookie=' + encodeURIComponent(cookie) + '/';
+        if (prox) {
+          prox_enc_page += 'param/Origin=' + encodeURIComponent(host) + '/';
+          prox_enc_page += 'param/Referer=' + encodeURIComponent(url) + '/';
+          prox_enc_stream = prox_enc_page;
+          prox_enc_page += 'param/User-Agent=' + encodeURIComponent(user_agent) + '/';
+          prox_enc_page += 'param/Cookie=' + encodeURIComponent(cookie) + '/';
         }
 
         network.clear();
         network.timeout(1000 * 10);
-        network["native"](page_prox + url, function (str) {
+        network["native"](component.proxyLink(url, prox, prox_enc_page), function (str) {
           str = (str || '').replace(/\n/g, '');
           var MOVIE_ID = str.match(/var MOVIE_ID = (\d+);/);
           var PLAYER_CUID = str.match(/var PLAYER_CUID = "([^"]+)";/);
@@ -2857,10 +2917,10 @@
           if (MOVIE_ID && PLAYER_CUID && IDENTIFIER && MOVIE_ID_SCRIPT && MOVIE_URL) {
             var SCRIPTS = IMAGES_URL_SCRIPT ? IMAGES_URL_SCRIPT.index > MOVIE_ID_SCRIPT.index ? [MOVIE_ID_SCRIPT[1], IMAGES_URL_SCRIPT[1]] : [IMAGES_URL_SCRIPT[1], MOVIE_ID_SCRIPT[1]] : [MOVIE_ID_SCRIPT[1], ''];
             if (SCRIPTS[1] === SCRIPTS[0]) SCRIPTS[1] = '';
-            var movie_url = component.fixLink(MOVIE_URL, '', ref);
+            var movie_url = component.fixLink(MOVIE_URL, ref);
             network.clear();
             network.timeout(1000 * 10);
-            network["native"](page_prox + movie_url, function (script) {
+            network["native"](component.proxyLink(movie_url, prox, prox_enc_page), function (script) {
               var params = {};
 
               try {
@@ -2879,7 +2939,7 @@
               user_url = getUrlWithParams(user_url || '/user_data', user_params);
               network.clear();
               network.timeout(1000 * 10);
-              network["native"](page_prox + user_url, function (data) {
+              network["native"](component.proxyLink(user_url, prox, prox_enc_page), function (data) {
                 if (data && !data.error) {
                   var _params = {};
 
@@ -2909,7 +2969,7 @@
                   vod_url = getUrlWithParams(vod_url || '/vod/' + MOVIE_ID[1], vod_params);
                   network.clear();
                   network.timeout(1000 * 10);
-                  network["native"](page_prox + vod_url, function (files) {
+                  network["native"](component.proxyLink(vod_url, prox, prox_enc_page), function (files) {
                     component.loading(false);
                     var params = {};
 
@@ -2992,7 +3052,7 @@
               label: item.label,
               voice: item.voice,
               quality: quality ? parseInt(quality[1]) : NaN,
-              file: component.fixLink(file, stream_prox)
+              file: component.proxyLink(file, prox, prox_enc_stream)
             };
           });
           items.sort(function (a, b) {
@@ -3118,23 +3178,24 @@
       var select_title = '';
       var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true;
       var prefer_dash = Lampa.Storage.field('online_mod_prefer_dash') === true;
+      var prox = component.proxy('collaps');
       var base = 'api.embess.ws';
       var host = 'https://' + base;
       var ref = host + '/';
       var embed = (prefer_http ? 'http:' : 'https:') + '//' + base + '/embed/';
       var embed2 = (prefer_http ? 'http:' : 'https:') + '//api.kinogram.best/embed/';
-      var prox = component.proxy('collaps');
+      var prox_enc = '';
 
       if (prox) {
-        prox += 'param/User-Agent=' + encodeURIComponent('Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1') + '/';
+        prox_enc += 'param/User-Agent=' + encodeURIComponent('Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1') + '/';
       }
 
-      var stream_prox = prox;
+      var prox_enc_stream = prox_enc;
 
       if (prox) {
-        prox += 'ip/';
-        stream_prox += 'param/Origin=' + encodeURIComponent(host) + '/';
-        stream_prox += 'param/Referer=' + encodeURIComponent(ref) + '/';
+        prox_enc += 'ip/';
+        prox_enc_stream += 'param/Origin=' + encodeURIComponent(host) + '/';
+        prox_enc_stream += 'param/Referer=' + encodeURIComponent(ref) + '/';
       }
 
       var filter_items = {};
@@ -3146,7 +3207,7 @@
       function collaps_api_search(api, callback, error) {
         network.clear();
         network.timeout(10000);
-        network.silent(prox + embed + api, function (str) {
+        network.silent(component.proxyLink(embed + api, prox, prox_enc), function (str) {
           if (callback) callback(str || '');
         }, function (a, c) {
           if (a.status == 404 && a.responseText && a.responseText.indexOf('видео недоступно') !== -1) {
@@ -3154,7 +3215,7 @@
           } else {
             network.clear();
             network.timeout(10000);
-            network.silent(prox + embed2 + api, function (str) {
+            network.silent(component.proxyLink(embed2 + api, prox, prox_enc), function (str) {
               if (callback) callback(str || '');
             }, function (a, c) {
               if (a.status == 404 && a.responseText && a.responseText.indexOf('видео недоступно') !== -1 || a.status == 0 && a.statusText !== 'timeout') {
@@ -3320,12 +3381,12 @@
                   info: audio_names.length ? ' / ' + component.uniqueNamesShortText(audio_names, 80) : '',
                   season: season.season,
                   episode: parseInt(episode.episode),
-                  file: component.fixLink(file, stream_prox),
+                  file: component.proxyLink(file, prox, prox_enc_stream),
                   subtitles: episode.cc ? episode.cc.map(function (c) {
                     var url = fixUrl(c.url || '');
                     return {
                       label: c.name,
-                      url: component.convertVttToSrt(component.fixLink(url, stream_prox))
+                      url: component.processSubs(component.proxyLink(url, prox, prox_enc_stream))
                     };
                   }) : false,
                   audio_tracks: audio_tracks.length ? audio_tracks : false
@@ -3365,12 +3426,12 @@
             title: extract.title || select_title,
             quality: max_quality ? max_quality + 'p' : '360p ~ ' + (prefer_dash ? '1080p' : '720p'),
             info: audio_names.length ? ' / ' + component.uniqueNamesShortText(audio_names, 80) : '',
-            file: component.fixLink(file, stream_prox),
+            file: component.proxyLink(file, prox, prox_enc_stream),
             subtitles: extract.source.cc ? extract.source.cc.map(function (c) {
               var url = fixUrl(c.url || '');
               return {
                 label: c.name,
-                url: component.convertVttToSrt(component.fixLink(url, stream_prox))
+                url: component.processSubs(component.proxyLink(url, prox, prox_enc_stream))
               };
             }) : false,
             audio_tracks: audio_tracks.length ? audio_tracks : false
@@ -3468,7 +3529,6 @@
       var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true;
       var prefer_mp4 = Lampa.Storage.field('online_mod_prefer_mp4') === true;
       var prox = component.proxy('cdnmovies');
-      var stream_prox = prox;
       var iframe_proxy = !prox && Lampa.Storage.field('online_mod_iframe_proxy') === true && (!startsWith(window.location.protocol, 'http') || window.location.origin.indexOf('lampa') !== -1) && !Lampa.Platform.is('android');
       var host = Utils.decodeSecret([80, 68, 77, 68, 64, 3, 27, 31, 66, 81, 84, 92, 91, 91, 93, 26, 95, 90, 84, 89, 87, 81]);
       var ref = host + '/';
@@ -3478,11 +3538,12 @@
         'Referer': ref,
         'User-Agent': user_agent
       } : {};
+      var prox_enc = '';
 
       if (prox) {
-        prox += 'param/Origin=' + encodeURIComponent(host) + '/';
-        prox += 'param/Referer=' + encodeURIComponent(ref) + '/';
-        prox += 'param/User-Agent=' + encodeURIComponent(user_agent) + '/';
+        prox_enc += 'param/Origin=' + encodeURIComponent(host) + '/';
+        prox_enc += 'param/Referer=' + encodeURIComponent(ref) + '/';
+        prox_enc += 'param/User-Agent=' + encodeURIComponent(user_agent) + '/';
       }
 
       var embed = 'https://cdnmovies-stream.online/';
@@ -3514,7 +3575,7 @@
           try {
             network.clear();
             network.timeout(10000);
-            network["native"](prox + embed + api, call_success, call_error, false, {
+            network["native"](component.proxyLink(embed + api, prox, prox_enc), call_success, call_error, false, {
               dataType: 'text',
               headers: headers
             });
@@ -3669,7 +3730,7 @@
             return {
               label: item.label,
               quality: quality ? parseInt(quality[1]) : NaN,
-              file: component.fixLink(link, stream_prox)
+              file: component.proxyLink(link, prox, '')
             };
           });
           items.sort(function (a, b) {
@@ -3729,7 +3790,7 @@
         if (prefer_mp4) url = url.replace(/(\.mp4):hls:manifest\.m3u8$/i, '$1');
 
         if (url) {
-          element.stream = component.fixLink(url, stream_prox);
+          element.stream = component.proxyLink(url, prox, '');
           element.qualitys = false;
           call(element);
         } else error();
@@ -3796,7 +3857,7 @@
           if (prefer_http) link = link.replace('https://', 'http://');
           return {
             label: item.label,
-            url: component.convertVttToSrt(component.fixLink(link, stream_prox))
+            url: component.processSubs(component.proxyLink(link, prox, ''))
           };
         });
         return subtitles.length ? subtitles : false;
@@ -3992,9 +4053,10 @@
       var headers = Lampa.Platform.is('android') ? {
         'User-Agent': Utils.filmixUserAgent()
       } : {};
+      var prox_enc = '';
 
       if (prox) {
-        prox += 'param/User-Agent=' + encodeURIComponent(Utils.filmixUserAgent()) + '/';
+        prox_enc += 'param/User-Agent=' + encodeURIComponent(Utils.filmixUserAgent()) + '/';
       }
 
       var embed = 'http://filmixapp.cyou/api/v2/';
@@ -4136,7 +4198,7 @@
           var url = site + 'api/v2/suggestions?search_word=' + encodeURIComponent(clean_title);
           network.clear();
           network.timeout(10000);
-          network["native"](prox2 + url, function (json) {
+          network["native"](component.proxyLink(url, prox2), function (json) {
             display(json && json.posts || []);
           }, function (a, c) {
             component.empty(network.errorDecode(a, c));
@@ -4152,7 +4214,7 @@
           url = Lampa.Utils.addUrlComponent(url, 'story=' + encodeURIComponent(clean_title));
           network.clear();
           network.timeout(10000);
-          network["native"](prox + url, function (json) {
+          network["native"](component.proxyLink(url, prox, prox_enc), function (json) {
             if (json && json.length) display(json);else siteSearch();
           }, function (a, c) {
             siteSearch();
@@ -4172,7 +4234,7 @@
             var url = embed + 'user_profile' + dev_token;
             network.clear();
             network.timeout(10000);
-            network["native"](prox + url, function (found) {
+            network["native"](component.proxyLink(url, prox, prox_enc), function (found) {
               if (found && found.user_data) {
                 window.mod_filmix.max_qualitie = 720;
                 if (found.user_data.is_pro) window.mod_filmix.max_qualitie = 1080;
@@ -4192,7 +4254,7 @@
           var url = embed + 'post/' + filmix_id + (abuse ? abuse_token : dev_token);
           network.clear();
           network.timeout(10000);
-          network["native"](prox + url, function (found) {
+          network["native"](component.proxyLink(url, prox, prox_enc), function (found) {
             if (found && Object.keys(found).length) {
               if (!abuse && abuse_token && checkAbuse(found)) find(filmix_id, true);else success(found);
             } else component.emptyForQuery(select_title);
@@ -4738,7 +4800,7 @@
             return {
               label: item.label,
               quality: quality ? parseInt(quality[1]) : NaN,
-              file: component.fixLink(link, prox)
+              file: component.proxyLink(link, prox)
             };
           });
           items.sort(function (a, b) {
@@ -4990,13 +5052,14 @@
         'Origin': host,
         'Referer': ref
       } : {};
+      var prox_enc = '';
 
       if (prox) {
-        prox += 'param/Origin=' + encodeURIComponent(host) + '/';
-        prox += 'param/Referer=' + encodeURIComponent(ref) + '/';
+        prox_enc += 'param/Origin=' + encodeURIComponent(host) + '/';
+        prox_enc += 'param/Referer=' + encodeURIComponent(ref) + '/';
       }
 
-      var prox2 = prox;
+      var prox_enc2 = prox_enc;
       var cookie = Lampa.Storage.get('online_mod_fancdn_cookie', '') + '';
       var authorization_required = !cookie;
       if (cookie.indexOf('PHPSESSID=') == -1) cookie = 'PHPSESSID=' + Utils.randomHex(32) + (cookie ? '; ' + cookie : '');
@@ -5007,7 +5070,7 @@
         }
 
         if (prox) {
-          prox += 'param/Cookie=' + encodeURIComponent(cookie) + '/';
+          prox_enc += 'param/Cookie=' + encodeURIComponent(cookie) + '/';
         }
       }
 
@@ -5137,7 +5200,7 @@
         var postdata = 'do=search&subaction=search&search_start=0&full_search=1&result_from=1&story=' + encodeURIComponent(select_title) + '&titleonly=3&searchuser=&replyless=0&replylimit=0&searchdate=0&beforeafter=after&sortby=title&resorder=asc&showposts=0&catlist%5B%5D=10';
         network.clear();
         network.timeout(10000);
-        network["native"](prox + url, function (str) {
+        network["native"](component.proxyLink(url, prox, prox_enc), function (str) {
           str = (str || '').replace(/\n/g, '');
           var links = str.match(/<div class="item-search-header">\s*<h2>\s*<a [^>]*>[^<]*<\/a>\s*<\/h2>\s*<div class="name-origin-search">[^<]*<\/div>/g);
           display(links);
@@ -5150,17 +5213,17 @@
       };
 
       function getPage(url) {
-        url = component.fixLink(url, prox, ref);
+        url = component.fixLink(url, ref);
         network.clear();
         network.timeout(10000);
-        network["native"](url, function (str) {
+        network["native"](component.proxyLink(url, prox, prox_enc), function (str) {
           str = (str || '').replace(/\n/g, '');
           var player = str.match(/<iframe id="iframe-player" src="(https?:\/\/fancdn.net\/[^"]*)"/);
 
           if (player) {
             network.clear();
             network.timeout(10000);
-            network["native"](prox2 + player[1], function (str) {
+            network["native"](component.proxyLink(player[1], prox, prox_enc2), function (str) {
               parse(str);
             }, function (a, c) {
               component.empty(network.errorDecode(a, c));
@@ -5245,7 +5308,7 @@
             return {
               label: quality ? quality + 'p' : '360p ~ 1080p',
               quality: quality,
-              file: component.proxyStream(component.fixLink(link, '', url), 'fancdn')
+              file: component.proxyStream(component.fixLink(link, url), 'fancdn')
             };
           });
           items.sort(function (a, b) {
@@ -5385,7 +5448,7 @@
           if (prefer_http) link = link.replace('https://', 'http://');
           return {
             label: item.label,
-            url: component.proxyStreamSubs(component.fixLink(link, '', url), 'fancdn')
+            url: component.proxyStreamSubs(component.fixLink(link, url), 'fancdn')
           };
         });
         return subtitles.length ? subtitles : false;
@@ -5611,10 +5674,11 @@
         'Origin': host,
         'Referer': ref
       } : {};
+      var prox_enc = '';
 
       if (prox) {
-        prox += 'param/Origin=' + encodeURIComponent(host) + '/';
-        prox += 'param/Referer=' + encodeURIComponent(ref) + '/';
+        prox_enc += 'param/Origin=' + encodeURIComponent(host) + '/';
+        prox_enc += 'param/Referer=' + encodeURIComponent(ref) + '/';
       }
 
       var embed = (prefer_http ? 'http:' : 'https:') + '//playep.pro/gt/';
@@ -5646,7 +5710,7 @@
         url = Lampa.Utils.addUrlComponent(url, 'alloff=true');
         network.clear();
         network.timeout(10000);
-        network["native"](prox + url, function (str) {
+        network["native"](component.proxyLink(url, prox, prox_enc), function (str) {
           parse(str);
         }, function (a, c) {
           component.empty(network.errorDecode(a, c));
@@ -5723,7 +5787,7 @@
           } catch (e) {}
 
           if (json && json.hls) {
-            file = component.fixLink(json.hls, '', url);
+            file = component.fixLink(json.hls, url);
           }
 
           ['data-original_subtitle', 'data-ru_subtitle', 'data-en_subtitle', 'data-ua_subtitle'].forEach(function (sub) {
@@ -5732,7 +5796,7 @@
             if (link) {
               subtitles.push({
                 label: sub.replace('data-', '').replace('_subtitle', ''),
-                url: component.convertVttToSrt(component.fixLink(link, '', url))
+                url: component.processSubs(component.fixLink(link, url))
               });
             }
           });
@@ -5760,7 +5824,7 @@
         url = Lampa.Utils.addUrlComponent(url, 'alloff=true');
         network.clear();
         network.timeout(10000);
-        network["native"](prox + url, function (str) {
+        network["native"](component.proxyLink(url, prox, prox_enc), function (str) {
           parseStream(element, call, error, url, str);
         }, function (a, c) {
           error();
@@ -5822,7 +5886,7 @@
               quality: quality,
               bandwidth: item.bandwidth,
               codecs: item.codecs,
-              file: component.fixLink(link, '', url)
+              file: component.fixLink(link, url)
             };
           });
           items.sort(function (a, b) {
@@ -11760,7 +11824,7 @@
       function alloha_api_search(api, callback, error) {
         network.clear();
         network.timeout(10000);
-        network["native"](prox + embed + '&' + api, function (json) {
+        network["native"](component.proxyLink(embed + '&' + api, prox, '', 'enc2'), function (json) {
           if (callback) callback(json);
         }, function (a, c) {
           if (error) error(network.errorDecode(a, c));
@@ -11790,7 +11854,7 @@
       function getPage(data) {
         network.clear();
         network.timeout(10000);
-        network["native"](prox2 + data.iframe, function (str) {
+        network["native"](component.proxyLink(data.iframe, prox2, '', 'enc2'), function (str) {
           parse(str, data.iframe);
         }, function (a, c) {
           component.empty(network.errorDecode(a, c));
@@ -11871,7 +11935,7 @@
               label: item.label,
               voice: item.voice || '',
               quality: quality,
-              file: component.fixLink(link, prox2 ? prox2 + extract.stream_prox2 : '')
+              file: component.proxyLink(link, prox2, extract.stream_prox2)
             };
           });
           return items;
@@ -11886,7 +11950,7 @@
           var link = item.links[0] || '';
           return {
             label: item.label,
-            url: component.convertVttToSrt(component.fixLink(link, prox2 ? prox2 + extract.stream_prox2 : ''))
+            url: component.processSubs(component.proxyLink(link, prox2, extract.stream_prox2))
           };
         });
         return subtitles.length ? subtitles : false;
@@ -12172,7 +12236,7 @@
               quality: quality,
               bandwidth: item.bandwidth,
               codecs: item.codecs,
-              file: component.fixLink(link, '', url)
+              file: component.fixLink(link, url)
             };
           });
           items.sort(function (a, b) {
@@ -12203,7 +12267,7 @@
         postdata += extract.postdata;
         network.clear();
         network.timeout(10000);
-        network["native"]((prox2 ? prox2 + extract.prox2 : '') + extract.domain, function (json) {
+        network["native"](component.proxyLink(extract.domain, prox2, extract.prox2, 'enc2'), function (json) {
           if (json && json.url) {
             var decodeStream = function decodeStream(aes) {
               var quality = false;
@@ -12266,7 +12330,7 @@
                 file = file.split(' or ').filter(function (link) {
                   return link;
                 })[0] || '';
-                file = component.fixLink(file, prox2 ? prox2 + extract.stream_prox2 : '');
+                file = component.proxyLink(file, prox2, extract.stream_prox2);
               }
 
               if (file) {
@@ -12281,7 +12345,7 @@
                 } else if (endsWith(subtitle, 'index.php')) {
                   network.clear();
                   network.timeout(10000);
-                  network["native"]((prox2 ? prox2 + extract.stream_prox2 : '') + subtitle, function (str) {
+                  network["native"](component.proxyLink(subtitle, prox2, extract.stream_prox2), function (str) {
                     element.subtitles = parseSubs(str);
                     call(element);
                   }, function (a, c) {
@@ -12304,7 +12368,7 @@
             if (params && params.aes) decodeStream(params.aes);else if (params) {
               network.clear();
               network.timeout(10000);
-              network["native"]((prox2 ? prox2 + extract.prox2 : '') + extract.domain + params.query, decodeStream, function (a, c) {
+              network["native"](component.proxyLink(extract.domain + params.query, prox2, extract.prox2, 'enc2'), decodeStream, function (a, c) {
                 decodeStream('');
               }, params.postdata, {
                 dataType: 'text',
@@ -12555,7 +12619,7 @@
           postdata += '&story=' + encodeURIComponent(query);
           network.clear();
           network.timeout(10000);
-          network["native"](prox + url, function (str) {
+          network["native"](component.proxyLink(url, prox), function (str) {
             str = (str || '').replace(/\n/g, '');
             var links = str.match(/<article class="card d-flex">.*?<\/article>/g);
             if (links && links.length) data = data.concat(links);
@@ -12586,18 +12650,17 @@
 
       function getPage(card) {
         page_title = card.title || card.orig_title || select_title;
-        var url = card.link;
-        url = component.fixLink(url, prox, ref);
+        var url = component.fixLink(card.link, ref);
         network.clear();
         network.timeout(10000);
-        network["native"](url, function (str) {
+        network["native"](component.proxyLink(url, prox), function (str) {
           str = (str || '').replace(/\n/g, '');
           var player = str.match(/<iframe data-src="((https?:\/\/redheadsound[^"\/]*)\/[^"]*)"/);
 
           if (player) {
             network.clear();
             network.timeout(10000);
-            network["native"](prox + player[1], function (str) {
+            network["native"](component.proxyLink(player[1], prox), function (str) {
               parse(str, player[1]);
             }, function (a, c) {
               component.empty(network.errorDecode(a, c));
@@ -12671,7 +12734,7 @@
             return {
               label: item.label,
               quality: quality ? parseInt(quality[1]) : NaN,
-              file: component.fixLink(link, prox, url)
+              file: component.proxyLink(component.fixLink(link, url), prox)
             };
           });
           items.sort(function (a, b) {
@@ -12693,7 +12756,7 @@
           var link = item.links[0] || '';
           return {
             label: item.label,
-            url: component.convertVttToSrt(component.fixLink(link, prox, url))
+            url: component.processSubs(component.proxyLink(component.fixLink(link, url), prox))
           };
         });
         return subtitles.length ? subtitles : false;
@@ -12887,7 +12950,7 @@
         var url = Lampa.Utils.addUrlComponent(embed, 'partner=9&kid=' + kinopoisk_id);
         network.clear();
         network.timeout(10000);
-        network["native"](prox + url, function (str) {
+        network["native"](component.proxyLink(url, prox), function (str) {
           parse(str);
         }, function (a, c) {
           if (a.status == 404 && !a.responseText || a.status == 0 && a.statusText !== 'timeout') {
@@ -13267,7 +13330,7 @@
         url = Lampa.Utils.addUrlComponent(url, 'search=' + encodeURIComponent(select_title));
         network.clear();
         network.timeout(1000 * 15);
-        network["native"](prox + url, function (json) {
+        network["native"](component.proxyLink(url, prox), function (json) {
           display(json && json.list);
         }, function (a, c) {
           component.empty(network.errorDecode(a, c));
@@ -13646,7 +13709,7 @@
         url = Lampa.Utils.addUrlComponent(url, 'query=' + encodeURIComponent(select_title));
         network.clear();
         network.timeout(1000 * 15);
-        network["native"](prox + url, function (json) {
+        network["native"](component.proxyLink(url, prox), function (json) {
           display(json);
         }, function (a, c) {
           component.empty(network.errorDecode(a, c));
@@ -13700,7 +13763,7 @@
         var url = embed + 'anime/releases/' + json.id;
         network.clear();
         network.timeout(1000 * 15);
-        network["native"](prox + url, function (json) {
+        network["native"](component.proxyLink(url, prox), function (json) {
           if (json && json.episodes && json.episodes.length) {
             json.ru_title = json.name && json.name.main;
             json.en_title = json.name && json.name.english;
@@ -14036,7 +14099,7 @@
         url = Lampa.Utils.addUrlComponent(url, 'q=' + encodeURIComponent(select_title));
         network.clear();
         network.timeout(1000 * 15);
-        network["native"](prox + url, function (json) {
+        network["native"](component.proxyLink(url, prox), function (json) {
           display(json && json.data);
         }, function (a, c) {
           component.empty(network.errorDecode(a, c));
@@ -14094,7 +14157,7 @@
         url = Lampa.Utils.addUrlComponent(url, 'anime_id=' + encodeURIComponent(json.slug_url));
         network.clear();
         network.timeout(1000 * 15);
-        network["native"](prox + url, function (episodes) {
+        network["native"](component.proxyLink(url, prox), function (episodes) {
           if (episodes && episodes.data && episodes.data.length) {
             json.episodes = episodes.data;
             getPlayers(json.episodes[0], function () {
@@ -14115,7 +14178,7 @@
         var url = embed + 'episodes/' + episode.id;
         network.clear();
         network.timeout(1000 * 15);
-        network["native"](prox + url, function (json) {
+        network["native"](component.proxyLink(url, prox), function (json) {
           if (json && json.data && json.data.players) {
             episode.players = json.data.players.filter(function (p) {
               return p.player === 'Animelib';
@@ -14219,7 +14282,7 @@
             subtitles = player.subtitles.map(function (item) {
               return {
                 label: item.format || item.filename || '',
-                url: component.convertVttToSrt(item.src || '')
+                url: component.processSubs(item.src || '')
               };
             });
           }
@@ -14483,7 +14546,7 @@
       function kodik_api_search(api, callback, error) {
         network.clear();
         network.timeout(10000);
-        network["native"](prox + embed + api, function (json) {
+        network["native"](component.proxyLink(embed + api, prox), function (json) {
           if (callback) callback(json);
         }, function (a, c) {
           if (error) error(network.errorDecode(a, c));
@@ -14886,7 +14949,7 @@
         var url = (prefer_http ? 'http:' : 'https:') + element.link;
         network.clear();
         network.timeout(10000);
-        network["native"](prox + url, function (str) {
+        network["native"](component.proxyLink(url, prox), function (str) {
           str = (str || '').replace(/\n/g, '');
           var urlParams = str.match(/\burlParams = '([^']+)'/);
           var type = str.match(/\bvideoInfo\.type = '([^']+)'/);
@@ -14920,7 +14983,7 @@
             var getLinks = function getLinks() {
               network.clear();
               network.timeout(10000);
-              network["native"](prox + last_info, function (json) {
+              network["native"](component.proxyLink(last_info, prox), function (json) {
                 if (json && json.links) {
                   var items = extractItems(json.links),
                       file = '',
@@ -14950,7 +15013,7 @@
             if (player_url !== last_player) {
               network.clear();
               network.timeout(10000);
-              network["native"](prox + player_url, function (str) {
+              network["native"](component.proxyLink(player_url, prox), function (str) {
                 str = (str || '').replace(/\n/g, '');
                 var info_match = str.match(/\$\.ajax\({type: *"POST", *url: *atob\("([^"]+)"\)/);
                 var info;
@@ -15149,7 +15212,7 @@
       function kinopub_api_search(api, callback, error) {
         network.clear();
         network.timeout(10000);
-        network["native"](prox + embed + api, function (json) {
+        network["native"](component.proxyLink(embed + api, prox), function (json) {
           if (callback) callback(json);
         }, function (a, c) {
           if (error) error(network.errorDecode(a, c));
@@ -15402,7 +15465,7 @@
                   subtitles = media.subtitles.map(function (sub) {
                     return {
                       label: sub.lang + (sub.forced ? ' - forced' : ''),
-                      url: component.convertVttToSrt(sub.file ? base_url + '/subtitles' + (startsWith(sub.file, '/') ? '' : '/') + sub.file + '?loc=' + server : '')
+                      url: component.processSubs(sub.file ? base_url + '/subtitles' + (startsWith(sub.file, '/') ? '' : '/') + sub.file + '?loc=' + server : '')
                     };
                   });
                   if (!subtitles.length) subtitles = false;
@@ -15904,8 +15967,18 @@
         return Utils.proxy(name);
       };
 
+      this.fixLink = function (link, referrer) {
+        return Utils.fixLink(link, referrer);
+      };
+
+      this.proxyLink = function (link, proxy, proxy_enc, enc) {
+        return Utils.proxyLink(link, proxy, proxy_enc, enc);
+      };
+
       this.proxyStream = function (url, name) {
         if (url && use_stream_proxy) {
+          if (name === 'lumex') return url;
+
           if (name === 'rezka2') {
             return url.replace(/\/\/(stream\.voidboost\.(cc|top|link|club)|vdbmate.org|sambray.org|femeretes.org)\//, '//prx.ukrtelcdn.net/');
           }
@@ -15920,15 +15993,19 @@
         return url;
       };
 
-      this.convertVttToSrt = function (url) {
+      this.processSubs = function (url) {
         if (url && convert_vtt_to_srt) {
           var posEnd = url.lastIndexOf('?');
           var posStart = url.lastIndexOf('://');
-          if (posEnd == -1 || posEnd <= posStart) posEnd = url.length;
+          if (posEnd === -1 || posEnd <= posStart) posEnd = url.length;
+          if (posStart === -1) posStart = -3;
+          var name = url.substring(posStart + 3, posEnd);
+          posStart = name.lastIndexOf('/');
+          name = posStart !== -1 ? name.substring(posStart + 1) : '';
+          posEnd = name.length;
 
-          if (posEnd >= 4 && url.substring(posEnd - 4, posEnd).toLowerCase() === '.vtt') {
-            var posName = url.lastIndexOf('/', posEnd - 4);
-            return (prefer_http ? 'http:' : 'https:') + '//epg.rootu.top/vtt2srt/' + url + '/' + (posName !== -1 ? url.substring(posName + 1, posEnd - 4) + '.srt' : 'subs.srt');
+          if (posEnd >= 4 && name.substring(posEnd - 4, posEnd).toLowerCase() === '.vtt') {
+            return (prefer_http ? 'http:' : 'https:') + '//epg.rootu.top/vtt2srt/' + url + '/' + name.substring(0, posEnd - 4) + '.srt';
           }
         }
 
@@ -15936,7 +16013,8 @@
       };
 
       this.proxyStreamSubs = function (url, name) {
-        var srtUrl = this.convertVttToSrt(url);
+        if (name === 'lumex') return url;
+        var srtUrl = this.processSubs(url);
         if (srtUrl !== url) return srtUrl;
         return this.proxyStream(url, name);
       };
@@ -16291,7 +16369,7 @@
         var url = 'https://portal.lumex.host/api/';
         network.clear();
         network.timeout(1000 * 20);
-        network["native"](prox + url + api, function (json) {
+        network["native"](this.proxyLink(url + api, prox, '', 'enc2'), function (json) {
           if (json.data && json.data.length) data = data.concat(json.data);
           if (callback) callback(data);
         }, function (a, c) {
@@ -16669,21 +16747,6 @@
         } catch (e) {}
 
         return pl;
-      };
-
-      this.fixLink = function (link, proxy, referrer) {
-        if (link) {
-          if (!referrer || link.indexOf('://') !== -1) return proxy + link;
-          var url = new URL(referrer);
-          if (startsWith(link, '//')) return proxy + url.protocol + link;
-          if (startsWith(link, '/')) return proxy + url.origin + link;
-          if (startsWith(link, '?')) return proxy + url.origin + url.pathname + link;
-          if (startsWith(link, '#')) return proxy + url.origin + url.pathname + url.search + link;
-          var base = url.href.substring(0, url.href.lastIndexOf('/') + 1);
-          return proxy + base + link;
-        }
-
-        return link;
       };
 
       this.formatEpisodeTitle = function (s_num, e_num, name) {
@@ -17288,7 +17351,7 @@
       };
     }
 
-    var mod_version = '30.11.2024';
+    var mod_version = '01.12.2024';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
@@ -17340,6 +17403,7 @@
     Lampa.Params.trigger('online_mod_proxy_cdnvideohub', false);
     Lampa.Params.trigger('online_mod_proxy_anilibria', false);
     Lampa.Params.trigger('online_mod_proxy_anilibria2', false);
+    Lampa.Params.trigger('online_mod_proxy_animelib', false);
     Lampa.Params.trigger('online_mod_proxy_kodik', false);
     Lampa.Params.trigger('online_mod_proxy_kinopub', false);
     Lampa.Params.trigger('online_mod_proxy_alloha', false);
@@ -17989,9 +18053,10 @@
           var user_code = '';
           var user_token = '';
           var filmix_prox = Utils.proxy('filmix');
+          var filmix_prox_enc = '';
 
           if (filmix_prox) {
-            filmix_prox += 'param/User-Agent=' + encodeURIComponent(Utils.filmixUserAgent()) + '/';
+            filmix_prox_enc += 'param/User-Agent=' + encodeURIComponent(Utils.filmixUserAgent()) + '/';
           }
 
           var modal = $('<div><div class="broadcast__text">' + Lampa.Lang.translate('online_mod_filmix_modal_text') + '</div><div class="broadcast__device selector" style="text-align: center">' + Lampa.Lang.translate('online_mod_filmix_modal_wait') + '...</div><br><div class="broadcast__scan"><div></div></div></div></div>');
@@ -18022,7 +18087,7 @@
           }, 10000);
           network.clear();
           network.timeout(10000);
-          network["native"](filmix_prox + api_url + 'token_request' + Utils.filmixToken(dev_id, ''), function (found) {
+          network["native"](Utils.proxyLink(api_url + 'token_request' + Utils.filmixToken(dev_id, ''), filmix_prox, filmix_prox_enc), function (found) {
             if (found && found.status == 'ok') {
               user_token = found.code;
               user_code = found.user_code;
@@ -18055,14 +18120,15 @@
 
     function checkPro(token, call) {
       var filmix_prox = Utils.proxy('filmix');
+      var filmix_prox_enc = '';
 
       if (filmix_prox) {
-        filmix_prox += 'param/User-Agent=' + encodeURIComponent(Utils.filmixUserAgent()) + '/';
+        filmix_prox_enc += 'param/User-Agent=' + encodeURIComponent(Utils.filmixUserAgent()) + '/';
       }
 
       network.clear();
       network.timeout(8000);
-      network["native"](filmix_prox + api_url + 'user_profile' + Utils.filmixToken(dev_id, token), function (json) {
+      network["native"](Utils.proxyLink(api_url + 'user_profile' + Utils.filmixToken(dev_id, token), filmix_prox, filmix_prox_enc), function (json) {
         if (json) {
           if (json.user_data) {
             Lampa.Storage.set("filmix_status", json.user_data);
@@ -18116,6 +18182,7 @@
 
     function rezka2FillCookie(success, error) {
       var prox = Utils.proxy('rezka2');
+      var prox_enc = '';
       var returnHeaders = androidHeaders;
       if (!prox && !returnHeaders) prox = Utils.proxy('cookie');
 
@@ -18128,7 +18195,7 @@
       var host = prox && !proxy_mirror ? 'https://rezka.ag' : Utils.rezka2Mirror();
 
       if (prox) {
-        prox += 'get_cookie/param/Cookie=/';
+        prox_enc += 'get_cookie/param/Cookie=/';
         returnHeaders = false;
       }
 
@@ -18138,7 +18205,7 @@
       postdata += '&login_not_save=0';
       network.clear();
       network.timeout(8000);
-      network["native"](prox + url, function (json) {
+      network["native"](Utils.proxyLink(url, prox, prox_enc), function (json) {
         var cookie = '';
         var values = {};
         var sid = '';
@@ -18169,14 +18236,14 @@
           var headers = {};
 
           if (prox) {
-            prox += 'param/Cookie=' + encodeURIComponent(cookie) + '/';
+            prox_enc += 'param/Cookie=' + encodeURIComponent(cookie) + '/';
           } else {
             headers['Cookie'] = cookie;
           }
 
           network.clear();
           network.timeout(8000);
-          network["native"](prox + host + '/', function (json) {
+          network["native"](Utils.proxyLink(host + '/', prox, prox_enc), function (json) {
             var cookieHeaders = (returnHeaders ? json && json.headers && json.headers['set-cookie'] : json && json.cookie) || null;
 
             if (cookieHeaders && cookieHeaders.forEach) {
@@ -18218,6 +18285,7 @@
 
     function fancdnFillCookie(success, error) {
       var prox = Utils.proxy('fancdn');
+      var prox_enc = '';
       var returnHeaders = androidHeaders;
 
       if (!prox && !returnHeaders) {
@@ -18228,7 +18296,7 @@
       var host = Utils.fanserialsHost();
 
       if (prox) {
-        prox += 'get_cookie/param/Cookie=/';
+        prox_enc += 'get_cookie/param/Cookie=/';
         returnHeaders = false;
       }
 
@@ -18238,7 +18306,7 @@
       postdata += '&login=submit';
       network.clear();
       network.timeout(8000);
-      network["native"](prox + url, function (json) {
+      network["native"](Utils.proxyLink(url, prox, prox_enc), function (json) {
         var cookie = '';
         var values = {};
         var sid = '';
@@ -18269,14 +18337,14 @@
           var headers = {};
 
           if (prox) {
-            prox += 'param/Cookie=' + encodeURIComponent(cookie) + '/';
+            prox_enc += 'param/Cookie=' + encodeURIComponent(cookie) + '/';
           } else {
             headers['Cookie'] = cookie;
           }
 
           network.clear();
           network.timeout(8000);
-          network["native"](prox + host + '/', function (json) {
+          network["native"](Utils.proxyLink(host + '/', prox, prox_enc), function (json) {
             var cookieHeaders = (returnHeaders ? json && json.headers && json.headers['set-cookie'] : json && json.cookie) || null;
 
             if (cookieHeaders && cookieHeaders.forEach) {
