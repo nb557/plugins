@@ -1,4 +1,4 @@
-//01.12.2024 - Fix
+//02.12.2024 - Fix
 
 (function () {
     'use strict';
@@ -3171,13 +3171,13 @@
       }
     }
 
-    function collaps(component, _object) {
+    function collaps(component, _object, prefer_dash) {
       var network = new Lampa.Reguest();
       var extract = {};
       var object = _object;
       var select_title = '';
-      var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true;
-      var prefer_dash = Lampa.Storage.field('online_mod_prefer_dash') === true;
+      var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true; //let prefer_dash  = Lampa.Storage.field('online_mod_prefer_dash') === true
+
       var prox = component.proxy('collaps');
       var base = 'api.embess.ws';
       var host = 'https://' + base;
@@ -16064,7 +16064,14 @@
       }, {
         name: 'collaps',
         title: 'Collaps',
-        source: new collaps(this, object),
+        source: new collaps(this, object, false),
+        search: false,
+        kp: true,
+        imdb: true
+      }, {
+        name: 'collaps-dash',
+        title: 'Collaps (DASH)',
+        source: new collaps(this, object, true),
         search: false,
         kp: true,
         imdb: true
@@ -17351,7 +17358,7 @@
       };
     }
 
-    var mod_version = '01.12.2024';
+    var mod_version = '02.12.2024';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
@@ -18432,7 +18439,7 @@
     template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_prefer_mp4\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_prefer_mp4}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
 
     {
-      template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_prefer_dash\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_prefer_dash}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_collaps_lampa_player\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_collaps_lampa_player}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
+      template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_collaps_lampa_player\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_collaps_lampa_player}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
     }
 
     template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_full_episode_title\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_full_episode_title}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
