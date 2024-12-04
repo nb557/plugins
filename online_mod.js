@@ -1,4 +1,4 @@
-//02.12.2024 - Fix
+//04.12.2024 - Fix
 
 (function () {
     'use strict';
@@ -113,6 +113,7 @@
       var user_proxy2 = (proxy_other_url || proxy2) + param_ip;
       var user_proxy3 = (proxy_other_url || proxy3) + param_ip;
       if (name === 'filmix_site') return user_proxy2;
+      if (name === 'filmix_abuse') return window.location.protocol === 'https:' ? 'https://cors.apn.monster/' : 'http://cors.cfhttp.top/';
       if (name === 'zetflix') return proxy_apn;
       if (name === 'allohacdn') return proxy_other ? proxy_secret : proxy_apn;
       if (name === 'cookie') return user_proxy1;
@@ -434,6 +435,7 @@
         prox_enc += 'param/Sec-Fetch-Dest=empty/';
         prox_enc += 'param/Sec-Fetch-Mode=cors/';
         prox_enc += 'param/Sec-Fetch-Site=same-site/';
+        prox_enc += 'enc/aXAyNjA2OjQ3MDA6MzAzMTo6NjgxNTo0NmQ5Lw%3D%3D/';
       }
 
       var prox_enc2 = prox_enc;
@@ -4050,6 +4052,7 @@
       var debug = _debug;
       var prox = component.proxy('filmix');
       var prox2 = component.proxy('filmix_site');
+      var prox3 = component.proxy('filmix_abuse');
       var headers = Lampa.Platform.is('android') ? {
         'User-Agent': Utils.filmixUserAgent()
       } : {};
@@ -4088,7 +4091,7 @@
 
       var token = Lampa.Storage.get('filmix_token', '') + '';
       var dev_token = Utils.filmixToken(Utils.randomHex(16), token || 'aaaabbbbccccddddeeeeffffaaaabbbb');
-      var abuse_token = '';
+      var abuse_token = prox3 ? Utils.filmixToken(Utils.randomHex(16), '') : '';
       /**
        * Начать поиск
        * @param {Object} _object
@@ -4209,22 +4212,27 @@
           });
         };
 
-        decodeSecretToken(function () {
-          var url = embed + 'search' + dev_token;
+        var apiSearch = function apiSearch(abuse) {
+          var url = embed + 'search' + (abuse ? abuse_token : dev_token);
           url = Lampa.Utils.addUrlComponent(url, 'story=' + encodeURIComponent(clean_title));
+          url = abuse ? component.proxyLink(url, prox3, '', '') : component.proxyLink(url, prox, prox_enc, 'enc2');
           network.clear();
           network.timeout(10000);
-          network["native"](component.proxyLink(url, prox, prox_enc), function (json) {
+          network["native"](url, function (json) {
             if (json && json.length) display(json);else siteSearch();
           }, function (a, c) {
-            siteSearch();
+            if (!abuse && abuse_token) apiSearch(true);else siteSearch();
           }, false, {
             headers: headers
           });
+        };
+
+        decodeSecretToken(function () {
+          return apiSearch();
         });
       };
 
-      function find(filmix_id, abuse) {
+      function find(filmix_id, abuse, abuse_error, low_quality) {
         if (!debug && !window.mod_filmix.is_max_qualitie) {
           window.mod_filmix.is_max_qualitie = true;
           token = Lampa.Storage.get('filmix_token', '') + '';
@@ -4234,7 +4242,7 @@
             var url = embed + 'user_profile' + dev_token;
             network.clear();
             network.timeout(10000);
-            network["native"](component.proxyLink(url, prox, prox_enc), function (found) {
+            network["native"](component.proxyLink(url, prox, prox_enc, 'enc2'), function (found) {
               if (found && found.user_data) {
                 window.mod_filmix.max_qualitie = 720;
                 if (found.user_data.is_pro) window.mod_filmix.max_qualitie = 1080;
@@ -4252,14 +4260,15 @@
 
         function end_search() {
           var url = embed + 'post/' + filmix_id + (abuse ? abuse_token : dev_token);
+          url = abuse ? component.proxyLink(url, prox3, '', '') : component.proxyLink(url, prox, prox_enc, 'enc2');
           network.clear();
           network.timeout(10000);
-          network["native"](component.proxyLink(url, prox, prox_enc), function (found) {
+          network["native"](url, function (found) {
             if (found && Object.keys(found).length) {
-              if (!abuse && abuse_token && checkAbuse(found)) find(filmix_id, true);else success(found);
+              if (!abuse && abuse_token && checkAbuse(found)) find(filmix_id, true, found);else success(found, low_quality);
             } else component.emptyForQuery(select_title);
           }, function (a, c) {
-            component.empty(network.errorDecode(a, c));
+            if (abuse && abuse_error) success(abuse_error);else if (!abuse && abuse_token) find(filmix_id, true, null, true);else component.empty(network.errorDecode(a, c));
           }, false, {
             headers: headers
           });
@@ -4316,9 +4325,9 @@
        */
 
 
-      function success(json) {
+      function success(json, low_quality) {
         component.loading(false);
-        extractData(json);
+        extractData(json, low_quality);
         filter();
         append(filtred());
       }
@@ -4355,9 +4364,9 @@
        */
 
 
-      function extractData(data) {
+      function extractData(data, low_quality) {
         extract = {};
-        var filmix_max_qualitie = debug ? 2160 : window.mod_filmix.max_qualitie;
+        var filmix_max_qualitie = low_quality ? 480 : debug ? 2160 : window.mod_filmix.max_qualitie;
         var pl_links = data.player_links || {};
 
         if (pl_links.playlist && Object.keys(pl_links.playlist).length > 0) {
@@ -17358,7 +17367,7 @@
       };
     }
 
-    var mod_version = '02.12.2024';
+    var mod_version = '04.12.2024';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
@@ -18094,7 +18103,7 @@
           }, 10000);
           network.clear();
           network.timeout(10000);
-          network["native"](Utils.proxyLink(api_url + 'token_request' + Utils.filmixToken(dev_id, ''), filmix_prox, filmix_prox_enc), function (found) {
+          network["native"](Utils.proxyLink(api_url + 'token_request' + Utils.filmixToken(dev_id, ''), filmix_prox, filmix_prox_enc, 'enc2'), function (found) {
             if (found && found.status == 'ok') {
               user_token = found.code;
               user_code = found.user_code;
@@ -18135,7 +18144,7 @@
 
       network.clear();
       network.timeout(8000);
-      network["native"](Utils.proxyLink(api_url + 'user_profile' + Utils.filmixToken(dev_id, token), filmix_prox, filmix_prox_enc), function (json) {
+      network["native"](Utils.proxyLink(api_url + 'user_profile' + Utils.filmixToken(dev_id, token), filmix_prox, filmix_prox_enc, 'enc2'), function (json) {
         if (json) {
           if (json.user_data) {
             Lampa.Storage.set("filmix_status", json.user_data);
