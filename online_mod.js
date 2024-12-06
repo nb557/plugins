@@ -127,7 +127,7 @@
         if (name === 'rezka2') return user_proxy2;
         if (name === 'kinobase') return proxy_apn;
         if (name === 'collaps') return proxy_other ? proxy_secret : proxy_apn;
-        if (name === 'cdnmovies') return proxy_other ? proxy_secret : proxy_apn;
+        if (name === 'cdnmovies') return user_proxy2;
         if (name === 'filmix') return proxy_secret_ip || user_proxy1;
         if (name === 'videodb') return user_proxy2;
         if (name === 'fancdn') return user_proxy3;
@@ -3546,8 +3546,10 @@
         prox_enc += 'param/Origin=' + encodeURIComponent(host) + '/';
         prox_enc += 'param/Referer=' + encodeURIComponent(ref) + '/';
         prox_enc += 'param/User-Agent=' + encodeURIComponent(user_agent) + '/';
+        prox_enc += 'enc/aXAyNjA2OjQ3MDA6MzAzMTo6NjgxNTo0NmQ5Lw%3D%3D/';
       }
 
+      var prox_stream = '';
       var embed = 'https://cdnmovies-stream.online/';
       var filter_items = {};
       var choice = {
@@ -3732,7 +3734,7 @@
             return {
               label: item.label,
               quality: quality ? parseInt(quality[1]) : NaN,
-              file: component.proxyLink(link, prox, '')
+              file: component.proxyLink(link, prox_stream, '')
             };
           });
           items.sort(function (a, b) {
@@ -3792,7 +3794,7 @@
         if (prefer_mp4) url = url.replace(/(\.mp4):hls:manifest\.m3u8$/i, '$1');
 
         if (url) {
-          element.stream = component.proxyLink(url, prox, '');
+          element.stream = component.proxyLink(url, prox_stream, '');
           element.qualitys = false;
           call(element);
         } else error();
@@ -3859,7 +3861,7 @@
           if (prefer_http) link = link.replace('https://', 'http://');
           return {
             label: item.label,
-            url: component.processSubs(component.proxyLink(link, prox, ''))
+            url: component.processSubs(component.proxyLink(link, prox_stream, ''))
           };
         });
         return subtitles.length ? subtitles : false;
