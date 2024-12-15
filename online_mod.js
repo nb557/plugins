@@ -7321,7 +7321,7 @@
         if (object.movie.original_name) orig_titles.push(object.movie.original_name);
 
         var display = function display(items) {
-          if (items && items.length) {
+          if (items && items.length && items.forEach) {
             var is_sure = false;
             items.forEach(function (c) {
               c.ru_title = c.names && c.names.ru;
@@ -7407,7 +7407,7 @@
         url = Lampa.Utils.addUrlComponent(url, 'search=' + encodeURIComponent(select_title));
         network.clear();
         network.timeout(1000 * 15);
-        network["native"](component.proxyLink(url, prox), function (json) {
+        network.silent(component.proxyLink(url, prox), function (json) {
           display(json && json.list);
         }, function (a, c) {
           component.empty(network.errorDecode(a, c));
@@ -7703,7 +7703,7 @@
         if (object.movie.original_name) orig_titles.push(object.movie.original_name);
 
         var display = function display(items) {
-          if (items && items.length) {
+          if (items && items.length && items.forEach) {
             var is_sure = false;
             items.forEach(function (c) {
               c.ru_title = c.name && c.name.main;
@@ -7786,7 +7786,7 @@
         url = Lampa.Utils.addUrlComponent(url, 'query=' + encodeURIComponent(select_title));
         network.clear();
         network.timeout(1000 * 15);
-        network["native"](component.proxyLink(url, prox), function (json) {
+        network.silent(component.proxyLink(url, prox), function (json) {
           display(json);
         }, function (a, c) {
           component.empty(network.errorDecode(a, c));
@@ -7840,7 +7840,7 @@
         var url = embed + 'anime/releases/' + json.id;
         network.clear();
         network.timeout(1000 * 15);
-        network["native"](component.proxyLink(url, prox), function (json) {
+        network.silent(component.proxyLink(url, prox), function (json) {
           if (json && json.episodes && json.episodes.length) {
             json.ru_title = json.name && json.name.main;
             json.en_title = json.name && json.name.english;
@@ -8176,7 +8176,7 @@
         url = Lampa.Utils.addUrlComponent(url, 'q=' + encodeURIComponent(select_title));
         network.clear();
         network.timeout(1000 * 15);
-        network["native"](component.proxyLink(url, prox), function (json) {
+        network.silent(component.proxyLink(url, prox), function (json) {
           display(json && json.data);
         }, function (a, c) {
           component.empty(network.errorDecode(a, c));
@@ -8234,7 +8234,7 @@
         url = Lampa.Utils.addUrlComponent(url, 'anime_id=' + encodeURIComponent(json.slug_url));
         network.clear();
         network.timeout(1000 * 15);
-        network["native"](component.proxyLink(url, prox), function (episodes) {
+        network.silent(component.proxyLink(url, prox), function (episodes) {
           if (episodes && episodes.data && episodes.data.length) {
             json.episodes = episodes.data;
             getPlayers(json.episodes[0], function () {
@@ -8255,7 +8255,7 @@
         var url = embed + 'episodes/' + episode.id;
         network.clear();
         network.timeout(1000 * 15);
-        network["native"](component.proxyLink(url, prox), function (json) {
+        network.silent(component.proxyLink(url, prox), function (json) {
           if (json && json.data && json.data.players) {
             episode.players = json.data.players.filter(function (p) {
               return p.player === 'Animelib';
