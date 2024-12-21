@@ -1,4 +1,4 @@
-//15.12.2024 - Fix
+//21.12.2024 - Fix
 
 (function () {
     'use strict';
@@ -115,7 +115,7 @@
       if (name === 'filmix_site') return user_proxy2;
       if (name === 'filmix_abuse') return window.location.protocol === 'https:' ? 'https://cors.apn.monster/' : 'http://cors.cfhttp.top/';
       if (name === 'zetflix') return proxy_apn;
-      if (name === 'allohacdn') return proxy_apn;
+      if (name === 'allohacdn') return proxy_other ? proxy_secret : proxy_apn;
       if (name === 'cookie') return user_proxy1;
       if (name === 'cookie2') return user_proxy2;
       if (name === 'cookie3') return user_proxy3;
@@ -405,7 +405,7 @@
       var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true;
       var prefer_mp4 = Lampa.Storage.field('online_mod_prefer_mp4') === true;
       var prox = component.proxy('lumex');
-      var host = atob('aHR0cHM6Ly9wLmx1bWV4LnB3');
+      var host = atob('aHR0cHM6Ly9wLmx1bWV4LmNsb3Vk');
       var ref = host + '/';
       var user_agent = Utils.baseUserAgent();
       var headers = Lampa.Platform.is('android') ? {
@@ -439,7 +439,7 @@
       }
 
       var prox_enc2 = prox_enc;
-      var embed = atob('aHR0cHM6Ly9hcGkubHVtZXgucHcv');
+      var embed = atob('aHR0cHM6Ly9hcGkubHVtZXguY2xvdWQv');
       var suffix = atob('Y2xpZW50SWQ9Q1dmS1hMYzFhaklkJmRvbWFpbj1tb3ZpZWxhYi5vbmUmdXJsPW1vdmllbGFiLm9uZQ==');
       var filter_items = {};
       var choice = {
@@ -11435,7 +11435,7 @@
       };
     }
 
-    var mod_version = '15.12.2024';
+    var mod_version = '21.12.2024';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
