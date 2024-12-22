@@ -1,4 +1,4 @@
-//21.12.2024 - Fix
+//22.12.2024 - Fix
 
 (function () {
     'use strict';
@@ -3376,7 +3376,7 @@
                 }).filter(function (name) {
                   return name && name !== 'delete';
                 });
-                var file = fixUrl(prefer_dash && episode.dash || episode.hls || '');
+                var file = fixUrl(prefer_dash && (episode.dasha || episode.dash) || episode.hls || '');
                 filtred.push({
                   title: episode.title,
                   quality: '360p ~ ' + (prefer_dash ? '1080p' : '720p'),
@@ -3423,7 +3423,7 @@
           }).filter(function (name) {
             return name && name !== 'delete';
           });
-          var file = fixUrl(prefer_dash && extract.source.dash || extract.source.hls || '');
+          var file = fixUrl(prefer_dash && (extract.source.dasha || extract.source.dash) || extract.source.hls || '');
           filtred.push({
             title: extract.title || select_title,
             quality: max_quality ? max_quality + 'p' : '360p ~ ' + (prefer_dash ? '1080p' : '720p'),
@@ -6433,6 +6433,12 @@
                 if (b.label < a.label) return -1;
                 return 0;
               });
+
+              if (!av1_support) {
+                items = items.filter(function (item) {
+                  return !(item.quality > 1080);
+                });
+              }
             }
 
             if (items && items.length) {
@@ -7406,7 +7412,7 @@
         url = Lampa.Utils.addUrlComponent(url, 'limit=20');
         url = Lampa.Utils.addUrlComponent(url, 'search=' + encodeURIComponent(select_title));
         network.clear();
-        network.timeout(1000 * 15);
+        network.timeout(1000 * 30);
         network.silent(component.proxyLink(url, prox), function (json) {
           display(json && json.list);
         }, function (a, c) {
@@ -11435,7 +11441,7 @@
       };
     }
 
-    var mod_version = '21.12.2024';
+    var mod_version = '22.12.2024';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
