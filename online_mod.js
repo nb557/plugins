@@ -1,4 +1,4 @@
-//22.12.2024 - Fix
+//30.12.2024 - Fix
 
 (function () {
     'use strict';
@@ -405,7 +405,7 @@
       var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true;
       var prefer_mp4 = Lampa.Storage.field('online_mod_prefer_mp4') === true;
       var prox = component.proxy('lumex');
-      var host = atob('aHR0cHM6Ly9wLmx1bWV4LmNsb3Vk');
+      var host = atob('aHR0cHM6Ly9wLmx1bWV4LnNwYWNl');
       var ref = host + '/';
       var user_agent = Utils.baseUserAgent();
       var headers = Lampa.Platform.is('android') ? {
@@ -439,7 +439,7 @@
       }
 
       var prox_enc2 = prox_enc;
-      var embed = atob('aHR0cHM6Ly9hcGkubHVtZXguY2xvdWQv');
+      var embed = atob('aHR0cHM6Ly9hcGkubHVtZXguc3BhY2Uv');
       var suffix = atob('Y2xpZW50SWQ9Q1dmS1hMYzFhaklkJmRvbWFpbj1tb3ZpZWxhYi5vbmUmdXJsPW1vdmllbGFiLm9uZQ==');
       var filter_items = {};
       var choice = {
@@ -11441,7 +11441,7 @@
       };
     }
 
-    var mod_version = '22.12.2024';
+    var mod_version = '30.12.2024';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
