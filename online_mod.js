@@ -1,4 +1,4 @@
-//30.12.2024 - Fix
+//04.01.2025 - Fix
 
 (function () {
     'use strict';
@@ -4065,7 +4065,7 @@
       }
 
       var embed = 'http://filmixapp.cyou/api/v2/';
-      var site = 'https://filmix.fm/';
+      var site = 'https://filmix.quest/';
       var select_title = '';
       var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true;
       var filter_items = {};
@@ -5489,23 +5489,39 @@
       function filter() {
         filter_items = {
           season: [],
-          voice: []
+          season_num: [],
+          voice: [],
+          voice_info: []
         };
-        extract.forEach(function (s) {
-          if (s.folder) filter_items.season.push(s.title || s.comment || '');
+        extract.forEach(function (t) {
+          if (t.folder) {
+            for (var s_num in t.folder) {
+              if (filter_items.season_num.indexOf(s_num) == -1) filter_items.season_num.push(s_num);
+            }
+          }
+        });
+        filter_items.season_num.sort(function (a, b) {
+          return a - b;
+        });
+        filter_items.season_num.forEach(function (s_num) {
+          filter_items.season.push(Lampa.Lang.translate('torrent_serial_season') + ' ' + s_num);
         });
         if (!filter_items.season[choice.season]) choice.season = 0;
-        var s = extract[choice.season];
 
-        if (s && s.folder) {
-          s.folder.forEach(function (e) {
-            if (e.folder) {
-              e.folder.forEach(function (v) {
-                if (v.file) {
-                  var voice = v.title || v.comment || '';
-                  if (filter_items.voice.indexOf(voice) == -1) filter_items.voice.push(voice);
-                }
-              });
+        if (filter_items.season[choice.season]) {
+          var s_num = filter_items.season_num[choice.season];
+          extract.forEach(function (t) {
+            if (t.folder && t.folder[s_num]) {
+              var v_id = t.id || '';
+
+              if (!filter_items.voice_info.some(function (v) {
+                return v.id == v_id;
+              })) {
+                filter_items.voice.push(t.title || t.comment || '');
+                filter_items.voice_info.push({
+                  id: v_id
+                });
+              }
             }
           });
         }
@@ -5531,30 +5547,29 @@
         var filtred = [];
         extract.forEach(function (data) {
           if (data.folder) {
-            var s_title = data.title || data.comment || '';
+            var v_info = filter_items.voice_info[choice.voice];
 
-            if (s_title == filter_items.season[choice.season]) {
-              data.folder.forEach(function (e) {
-                if (e.folder) {
-                  var e_title = e.title || e.comment || '';
-                  e.folder.forEach(function (v) {
-                    var voice = v.title || v.comment || '';
+            if (v_info && data.id == v_info.id) {
+              var voice = filter_items.voice[choice.voice];
+              var s_num = filter_items.season_num[choice.season];
+              var s = data.folder[s_num] || {};
 
-                    if (v.file && voice == filter_items.voice[choice.voice]) {
-                      var episode_num = parseInt(e_title.match(/\d+/));
-                      var season_num = parseInt(s_title.match(/\d+/));
-                      filtred.push({
-                        title: component.formatEpisodeTitle(season_num, episode_num),
-                        quality: '360p ~ 1080p',
-                        info: ' / ' + Lampa.Utils.shortText(voice, 50),
-                        season: season_num,
-                        episode: episode_num,
-                        media: v
-                      });
-                    }
-                  });
+              if (s.folder) {
+                for (var e_num in s.folder) {
+                  var e = s.folder[e_num] || {};
+
+                  if (e.file) {
+                    filtred.push({
+                      title: component.formatEpisodeTitle(s_num, e_num),
+                      quality: '360p ~ 1080p',
+                      info: ' / ' + Lampa.Utils.shortText(voice, 50),
+                      season: parseInt(s_num),
+                      episode: parseInt(e_num),
+                      media: e
+                    });
+                  }
                 }
-              });
+              }
             }
           } else if (data.file) {
             filtred.push({
@@ -11441,7 +11456,7 @@
       };
     }
 
-    var mod_version = '30.12.2024';
+    var mod_version = '04.01.2025';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
@@ -11946,11 +11961,11 @@
         zh: '将设备添加到 Filmix'
       },
       online_mod_filmix_modal_text: {
-        ru: 'Введите его на странице https://filmix.fm/consoles в вашем авторизованном аккаунте!',
-        uk: 'Введіть його на сторінці https://filmix.fm/consoles у вашому авторизованому обліковому записі!',
-        be: 'Увядзіце яго на старонцы https://filmix.fm/consoles у вашым аўтарызаваным акаўнце!',
-        en: 'Enter it at https://filmix.fm/consoles in your authorized account!',
-        zh: '在您的授权帐户中的 https://filmix.fm/consoles 中输入！'
+        ru: 'Введите его на странице https://filmix.quest/consoles в вашем авторизованном аккаунте!',
+        uk: 'Введіть його на сторінці https://filmix.quest/consoles у вашому авторизованому обліковому записі!',
+        be: 'Увядзіце яго на старонцы https://filmix.quest/consoles у вашым аўтарызаваным акаўнце!',
+        en: 'Enter it at https://filmix.quest/consoles in your authorized account!',
+        zh: '在您的授权帐户中的 https://filmix.quest/consoles 中输入！'
       },
       online_mod_filmix_modal_wait: {
         ru: 'Ожидаем код',
