@@ -1,4 +1,4 @@
-//04.01.2025 - Fix
+//07.01.2025 - Fix
 
 (function () {
     'use strict';
@@ -10045,6 +10045,7 @@
       var balanser = Lampa.Storage.get('online_mod_balanser', 'collaps') + '';
       var last_bls = Lampa.Storage.field('online_mod_save_last_balanser') === true ? Lampa.Storage.cache('online_mod_last_balanser', 200, {}) : {};
       var use_stream_proxy = Lampa.Storage.field('online_mod_use_stream_proxy') === true;
+      var rezka2_prx_ukr = '//' + (Lampa.Storage.field('online_mod_rezka2_prx_ukr') || 'prx.ukrtelcdn.net') + '/';
       var rezka2_fix_stream = Lampa.Storage.field('online_mod_rezka2_fix_stream') === true;
       var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true;
       var convert_vtt_to_srt = Lampa.Storage.field('online_mod_convert_vtt_to_srt') === true;
@@ -10078,7 +10079,7 @@
           if (name === 'lumex') return url;
 
           if (name === 'rezka2') {
-            return url.replace(/\/\/(stream\.voidboost\.(cc|top|link|club)|vdbmate.org|sambray.org|femeretes.org)\//, '//prx.ukrtelcdn.net/');
+            return url.replace(/\/\/(stream\.voidboost\.(cc|top|link|club)|[^\/]*.ukrtelcdn.net|vdbmate.org|sambray.org|femeretes.org)\//, rezka2_prx_ukr);
           }
 
           return (prefer_http ? 'http://apn.cfhttp.top/' : 'https://apn.watch/') + url;
@@ -11456,7 +11457,7 @@
       };
     }
 
-    var mod_version = '04.01.2025';
+    var mod_version = '07.01.2025';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
@@ -11530,6 +11531,13 @@
     Lampa.Params.select('online_mod_rezka2_name', '', '');
     Lampa.Params.select('online_mod_rezka2_password', '', '');
     Lampa.Params.select('online_mod_rezka2_cookie', '', '');
+    Lampa.Params.select('online_mod_rezka2_prx_ukr', {
+      'prx.ukrtelcdn.net': 'prx.ukrtelcdn.net',
+      'prx-cogent.ukrtelcdn.net': 'prx-cogent.ukrtelcdn.net',
+      'prx2-cogent.ukrtelcdn.net': 'prx2-cogent.ukrtelcdn.net',
+      'prx-ams.ukrtelcdn.net': 'prx-ams.ukrtelcdn.net',
+      'prx2-ams.ukrtelcdn.net': 'prx2-ams.ukrtelcdn.net'
+    }, 'prx.ukrtelcdn.net');
     Lampa.Params.select('online_mod_fancdn_name', '', '');
     Lampa.Params.select('online_mod_fancdn_password', '', '');
     Lampa.Params.select('online_mod_fancdn_cookie', '', '');
@@ -11861,6 +11869,13 @@
         be: 'Фікс відэаструменю для HDrezka',
         en: 'Fix video stream for HDrezka',
         zh: '修复 HDrezka 的视频流'
+      },
+      online_mod_rezka2_prx_ukr: {
+        ru: 'Прокси-сервер для HDrezka (Укр)',
+        uk: 'Проксі-сервер для HDrezka (Укр)',
+        be: 'Проксі-сервер для HDrezka (Укр)',
+        en: 'Proxy server for HDrezka (Ukr)',
+        zh: 'HDrezka 的代理服务器 （乌克兰）'
       },
       online_mod_fancdn_name: {
         ru: 'Логин для FanSerials',
@@ -12579,7 +12594,9 @@
       template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_fancdn_fill_cookie\" data-static=\"true\">\n        <div class=\"settings-param__name\">#{online_mod_fancdn_fill_cookie}</div>\n        <div class=\"settings-param__status\"></div>\n    </div>";
     }
 
-    template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_use_stream_proxy\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_use_stream_proxy}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_find_ip\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_find_ip}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_other\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_other}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_other_url\" data-type=\"input\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_other_url}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_secret_password\" data-type=\"input\" data-string=\"true\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{online_mod_secret_password}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
+    template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_use_stream_proxy\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_use_stream_proxy}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
+    template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_rezka2_prx_ukr\" data-type=\"select\">\n        <div class=\"settings-param__name\">#{online_mod_rezka2_prx_ukr}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
+    template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_find_ip\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_find_ip}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_other\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_other}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_other_url\" data-type=\"input\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_other_url}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_secret_password\" data-type=\"input\" data-string=\"true\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{online_mod_secret_password}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
 
     if (Utils.isDebug()) {
       template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_av1_support\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_av1_support}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
