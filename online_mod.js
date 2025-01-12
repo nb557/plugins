@@ -1,4 +1,4 @@
-//07.01.2025 - Fix
+//12.01.2025 - Fix
 
 (function () {
     'use strict';
@@ -94,7 +94,7 @@
     function proxy(name) {
       var ip = getMyIp() || '';
       var param_ip = Lampa.Storage.field('online_mod_proxy_find_ip') === true ? 'ip' + ip + '/' : '';
-      var proxy1 = 'https://cors.nb557.workers.dev:8443/';
+      var proxy1 = new Date().getHours() % 2 ? 'https://cors.nb557.workers.dev:8443/' : 'https://cors.fx666.workers.dev:8443/';
       var proxy2 = (window.location.protocol === 'https:' ? 'https://' : 'http://') + 'iqslgbok.deploy.cx/';
       var proxy3 = 'https://cors557.deno.dev/';
       var proxy_apn = '';
@@ -11457,7 +11457,7 @@
       };
     }
 
-    var mod_version = '07.01.2025';
+    var mod_version = '12.01.2025';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
