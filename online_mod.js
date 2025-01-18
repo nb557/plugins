@@ -1,4 +1,4 @@
-//17.01.2025 - Fix
+//18.01.2025 - Fix
 
 (function () {
     'use strict';
@@ -1008,6 +1008,7 @@
       var select_title = '';
       var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true;
       var embed = atob('aHR0cHM6Ly9hcGkubGFtcGEuc3RyZWFtL2x1bWV4Lw==');
+      var api_suffix = '/' + encodeURIComponent(btoa(window.location.host));
       var filter_items = {};
       var choice = {
         season: 0,
@@ -1016,7 +1017,7 @@
         voice_id: 0
       };
 
-      function lumex_search(api, callback, error) {
+      function lumex_api(api, callback, error) {
         var error_check = function error_check(a, c) {
           if (a.status == 404 || a.status == 500 || a.status == 0 && a.statusText !== 'timeout') {
             if (callback) callback('');
@@ -1054,10 +1055,10 @@
           src += 'searchId/' + encodeURIComponent(imdb_id) + '/' + encodeURIComponent(kp_id);
         }
 
-        lumex_search(src, function (json) {
+        lumex_api(src + api_suffix, function (json) {
           if (found && json) success(json);else if (!found && json && json.content_type && json.id) {
             var src2 = embed + 'findID/' + encodeURIComponent(json.id) + '/' + encodeURIComponent(json.content_type.replace(/_/g, '-'));
-            lumex_search(src2, function (json) {
+            lumex_api(src2 + api_suffix, function (json) {
               if (json) success(json);else component.emptyForQuery(select_title);
             }, error);
           } else component.emptyForQuery(select_title);
@@ -1118,7 +1119,7 @@
       function success(json, cookie) {
         component.loading(false);
 
-        if (json && json.media && json.media.length && json.host) {
+        if (json && json.media && json.media.length) {
           var seasons = [];
           var season_num = [];
           var season_count = 0;
@@ -1144,10 +1145,8 @@
             seasons: seasons,
             season_num: season_num,
             media: json.media,
-            headers: json.headers || {},
             tag_url: json.tag_url || '',
-            vast_msg: json.vast_msg || '',
-            host: json.host || ''
+            vast_msg: json.vast_msg || ''
           };
           filter();
           append(filtred());
@@ -1273,50 +1272,54 @@
       function getStream(element, call, error) {
         if (element.stream) return call(element);
         if (!element.media.playlist) error();
-        var url = component.fixLink(element.media.playlist, extract.host);
-        network.clear();
-        network.timeout(10000);
-        network["native"](url, function (json) {
-          var url = json && json.url ? (prefer_http ? 'http:' : 'https:') + json.url : '';
+        lumex_api(embed + 'tok/' + encodeURIComponent(element.media.playlist) + api_suffix, function (json) {
+          if (json && json.host && json.headers) {
+            var url = component.fixLink(element.media.playlist, json.host);
+            network.clear();
+            network.timeout(10000);
+            network["native"](url, function (json) {
+              var url = json && json.url ? (prefer_http ? 'http:' : 'https:') + json.url : '';
 
-          if (url) {
-            element.subtitles = false ;
-            var file = url;
-            var quality = false;
+              if (url) {
+                element.subtitles = false ;
+                var file = url;
+                var quality = false;
 
-            if (endsWith(url, 'hls.m3u8')) {
-              var base_url = url.substring(0, url.length - 'hls.m3u8'.length);
-              var max_quality = element.media.max_quality || 1080;
-              var quality_list = [1080, 720, 480, 360, 240];
-              var items = [];
-              quality_list.forEach(function (q) {
-                if (q <= max_quality) {
-                  items.push({
-                    label: q + 'p',
-                    quality: q,
-                    file: base_url + q + '.mp4'
+                if (endsWith(url, 'hls.m3u8')) {
+                  var base_url = url.substring(0, url.length - 'hls.m3u8'.length);
+                  var max_quality = element.media.max_quality || 1080;
+                  var quality_list = [1080, 720, 480, 360, 240];
+                  var items = [];
+                  quality_list.forEach(function (q) {
+                    if (q <= max_quality) {
+                      items.push({
+                        label: q + 'p',
+                        quality: q,
+                        file: base_url + q + '.mp4'
+                      });
+                    }
                   });
+
+                  if (items && items.length) {
+                    file = items[0].file;
+                    quality = {};
+                    items.forEach(function (item) {
+                      quality[item.label] = item.file;
+                    });
+                  }
                 }
-              });
 
-              if (items && items.length) {
-                file = items[0].file;
-                quality = {};
-                items.forEach(function (item) {
-                  quality[item.label] = item.file;
-                });
-              }
-            }
-
-            element.stream = file;
-            element.qualitys = quality;
-            call(element);
-          } else error();
-        }, function (a, c) {
-          error();
-        }, {}, {
-          headers: extract.headers
-        });
+                element.stream = file;
+                element.qualitys = quality;
+                call(element);
+              } else error();
+            }, function (a, c) {
+              error();
+            }, {}, {
+              headers: json.headers
+            });
+          }
+        }, error);
       }
       /**
        * Добавить видео
@@ -11895,7 +11898,7 @@
       };
     }
 
-    var mod_version = '17.01.2025';
+    var mod_version = '18.01.2025';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
