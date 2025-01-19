@@ -1007,6 +1007,7 @@
       extract.media = [];
       var select_title = '';
       var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true;
+      var prefer_mp4 = Lampa.Storage.field('online_mod_prefer_mp4') === true;
       var embed = atob('aHR0cHM6Ly9hcGkubGFtcGEuc3RyZWFtL2x1bWV4Lw==');
       var api_suffix = '/' + encodeURIComponent(btoa(window.location.href));
       var filter_items = {};
@@ -1285,7 +1286,7 @@
                 var file = url;
                 var quality = false;
 
-                if (endsWith(url, 'hls.m3u8')) {
+                if (endsWith(url, 'hls.m3u8') && prefer_mp4) {
                   var base_url = url.substring(0, url.length - 'hls.m3u8'.length);
                   var max_quality = element.media.max_quality || 1080;
                   var quality_list = [1080, 720, 480, 360, 240];
