@@ -135,6 +135,7 @@
         if (name === 'redheadsound') return proxy_other ? proxy_secret : proxy_apn;
         if (name === 'anilibria') return user_proxy2;
         if (name === 'anilibria2') return user_proxy2;
+        if (name === 'animelib') return proxy_other ? proxy_secret : proxy_apn;
         if (name === 'kodik') return user_proxy2;
         if (name === 'kinopub') return user_proxy2;
       }
@@ -8496,7 +8497,16 @@
       var object = _object;
       var select_title = '';
       var prox = component.proxy('animelib');
-      var embed = 'https://api.mangalib.me/api/';
+      var host = 'https://anilib.me';
+      var ref = host + '/';
+      var embed = 'https://api2.mangalib.me/api/';
+      var prox_enc = '';
+
+      if (prox) {
+        prox_enc += 'param/Origin=' + encodeURIComponent(host) + '/';
+        prox_enc += 'param/Referer=' + encodeURIComponent(ref) + '/';
+      }
+
       var servers = [{
         name: 'Основной',
         url: 'https://video1.anilib.me/.%D0%B0s/'
@@ -8619,7 +8629,7 @@
         url = Lampa.Utils.addUrlComponent(url, 'q=' + encodeURIComponent(select_title));
         network.clear();
         network.timeout(1000 * 15);
-        network.silent(component.proxyLink(url, prox), function (json) {
+        network.silent(component.proxyLink(url, prox, prox_enc), function (json) {
           display(json && json.data);
         }, function (a, c) {
           component.empty(network.errorDecode(a, c));
@@ -8677,7 +8687,7 @@
         url = Lampa.Utils.addUrlComponent(url, 'anime_id=' + encodeURIComponent(json.slug_url));
         network.clear();
         network.timeout(1000 * 15);
-        network.silent(component.proxyLink(url, prox), function (episodes) {
+        network.silent(component.proxyLink(url, prox, prox_enc), function (episodes) {
           if (episodes && episodes.data && episodes.data.length) {
             json.episodes = episodes.data;
             getPlayers(json.episodes[0], function () {
@@ -8698,7 +8708,7 @@
         var url = embed + 'episodes/' + episode.id;
         network.clear();
         network.timeout(1000 * 15);
-        network.silent(component.proxyLink(url, prox), function (json) {
+        network.silent(component.proxyLink(url, prox, prox_enc), function (json) {
           if (json && json.data && json.data.players) {
             episode.players = json.data.players.filter(function (p) {
               return p.player === 'Animelib';
@@ -8776,7 +8786,7 @@
               return {
                 label: q.quality ? q.quality + 'p' : '360p ~ 1080p',
                 quality: q.quality,
-                file: q.href ? server.url + q.href : ''
+                file: q.href ? component.proxyLink(server.url + q.href, prox, prox_enc) : ''
               };
             });
             items.sort(function (a, b) {
@@ -10680,7 +10690,8 @@
         source: new animelib(this, object),
         search: true,
         kp: false,
-        imdb: false
+        imdb: false,
+        disabled: disable_dbg
       }, {
         name: 'kodik',
         title: 'Kodik',
@@ -11919,6 +11930,7 @@
       Lampa.Storage.set('online_mod_proxy_fancdn', 'false');
       Lampa.Storage.set('online_mod_proxy_fanserials', 'false');
       Lampa.Storage.set('online_mod_proxy_redheadsound', 'false');
+      Lampa.Storage.set('online_mod_proxy_animelib', 'false');
     }
 
     Lampa.Storage.set('online_mod_proxy_filmix', Lampa.Platform.is('android') ? 'false' : 'true');
@@ -12985,6 +12997,11 @@
 
     template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_anilibria\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} AniLibria</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
     template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_anilibria2\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} AniLibria.top</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
+
+    if (Utils.isDebug()) {
+      template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_animelib\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} AnimeLib</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
+    }
+
     template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_kodik\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} Kodik</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
     template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_skip_kp_search\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_skip_kp_search}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
     template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_iframe_proxy\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_iframe_proxy}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
