@@ -1,4 +1,4 @@
-//18.01.2025 - Fix
+//19.01.2025 - Fix
 
 (function () {
     'use strict';
@@ -1008,7 +1008,7 @@
       var select_title = '';
       var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true;
       var embed = atob('aHR0cHM6Ly9hcGkubGFtcGEuc3RyZWFtL2x1bWV4Lw==');
-      var api_suffix = '/' + encodeURIComponent(btoa(window.location.host));
+      var api_suffix = '/' + encodeURIComponent(btoa(window.location.href));
       var filter_items = {};
       var choice = {
         season: 0,
@@ -11898,7 +11898,7 @@
       };
     }
 
-    var mod_version = '18.01.2025';
+    var mod_version = '19.01.2025';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
