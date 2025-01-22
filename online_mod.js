@@ -1,4 +1,4 @@
-//20.01.2025 - Fix
+//22.01.2025 - Fix
 
 (function () {
     'use strict';
@@ -6140,7 +6140,7 @@
       function fancdn_api_search(api, callback, error) {
         network.clear();
         network.timeout(10000);
-        network.silent(component.proxyLink(Lampa.Utils.addUrlComponent(embed, api), prox, prox_enc), function (str) {
+        network["native"](component.proxyLink(Lampa.Utils.addUrlComponent(embed, api), prox, prox_enc), function (str) {
           if (str && str.indexOf('<title>Доступ ограничен</title>') !== -1) {
             if (error) error(Lampa.Lang.translate('online_mod_authorization_required') + ' FanSerials');
             return;
@@ -12425,7 +12425,7 @@
       };
     }
 
-    var mod_version = '20.01.2025';
+    var mod_version = '22.01.2025';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
