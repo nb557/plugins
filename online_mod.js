@@ -1,4 +1,4 @@
-//22.01.2025 - Fix
+//24.01.2025 - Fix
 
 (function () {
     'use strict';
@@ -158,6 +158,20 @@
       return link;
     }
 
+    function fixLinkProtocol(link, prefer_http, replace_protocol) {
+      if (link) {
+        if (startsWith(link, '//')) {
+          return (prefer_http ? 'http:' : 'https:') + link;
+        } else if (prefer_http && replace_protocol) {
+          return link.replace('https://', 'http://');
+        } else if (!prefer_http && replace_protocol === 'full') {
+          return link.replace('http://', 'https://');
+        }
+      }
+
+      return link;
+    }
+
     function proxyLink(link, proxy, proxy_enc, enc) {
       if (link && proxy) {
         if (proxy_enc == null) proxy_enc = '';
@@ -254,6 +268,7 @@
       getMyIp: getMyIp,
       proxy: proxy,
       fixLink: fixLink,
+      fixLinkProtocol: fixLinkProtocol,
       proxyLink: proxyLink,
       randomWords: randomWords,
       randomChars: randomChars,
@@ -851,10 +866,10 @@
           var link = links.split(' or ').filter(function (link) {
             return link;
           })[0] || '';
-          var url = link ? (prefer_http ? 'http:' : 'https:') + link : '';
+          link = component.fixLinkProtocol(link, prefer_http);
           return {
             label: item.label,
-            url: component.proxyStreamSubs(url, 'lumex')
+            url: component.proxyStreamSubs(link, 'lumex')
           };
         }).filter(function (s) {
           return s.url;
@@ -874,7 +889,7 @@
         network.clear();
         network.timeout(10000);
         network["native"](component.proxyLink(url, prox, prox_enc2), function (json) {
-          var url = json && json.url ? (prefer_http ? 'http:' : 'https:') + json.url : '';
+          var url = component.fixLinkProtocol(json && json.url || '', prefer_http);
 
           if (url) {
             element.subtitles = parseSubs(element.media.tracks);
@@ -1279,7 +1294,7 @@
             network.clear();
             network.timeout(10000);
             network["native"](url, function (json) {
-              var url = json && json.url ? (prefer_http ? 'http:' : 'https:') + json.url : '';
+              var url = component.fixLinkProtocol(json && json.url || '', prefer_http);
 
               if (url) {
                 element.subtitles = false ;
@@ -1655,13 +1670,7 @@
         if (subtitle) {
           subtitles = component.parsePlaylist(subtitle[1]).map(function (item) {
             var link = item.links[0] || '';
-
-            if (prefer_http) {
-              link = link.replace('https://', 'http://');
-            } else {
-              link = link.replace('http://', 'https://');
-            }
-
+            link = component.fixLinkProtocol(link, prefer_http, 'full');
             return {
               label: item.label,
               url: component.processSubs(link)
@@ -1698,13 +1707,7 @@
 
             if (!links.length) links = item.links;
             var link = links[0] || '';
-
-            if (prefer_http) {
-              link = link.replace('https://', 'http://');
-            } else {
-              link = link.replace('http://', 'https://');
-            }
-
+            link = component.fixLinkProtocol(link, prefer_http, 'full');
             return {
               label: item.label,
               quality: quality ? parseInt(quality[1]) : NaN,
@@ -2735,13 +2738,7 @@
 
             if (!links.length) links = item.links;
             var link = links[0] || '';
-
-            if (prefer_http) {
-              link = link.replace('https://', 'http://');
-            } else {
-              link = link.replace('http://', 'https://');
-            }
-
+            link = component.fixLinkProtocol(link, prefer_http, 'full');
             return {
               label: item.label,
               quality: int_quality,
@@ -2767,13 +2764,7 @@
         if (str) {
           subtitles = component.parsePlaylist(str).map(function (item) {
             var link = item.links[0] || '';
-
-            if (prefer_http) {
-              link = link.replace('https://', 'http://');
-            } else {
-              link = link.replace('http://', 'https://');
-            }
-
+            link = component.fixLinkProtocol(link, prefer_http, 'full');
             return {
               label: item.label,
               url: component.processSubs(link)
@@ -3763,7 +3754,7 @@
 
       function fixUrl(url) {
         url = (url || '').replace(atob('Ly9oeWUxZWFpcGJ5NHcubWF0aGFtLndzLw=='), atob('Ly9hYi5tYXRoYW0ud3Mv'));
-        if (prefer_http) url = url.replace('https://', 'http://');
+        url = component.fixLinkProtocol(url, prefer_http, true);
         return url;
       }
       /**
@@ -4152,7 +4143,7 @@
             var quality = item.label.match(/(\d\d\d+)p/);
             var link = item.links[0] || '';
             link = link.replace('/sundb.coldcdn.xyz/', '/sundb.nl/');
-            if (prefer_http) link = link.replace('https://', 'http://');
+            link = component.fixLinkProtocol(link, prefer_http, true);
             if (prefer_mp4) link = link.replace(/(\.mp4):hls:manifest\.m3u8$/i, '$1');
             return {
               label: item.label,
@@ -4213,7 +4204,7 @@
         }
 
         url = url.replace('/sundb.coldcdn.xyz/', '/sundb.nl/');
-        if (prefer_http) url = url.replace('https://', 'http://');
+        url = component.fixLinkProtocol(url, prefer_http, true);
         if (prefer_mp4) url = url.replace(/(\.mp4):hls:manifest\.m3u8$/i, '$1');
 
         if (url) {
@@ -4281,7 +4272,7 @@
         var subtitles = component.parsePlaylist(str).map(function (item) {
           var link = item.links[0] || '';
           link = link.replace('/sundb.coldcdn.xyz/', '/sundb.nl/');
-          if (prefer_http) link = link.replace('https://', 'http://');
+          link = component.fixLinkProtocol(link, prefer_http, true);
           return {
             label: item.label,
             url: component.processSubs(component.proxyLink(link, prox_stream, ''))
@@ -4821,7 +4812,7 @@
 
                 if (max_quality) {
                   var stream_url = file.link || '';
-                  if (prefer_http) stream_url = stream_url.replace('https://', 'http://');
+                  stream_url = component.fixLinkProtocol(stream_url, prefer_http, true);
 
                   if (secret) {
                     stream_url = stream_url.replace(/(https?:\/\/[^\/]+)\/s\/[^\/]*\//, secret);
@@ -4880,7 +4871,7 @@
 
             var _stream_url = _file.link || '';
 
-            if (prefer_http) _stream_url = _stream_url.replace('https://', 'http://');
+            _stream_url = component.fixLinkProtocol(_stream_url, prefer_http, true);
 
             if (secret) {
               _stream_url = _stream_url.replace(/(https?:\/\/[^\/]+)\/s\/[^\/]*\//, secret);
@@ -5230,7 +5221,7 @@
           var items = component.parsePlaylist(str).map(function (item) {
             var quality = item.label.match(/(\d\d\d+)p/);
             var link = item.links[0] || '';
-            if (prefer_http) link = link.replace('https://', 'http://');
+            link = component.fixLinkProtocol(link, prefer_http, true);
             return {
               label: item.label,
               quality: quality ? parseInt(quality[1]) : NaN,
@@ -5771,7 +5762,7 @@
           var items = component.parsePlaylist(str).map(function (item) {
             var quality = item.label.match(/(\d\d\d+)p/);
             var link = item.links[0] || '';
-            if (prefer_http) link = link.replace('https://', 'http://');
+            link = component.fixLinkProtocol(link, prefer_http, true);
             return {
               label: item.label,
               quality: quality ? parseInt(quality[1]) : NaN,
@@ -5860,7 +5851,7 @@
           return;
         }
 
-        if (prefer_http) url = url.replace('https://', 'http://');
+        url = component.fixLinkProtocol(url, prefer_http, true);
 
         if (endsWith(url, '.m3u8')) {
           getStreamM3U(element, call, error, url);
@@ -5879,7 +5870,7 @@
         if (!str) return false;
         var subtitles = component.parsePlaylist(str).map(function (item) {
           var link = item.links[0] || '';
-          if (prefer_http) link = link.replace('https://', 'http://');
+          link = component.fixLinkProtocol(link, prefer_http, true);
           return {
             label: item.label,
             url: component.proxyStreamSubs(component.fixLink(link, url), 'fancdn')
@@ -6279,7 +6270,7 @@
           var items = component.parsePlaylist(str).map(function (item) {
             var quality = item.label.match(/(\d\d\d+)p/);
             var link = item.links[0] || '';
-            if (prefer_http) link = link.replace('https://', 'http://');
+            link = component.fixLinkProtocol(link, prefer_http, true);
             return {
               label: item.label,
               quality: quality ? parseInt(quality[1]) : NaN,
@@ -6368,7 +6359,7 @@
           return;
         }
 
-        if (prefer_http) url = url.replace('https://', 'http://');
+        url = component.fixLinkProtocol(url, prefer_http, true);
 
         if (endsWith(url, '.m3u8')) {
           getStreamM3U(element, call, error, url);
@@ -6387,7 +6378,7 @@
         if (!str) return false;
         var subtitles = component.parsePlaylist(str).map(function (item) {
           var link = item.links[0] || '';
-          if (prefer_http) link = link.replace('https://', 'http://');
+          link = component.fixLinkProtocol(link, prefer_http, true);
           return {
             label: item.label,
             url: component.proxyStreamSubs(component.fixLink(link, url), 'fancdn')
@@ -9984,7 +9975,7 @@
         if (!element.link) return error();
         var link_match = element.link.match(/^(\/\/[^\/]+)\/.*$/);
         var link_origin = (prefer_http ? 'http:' : 'https:') + (link_match ? link_match[1] : '//kodik.info');
-        var url = (prefer_http ? 'http:' : 'https:') + element.link;
+        var url = component.fixLinkProtocol(element.link, prefer_http);
         network.clear();
         network.timeout(10000);
         network["native"](component.proxyLink(url, prox), function (str) {
@@ -10086,7 +10077,7 @@
             var obj = playlists[key];
             var quality = parseInt(key);
             var link = decode(obj && obj[0] && obj[0].src || '');
-            if (startsWith(link, '//')) link = (prefer_http ? 'http:' : 'https:') + link;else if (prefer_http) link = link.replace('https://', 'http://');
+            link = component.fixLinkProtocol(link, prefer_http, true);
             if (prefer_mp4) ;
             items.push({
               label: quality ? quality + 'p' : '360p ~ 1080p',
@@ -10493,11 +10484,7 @@
                   base_url = base_url.replace(replace_mask, secret);
                 }
 
-                if (prefer_http) {
-                  base_url = base_url.replace('https://', 'http://');
-                } else {
-                  base_url = base_url.replace('http://', 'https://');
-                }
+                base_url = component.fixLinkProtocol(base_url, prefer_http, 'full');
 
                 if (media.subtitles) {
                   subtitles = media.subtitles.map(function (sub) {
@@ -10538,12 +10525,7 @@
                   _base_url = _base_url.replace(replace_mask, secret);
                 }
 
-                if (prefer_http) {
-                  _base_url = _base_url.replace('https://', 'http://');
-                } else {
-                  _base_url = _base_url.replace('http://', 'https://');
-                }
-
+                _base_url = component.fixLinkProtocol(_base_url, prefer_http, 'full');
                 items.push({
                   height: file.h,
                   quality_id: file.quality_id,
@@ -10573,12 +10555,7 @@
                   _base_url2 = _base_url2.replace(replace_mask, secret);
                 }
 
-                if (prefer_http) {
-                  _base_url2 = _base_url2.replace('https://', 'http://');
-                } else {
-                  _base_url2 = _base_url2.replace('http://', 'https://');
-                }
-
+                _base_url2 = component.fixLinkProtocol(_base_url2, prefer_http, 'full');
                 items.push({
                   height: file.h,
                   quality_id: file.quality_id,
@@ -10608,12 +10585,7 @@
                   _base_url3 = _base_url3.replace(replace_mask, secret);
                 }
 
-                if (prefer_http) {
-                  _base_url3 = _base_url3.replace('https://', 'http://');
-                } else {
-                  _base_url3 = _base_url3.replace('http://', 'https://');
-                }
-
+                _base_url3 = component.fixLinkProtocol(_base_url3, prefer_http, 'full');
                 items.push({
                   height: file.h,
                   quality_id: file.quality_id,
@@ -11009,6 +10981,10 @@
 
       this.fixLink = function (link, referrer) {
         return Utils.fixLink(link, referrer);
+      };
+
+      this.fixLinkProtocol = function (link, prefer_http, replace_protocol) {
+        return Utils.fixLinkProtocol(link, prefer_http, replace_protocol);
       };
 
       this.proxyLink = function (link, proxy, proxy_enc, enc) {
@@ -12425,7 +12401,7 @@
       };
     }
 
-    var mod_version = '22.01.2025';
+    var mod_version = '24.01.2025';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
