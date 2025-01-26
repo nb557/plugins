@@ -34,7 +34,7 @@ async function handle(request, connInfo) {
           body += "connInfo" + " = " + JSON.stringify(connInfo.remoteAddr) + "\n";
         }
         body += "request_url" + " = " + request.url + "\n";
-        body += "apn_version = 1.10\n";
+        body += "apn_version = 1.11\n";
         return new Response(body, corsHeaders);
       }
 
@@ -146,6 +146,22 @@ async function handle(request, connInfo) {
       }
       const apiUrl = new URL(api);
       let apiBase = apiUrl.href.substring(0, apiUrl.href.lastIndexOf("/") + 1);
+
+      let clientUserAgent = request.headers.get("User-Agent") || '';
+      let clientOrigin = request.headers.get("Origin") || '';
+      if(
+            (/\blampishe\b|\bprisma_client\b/).test(clientUserAgent) ||
+            clientOrigin.endsWith("lampishe.cc") ||
+            clientOrigin.endsWith("prisma.ws") ||
+            clientOrigin.endsWith("bylampa.online")
+      ) {
+        let error = "Malformed URL";
+        return new Response(error + ": " + api, {
+          ...corsHeaders,
+          status: 404,
+          statusText: error,
+        });
+      }
 
       // Rewrite request to point to API URL. This also makes the request mutable
       // so you can add the correct Origin header to make the API server think
