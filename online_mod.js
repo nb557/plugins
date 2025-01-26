@@ -4514,7 +4514,7 @@
 
       var token = Lampa.Storage.get('filmix_token', '') + '';
       var dev_token = Utils.filmixToken(Utils.randomHex(16), token || 'aaaabbbbccccddddeeeeffffaaaabbbb');
-      var abuse_token = prox3 ? Utils.filmixToken(Utils.randomHex(16), '') : '';
+      var abuse_token = prox3 ? Utils.filmixToken(Utils.randomHex(16), 'aaaabbbbccccddddeeeeffffaaaabbbb') : '';
       /**
        * Начать поиск
        * @param {Object} _object
@@ -4684,14 +4684,21 @@
         function end_search() {
           var url = embed + 'post/' + filmix_id + (abuse ? abuse_token : dev_token);
           url = abuse ? component.proxyLink(url, prox3, '', '') : component.proxyLink(url, prox, prox_enc, 'enc2');
+
+          var not_found = function not_found(str) {
+            if (abuse && abuse_error) success(abuse_error);else if (!abuse && abuse_token) find(filmix_id, true, null, true);else if (str) component.empty(str);else component.emptyForQuery(select_title);
+          };
+
           network.clear();
           network.timeout(10000);
           network["native"](url, function (found) {
-            if (found && Object.keys(found).length) {
+            var pl_links = found && found.player_links || {};
+
+            if (pl_links.movie && Object.keys(pl_links.movie).length > 0 || pl_links.playlist && Object.keys(pl_links.playlist).length > 0) {
               if (!abuse && abuse_token && checkAbuse(found)) find(filmix_id, true, found);else success(found, low_quality);
-            } else component.emptyForQuery(select_title);
+            } else not_found();
           }, function (a, c) {
-            if (abuse && abuse_error) success(abuse_error);else if (!abuse && abuse_token) find(filmix_id, true, null, true);else component.empty(network.errorDecode(a, c));
+            not_found(network.errorDecode(a, c));
           }, false, {
             headers: headers
           });
