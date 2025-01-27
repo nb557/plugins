@@ -1,4 +1,4 @@
-//26.01.2025 - Fix
+//27.01.2025 - Fix
 
 (function () {
     'use strict';
@@ -150,15 +150,66 @@
       return '';
     }
 
+    function parseURL(link) {
+      var url = {
+        href: link,
+        protocol: '',
+        host: '',
+        origin: '',
+        pathname: '',
+        search: '',
+        hash: ''
+      };
+      var pos = link.indexOf('#');
+
+      if (pos !== -1) {
+        url.hash = link.substring(pos);
+        link = link.substring(0, pos);
+      }
+
+      pos = link.indexOf('?');
+
+      if (pos !== -1) {
+        url.search = link.substring(pos);
+        link = link.substring(0, pos);
+      }
+
+      pos = link.indexOf(':');
+      var path_pos = link.indexOf('/');
+
+      if (pos !== -1 && (path_pos === -1 || path_pos > pos)) {
+        url.protocol = link.substring(0, pos + 1);
+        link = link.substring(pos + 1);
+      }
+
+      if (startsWith(link, '//')) {
+        pos = link.indexOf('/', 2);
+
+        if (pos !== -1) {
+          url.host = link.substring(2, pos);
+          link = link.substring(pos);
+        } else {
+          url.host = link.substring(2);
+          link = '/';
+        }
+
+        url.origin = url.protocol + '//' + url.host;
+      }
+
+      url.pathname = link;
+      return url;
+    }
+
     function fixLink(link, referrer) {
       if (link) {
         if (!referrer || link.indexOf('://') !== -1) return link;
-        var url = new URL(referrer);
+        var url = parseURL(referrer);
         if (startsWith(link, '//')) return url.protocol + link;
         if (startsWith(link, '/')) return url.origin + link;
         if (startsWith(link, '?')) return url.origin + url.pathname + link;
         if (startsWith(link, '#')) return url.origin + url.pathname + url.search + link;
-        var base = url.href.substring(0, url.href.lastIndexOf('/') + 1);
+        var base = url.origin + url.pathname;
+        base = base.substring(0, base.lastIndexOf('/') + 1);
         return base + link;
       }
 
@@ -7093,7 +7144,7 @@
       var prox2 = component.proxy('allohacdn');
       var token = 'd317441359e505c343c2063edc97e7';
       var embed = 'https://api.apbugall.org/?token=' + token;
-      var decrypt = Utils.decodeSecret([31, 82, 68, 88, 87, 67, 95, 95, 87, 31, 71, 69, 68, 24, 23, 67, 66, 85, 27, 20, 69, 89, 95, 82, 88, 28, 25, 86, 66, 0, 31, 79, 23, 64, 81, 75, 23, 81, 73, 66, 70, 86, 85, 68, 25, 10, 20, 74, 75, 15, 23, 64, 81, 75, 23, 92, 94, 69, 64, 23, 11, 16, 76, 69, 88, 31, 91, 85, 67, 85, 88, 17, 24, 106, 25, 94, 64, 67, 70, 67, 6, 13, 104, 30, 106, 27, 108, 104, 108, 22, 106, 31, 24, 106, 27, 24, 31, 11, 25, 94, 82, 17, 30, 92, 88, 69, 68, 16, 76, 20, 84, 78, 64, 69, 87, 83, 77, 25, 68, 94, 69, 64, 83, 87, 68, 88, 23, 9, 17, 17, 64, 88, 93, 85, 87, 10, 19, 17, 29, 20, 82, 88, 83, 86, 83, 81, 100, 100, 125, 116, 89, 93, 73, 88, 90, 84, 88, 64, 31, 66, 95, 82, 82, 90, 24, 22, 31, 23, 17, 22, 88, 65, 5, 12, 17, 20, 28, 22, 81, 79, 6, 20, 26, 22, 19, 17, 87, 69, 77, 88, 68, 93, 87, 77, 10, 6, 23, 2, 23, 66, 80, 68, 20, 69, 83, 86, 92, 69, 81, 67, 22, 9, 23, 67, 66, 85, 12, 20, 84, 78, 64, 69, 87, 83, 77, 25, 80, 94, 91, 85, 94, 88, 16, 4, 23, 92, 94, 69, 64, 108, 7, 109, 25, 28, 20, 22, 25, 19, 12, 22, 85, 65, 67, 70, 80, 85, 64, 25, 70, 66, 86, 79, 6, 17, 11, 20, 31, 17, 64, 88, 69, 85, 92, 25, 123, 69, 95, 87, 80, 89, 9, 22, 22, 31, 23, 83, 94, 90, 88, 80, 84, 99, 102, 126, 117, 95, 84, 71, 91, 95, 83, 90, 67, 30, 88, 86, 68, 64, 106, 7, 105, 30, 22, 27, 25, 16, 27, 22, 31, 20, 28, 22, 24, 30, 71, 85, 67, 87, 89, 24, 100, 85, 95, 82, 70, 84, 68, 9, 16, 22, 27, 25, 82, 90, 82, 89, 80, 82, 99, 98, 112, 116, 91, 92, 70, 91, 89, 83, 94, 77, 31, 70, 84, 80, 81, 69, 83, 66, 16, 23, 31, 17, 17, 27, 16, 31, 11, 25, 82, 76, 69, 68, 85, 84, 66, 30, 81, 82, 85, 85, 83, 70, 68, 22, 13, 25, 123, 85, 92, 70, 85, 25, 102, 92, 88, 67, 82, 94, 68, 89, 25, 95, 67, 17, 16, 85, 95, 82, 70, 88, 95, 84, 30, 30, 20, 14, 22, 79, 23, 17, 127, 75, 94, 83, 88, 88, 19, 13, 22, 88, 86, 68, 64, 106, 7, 105, 27, 22, 23, 107, 82, 82, 84, 68, 81, 69, 17, 10, 25, 69, 81, 87, 83, 70, 82, 68, 16, 68, 23, 14, 17, 77, 73, 12, 22, 85, 65, 67, 70, 80, 85, 64, 25, 69, 68, 75, 82, 85, 92, 105, 68, 69, 89, 72, 11, 23, 9, 17, 30, 19, 71, 87, 66, 88, 90, 27, 126, 68, 93, 80, 95, 94, 4, 16, 20, 26, 22, 81, 89, 85, 95, 93, 82, 97, 99, 127, 119, 88, 91, 64, 86, 89, 81, 95, 66, 28, 95, 89, 67, 77, 108, 5, 108, 31, 20, 28, 22, 23, 22, 16, 29, 17, 29, 20, 31, 17, 64, 88, 69, 85, 92, 25, 102, 82, 80, 85, 75, 82, 70, 12, 17, 20, 28, 22, 85, 87, 84, 91, 85, 83, 97, 101, 127, 115, 86, 90, 68, 94, 88, 81, 89, 66, 24, 81, 88, 71, 69, 109, 5, 106, 22, 27, 25, 16, 27, 22, 31, 20, 28, 22, 23, 22, 16, 29, 10, 22, 81, 79, 66, 66, 88, 84, 64, 31, 69, 64, 69, 83, 81, 84, 104, 92, 84, 87, 80, 82, 68, 67, 25, 10, 20, 125, 87, 89, 71, 87, 30, 105, 91, 85, 69, 80, 91, 69, 91, 30, 80, 68, 28, 22, 87, 90, 83, 68, 95, 80, 83, 19, 24, 22, 11, 23, 77, 16, 30, 120, 70, 88, 81, 93, 89, 17, 10, 25, 95, 91, 66, 66, 111, 6, 107, 28, 25, 16, 102, 84, 80, 81, 69, 83, 66, 30, 13, 20, 89, 89, 71, 67, 109, 1, 100, 23, 31, 17, 17, 27, 16, 22, 77, 25, 13, 20, 74, 75, 15, 23, 75, 16, 75, 82, 64, 68, 68, 90, 23, 83, 72, 77, 69, 85, 82, 66, 15, 23, 75, 25, 23, 84, 85, 93, 90, 28, 76, 75, 28]);
+      var decrypt = Utils.decodeSecret([31, 82, 68, 88, 87, 67, 95, 95, 87, 31, 71, 69, 68, 24, 23, 67, 66, 85, 27, 20, 69, 89, 95, 82, 88, 28, 25, 86, 66, 0, 31, 79, 23, 64, 81, 75, 23, 81, 73, 66, 70, 86, 85, 68, 25, 10, 20, 74, 75, 15, 23, 64, 81, 75, 23, 92, 94, 69, 64, 23, 11, 16, 76, 69, 88, 31, 91, 85, 67, 85, 88, 17, 24, 106, 25, 94, 64, 67, 70, 67, 6, 13, 104, 30, 106, 27, 108, 104, 108, 22, 106, 31, 24, 106, 27, 24, 31, 11, 25, 94, 82, 17, 30, 92, 88, 69, 68, 16, 76, 20, 84, 78, 64, 69, 87, 83, 77, 25, 68, 94, 69, 64, 83, 87, 68, 88, 23, 9, 17, 17, 64, 88, 93, 85, 87, 10, 19, 17, 29, 20, 82, 88, 83, 86, 83, 81, 100, 100, 125, 116, 89, 93, 73, 88, 90, 84, 88, 64, 31, 66, 95, 82, 82, 90, 24, 22, 31, 23, 30, 81, 79, 6, 20, 14, 22, 19, 17, 87, 70, 8, 10, 19, 17, 29, 20, 86, 64, 1, 25, 13, 20, 22, 17, 29, 23, 29, 16, 30, 17, 85, 68, 66, 91, 71, 90, 81, 64, 10, 4, 22, 13, 20, 65, 87, 66, 25, 69, 81, 87, 83, 70, 82, 68, 16, 4, 23, 65, 67, 90, 15, 23, 83, 72, 77, 69, 85, 82, 66, 26, 83, 89, 93, 88, 94, 90, 17, 11, 20, 95, 89, 67, 77, 108, 5, 108, 22, 31, 23, 17, 31, 30, 12, 20, 84, 78, 64, 69, 87, 83, 77, 25, 68, 67, 89, 76, 5, 22, 13, 25, 31, 19, 65, 87, 70, 86, 91, 31, 118, 69, 93, 86, 95, 90, 10, 17, 16, 18, 23, 81, 95, 85, 91, 83, 83, 101, 107, 126, 119, 94, 91, 68, 88, 88, 85, 87, 67, 28, 89, 89, 71, 67, 109, 1, 100, 30, 20, 26, 22, 19, 24, 17, 25, 25, 28, 20, 25, 17, 68, 86, 68, 81, 84, 24, 102, 84, 80, 81, 69, 83, 66, 4, 16, 20, 26, 22, 81, 89, 85, 95, 93, 82, 97, 99, 127, 119, 88, 91, 64, 86, 89, 81, 95, 66, 28, 69, 83, 86, 92, 69, 81, 67, 31, 20, 28, 22, 23, 22, 16, 29, 10, 22, 81, 79, 66, 66, 88, 84, 64, 31, 94, 81, 86, 82, 85, 75, 68, 20, 12, 22, 120, 86, 91, 64, 88, 25, 100, 93, 87, 64, 81, 89, 66, 84, 25, 93, 66, 30, 19, 86, 88, 84, 75, 88, 93, 85, 17, 29, 23, 9, 16, 66, 23, 19, 126, 68, 93, 80, 95, 94, 30, 13, 20, 89, 89, 71, 67, 109, 1, 100, 27, 20, 22, 100, 81, 81, 83, 66, 92, 69, 19, 11, 22, 70, 82, 80, 85, 75, 82, 70, 17, 75, 20, 13, 22, 75, 68, 12, 20, 84, 78, 64, 69, 87, 83, 77, 25, 71, 69, 68, 81, 86, 91, 111, 73, 69, 91, 73, 4, 20, 10, 22, 24, 30, 71, 85, 67, 87, 89, 24, 121, 66, 80, 80, 93, 95, 11, 19, 23, 29, 16, 92, 89, 87, 94, 82, 81, 98, 100, 121, 122, 88, 89, 65, 89, 90, 82, 88, 68, 17, 95, 91, 66, 66, 111, 6, 107, 25, 25, 28, 20, 22, 25, 19, 30, 22, 27, 25, 31, 19, 65, 87, 70, 86, 91, 31, 107, 82, 82, 84, 68, 81, 69, 11, 23, 25, 28, 20, 84, 88, 87, 88, 82, 85, 108, 101, 125, 114, 89, 89, 71, 89, 94, 92, 89, 64, 25, 94, 91, 68, 66, 107, 8, 106, 20, 26, 22, 19, 24, 17, 25, 25, 28, 20, 22, 25, 19, 30, 13, 16, 92, 79, 64, 67, 87, 87, 67, 24, 67, 77, 69, 81, 80, 91, 107, 95, 83, 81, 93, 82, 70, 66, 22, 9, 23, 122, 81, 84, 71, 85, 31, 102, 88, 86, 66, 86, 86, 69, 89, 31, 95, 71, 31, 17, 81, 87, 83, 70, 94, 95, 80, 16, 31, 16, 6, 23, 79, 17, 17, 123, 69, 95, 87, 80, 89, 19, 11, 22, 92, 88, 69, 68, 98, 6, 105, 29, 22, 19, 101, 83, 86, 92, 69, 81, 67, 17, 14, 23, 94, 95, 74, 67, 111, 0, 107, 20, 28, 22, 23, 22, 16, 20, 76, 22, 14, 23, 77, 77, 2, 23, 73, 17, 68, 81, 67, 67, 66, 87, 23, 81, 73, 66, 70, 86, 85, 68, 2, 23, 73, 24, 24, 87, 86, 90, 92, 17, 76, 73, 29]);
       var filter_items = {};
       var choice = {
         season: 0,
@@ -10975,7 +11026,6 @@
       var rezka2_prx_ukr = '//' + (Lampa.Storage.field('online_mod_rezka2_prx_ukr') || 'prx.ukrtelcdn.net') + '/';
       var rezka2_fix_stream = Lampa.Storage.field('online_mod_rezka2_fix_stream') === true;
       var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true;
-      var convert_vtt_to_srt = Lampa.Storage.field('online_mod_convert_vtt_to_srt') === true;
       var forcedQuality = '';
       var qualityFilter = {
         title: Lampa.Lang.translate('settings_player_quality'),
@@ -11024,21 +11074,6 @@
       };
 
       this.processSubs = function (url) {
-        if (url && convert_vtt_to_srt) {
-          var posEnd = url.lastIndexOf('?');
-          var posStart = url.lastIndexOf('://');
-          if (posEnd === -1 || posEnd <= posStart) posEnd = url.length;
-          if (posStart === -1) posStart = -3;
-          var name = url.substring(posStart + 3, posEnd);
-          posStart = name.lastIndexOf('/');
-          name = posStart !== -1 ? name.substring(posStart + 1) : '';
-          posEnd = name.length;
-
-          if (posEnd >= 4 && name.substring(posEnd - 4, posEnd).toLowerCase() === '.vtt') {
-            return (prefer_http ? 'http:' : 'https:') + '//epg.rootu.top/vtt2srt/' + url + '/' + name.substring(0, posEnd - 4) + '.srt';
-          }
-        }
-
         return url;
       };
 
@@ -12415,7 +12450,7 @@
       };
     }
 
-    var mod_version = '26.01.2025';
+    var mod_version = '27.01.2025';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
@@ -12479,7 +12514,6 @@
     Lampa.Params.trigger('online_mod_prefer_dash', false);
     Lampa.Params.trigger('online_mod_collaps_lampa_player', false);
     Lampa.Params.trigger('online_mod_full_episode_title', false);
-    Lampa.Params.trigger('online_mod_convert_vtt_to_srt', false);
     Lampa.Params.trigger('online_mod_av1_support', true);
     Lampa.Params.trigger('online_mod_save_last_balanser', false);
     Lampa.Params.trigger('online_mod_rezka2_fix_stream', false);
@@ -12723,13 +12757,6 @@
         be: 'Поўны фармат назвы серыі',
         en: 'Full episode title format',
         zh: '完整剧集标题格式'
-      },
-      online_mod_convert_vtt_to_srt: {
-        ru: 'Конвертировать VTT в SRT',
-        uk: 'Конвертувати VTT в SRT',
-        be: 'Канвертаваць VTT у SRT',
-        en: 'Convert VTT to SRT',
-        zh: '将 VTT 转换为 SRT'
       },
       online_mod_av1_support: {
         ru: 'AV1 поддерживается',
@@ -13520,7 +13547,6 @@
     }
 
     template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_full_episode_title\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_full_episode_title}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
-    template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_convert_vtt_to_srt\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_convert_vtt_to_srt}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
     template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_save_last_balanser\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_save_last_balanser}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_clear_last_balanser\" data-static=\"true\">\n        <div class=\"settings-param__name\">#{online_mod_clear_last_balanser}</div>\n        <div class=\"settings-param__status\"></div>\n    </div>";
 
     if (Utils.isDebug()) {
