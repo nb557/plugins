@@ -2074,6 +2074,15 @@
         'User-Agent': user_agent
       } : {};
       var prox_enc = '';
+      var quality_mapping = {
+        '4K': '2160p',
+        '2K': '1440p',
+        '1080p Ultra': '1080p',
+        '1080p': '720p',
+        '720p': '480p',
+        '480p': '360p',
+        '360p': '240p'
+      };
 
       if (prox) {
         prox_enc += 'param/Origin=' + encodeURIComponent(host) + '/';
@@ -2704,8 +2713,12 @@
                   prev_file = item.file;
                 }
 
-                quality[item.label] = item.file;
+                quality[quality_mapping[item.label] ?? item.label] = item.file;
               });
+
+              if (quality['1080p'] === quality['720p']) {
+                delete quality['1080p']; // Remove duplicated 720p;
+              }
 
               if (premium_content) {
                 error('Перевод доступен только с HDrezka Premium');
