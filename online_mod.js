@@ -7504,7 +7504,9 @@
         network["native"](component.proxyLink(embed + api, prox, prox_enc), function (json) {
           if (callback) callback(json);
         }, function (a, c) {
-          if (error) error(network.errorDecode(a, c));
+          if (a.status == 404 && a.responseText && a.responseText.indexOf('"Video not found"') !== -1) {
+            if (callback) callback('');
+          } else if (error) error(network.errorDecode(a, c));
         }, false, {
           headers: headers
         });
