@@ -1635,7 +1635,7 @@
             call(voice);
           } else component.emptyForQuery(select_title);
         }, function (a, c) {
-          if (a.status == 404 && a.responseText && a.responseText.indexOf('Видео не найдено') !== -1 || a.status == 0 && a.statusText !== 'timeout') {
+          if (a.status == 404 && (!a.responseText || a.responseText.indexOf('Видео не найдено') !== -1) || a.status == 0 && a.statusText !== 'timeout') {
             component.emptyForQuery(select_title);
           } else component.empty(network.errorDecode(a, c));
         }, false, {
@@ -3685,7 +3685,7 @@
         network.silent(component.proxyLink(embed + api, prox, prox_enc), function (str) {
           if (callback) callback(str || '');
         }, function (a, c) {
-          if (a.status == 404 && a.responseText && a.responseText.indexOf('видео недоступно') !== -1) {
+          if (a.status == 404 && (!a.responseText || a.responseText.indexOf('видео недоступно') !== -1)) {
             if (callback) callback('');
           } else {
             network.clear();
@@ -3693,7 +3693,7 @@
             network.silent(component.proxyLink(embed2 + api, prox, prox_enc), function (str) {
               if (callback) callback(str || '');
             }, function (a, c) {
-              if (a.status == 404 && a.responseText && a.responseText.indexOf('видео недоступно') !== -1 || a.status == 0 && a.statusText !== 'timeout') {
+              if (a.status == 404 && (!a.responseText || a.responseText.indexOf('видео недоступно') !== -1) || a.status == 0 && a.statusText !== 'timeout') {
                 if (callback) callback('');
               } else if (error) error(network.errorDecode(a, c));
             }, false, {
@@ -4037,7 +4037,7 @@
         };
 
         var call_error = function call_error(a, c) {
-          if ((a.status == 404 || a.status == 403) && a.responseText && (a.responseText.indexOf('<title>Not Found</title>') !== -1 || a.responseText.indexOf('Не найдено!') !== -1 || a.responseText.indexOf('Контент не найден или недоступен в вашем регионе!') !== -1) || a.status == 0 && a.statusText !== 'timeout') {
+          if ((a.status == 404 || a.status == 403) && (!a.responseText || a.responseText.indexOf('<title>Not Found</title>') !== -1 || a.responseText.indexOf('Не найдено!') !== -1 || a.responseText.indexOf('Контент не найден или недоступен в вашем регионе!') !== -1) || a.status == 0 && a.statusText !== 'timeout') {
             if (callback) callback('');
           } else if (error) error(network.errorDecode(a, c));
         };
@@ -7504,7 +7504,7 @@
         network["native"](component.proxyLink(embed + api, prox, prox_enc), function (json) {
           if (callback) callback(json);
         }, function (a, c) {
-          if (a.status == 404 && a.responseText && a.responseText.indexOf('"Video not found"') !== -1) {
+          if (a.status == 404 && (!a.responseText || a.responseText.indexOf('"Video not found"') !== -1)) {
             if (callback) callback('');
           } else if (error) error(network.errorDecode(a, c));
         }, false, {
