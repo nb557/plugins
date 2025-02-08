@@ -1,4 +1,4 @@
-//01.02.2025 - Fix
+//08.02.2025 - Fix
 
 (function () {
     'use strict';
@@ -2103,11 +2103,33 @@
         voice_name: '',
         season_id: ''
       };
-      var authorization_required = false;
+      var error_message = '';
+
+      function checkErrorForm(str) {
+        var login_form = str.match(/<form id="check-form" class="check-form" method="post" action="\/ajax\/login\/">/);
+
+        if (login_form) {
+          error_message = Lampa.Lang.translate('online_mod_authorization_required') + ' HDrezka';
+          return;
+        }
+
+        var error_form = str.match(/(<div class="error-code">[^<]*<div>[^<]*<\/div>[^<]*<\/div>)\s*(<div class="error-title">[^<]*<\/div>)/);
+
+        if (error_form) {
+          error_message = ($(error_form[1]).text().trim() || '') + ':\n' + ($(error_form[2]).text().trim() || '');
+          return;
+        }
+
+        if (startsWith(str, 'Fatal error:')) {
+          error_message = str;
+          return;
+        }
+      }
       /**
        * Поиск
        * @param {Object} _object
        */
+
 
       this.search = function (_object, kinopoisk_id, data) {
         var _this = this;
@@ -2115,6 +2137,7 @@
         object = _object;
         select_title = object.search || object.movie.title;
         if (this.wait_similars && data && data[0].is_similars) return getPage(data[0].link);
+        error_message = '';
         var search_date = object.search_date || !object.clarification && (object.movie.release_date || object.movie.first_air_date || object.movie.last_air_date) || '0000';
         var search_year = parseInt((search_date + '').slice(0, 4));
         var orig_titles = [];
@@ -2136,8 +2159,7 @@
           network.timeout(10000);
           network["native"](component.proxyLink(url, prox, prox_enc, prox_enc), function (str) {
             str = (str || '').replace(/\n/g, '');
-            var login_form = str.match(/<form id="check-form" class="check-form" method="post" action="\/ajax\/login\/">/);
-            authorization_required = !!login_form;
+            checkErrorForm(str);
             var links = str.match(/<div class="b-content__inline_item-link">\s*<a [^>]*>[^<]*<\/a>\s*<div>[^<]*<\/div>\s*<\/div>/g);
             var have_more = !!str.match(/<a [^>]*>\s*<span class="b-navigation__next\b/);
 
@@ -2198,7 +2220,7 @@
               }
 
               component.loading(false);
-            } else if (authorization_required) component.empty(Lampa.Lang.translate('online_mod_authorization_required') + ' HDrezka');else component.emptyForQuery(select_title);
+            } else if (error_message) component.empty(error_message);else component.emptyForQuery(select_title);
           });
         };
 
@@ -2307,7 +2329,7 @@
 
               component.loading(false);
             } else component.emptyForQuery(select_title);
-          } else if (authorization_required) component.empty(Lampa.Lang.translate('online_mod_authorization_required') + ' HDrezka');else component.emptyForQuery(select_title);
+          } else if (error_message) component.empty(error_message);else component.emptyForQuery(select_title);
         };
 
         var query_search = function query_search(query, data, callback) {
@@ -2316,8 +2338,7 @@
           network.timeout(10000);
           network["native"](component.proxyLink(url, prox, prox_enc), function (str) {
             str = (str || '').replace(/\n/g, '');
-            var login_form = str.match(/<form id="check-form" class="check-form" method="post" action="\/ajax\/login\/">/);
-            authorization_required = !!login_form;
+            checkErrorForm(str);
             var links = str.match(/<li><a href=.*?<\/li>/g);
             var have_more = str.indexOf('<a class="b-search__live_all"') !== -1;
             if (links && links.length) data = data.concat(links);
@@ -2327,7 +2348,12 @@
               Lampa.Storage.set('online_mod_proxy_rezka2', 'false');
             }
 
-            component.empty(network.errorDecode(a, c));
+            if (a.status == 403 && a.responseText) {
+              var str = (a.responseText || '').replace(/\n/g, '');
+              checkErrorForm(str);
+            }
+
+            if (error_message) component.empty(error_message);else component.empty(network.errorDecode(a, c));
           }, postdata, {
             dataType: 'text',
             withCredentials: logged_in,
@@ -2401,7 +2427,7 @@
 
           if (extract.film_id) {
             getEpisodes(success);
-          } else if (authorization_required) component.empty(Lampa.Lang.translate('online_mod_authorization_required') + ' HDrezka');else component.emptyForQuery(select_title);
+          } else if (error_message) component.empty(error_message);else component.emptyForQuery(select_title);
         }, function (a, c) {
           component.empty(network.errorDecode(a, c));
         }, false, {
@@ -2431,8 +2457,7 @@
         extract.film_id = '';
         extract.favs = '';
         str = (str || '').replace(/\n/g, '');
-        var login_form = str.match(/<form id="check-form" class="check-form" method="post" action="\/ajax\/login\/">/);
-        authorization_required = !!login_form;
+        checkErrorForm(str);
         var translation = str.match(/<h2>В переводе<\/h2>:<\/td>\s*(<td>.*?<\/td>)/);
         var cdnSeries = str.match(/\.initCDNSeriesEvents\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,/);
         var cdnMovie = str.match(/\.initCDNMoviesEvents\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,/);
@@ -13202,7 +13227,7 @@
       };
     }
 
-    var mod_version = '01.02.2025';
+    var mod_version = '08.02.2025';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
@@ -14021,11 +14046,21 @@
           Lampa.Storage.set('online_mod_rezka2_status', 'true');
           network.clear();
           network.timeout(8000);
-          network.silent(host + '/', function (json) {
+          network.silent(host + '/', function (str) {
+            str = (str || '').replace(/\n/g, '');
+            var error_form = str.match(/(<div class="error-code">[^<]*<div>[^<]*<\/div>[^<]*<\/div>)\s*(<div class="error-title">[^<]*<\/div>)/);
+
+            if (error_form) {
+              Lampa.Noty.show(error_form[0]);
+              if (error) error();
+              return;
+            }
+
             if (success) success();
           }, function (a, c) {
             if (success) success();
           }, false, {
+            dataType: 'text',
             withCredentials: true
           });
         } else {
@@ -14045,6 +14080,8 @@
       var prox = Utils.proxy('rezka2');
       var prox_enc = '';
       var returnHeaders = androidHeaders;
+      var proxy_mirror = Lampa.Storage.field('online_mod_proxy_rezka2_mirror') === true;
+      var host = prox && !proxy_mirror ? 'https://rezka.ag' : Utils.rezka2Mirror();
       if (!prox && !returnHeaders) prox = Utils.proxy('cookie');
 
       if (!prox && !returnHeaders) {
@@ -14052,11 +14089,8 @@
         return;
       }
 
-      var proxy_mirror = Lampa.Storage.field('online_mod_proxy_rezka2_mirror') === true;
-      var host = prox && !proxy_mirror ? 'https://rezka.ag' : Utils.rezka2Mirror();
-
       if (prox) {
-        prox_enc += 'get_cookie/param/Cookie=/';
+        prox_enc += 'cookie_plus/param/Cookie=/';
         returnHeaders = false;
       }
 
@@ -14070,7 +14104,16 @@
         var cookie = '';
         var values = {};
         var sid = '';
-        var cookieHeaders = (returnHeaders ? json && json.headers && json.headers['set-cookie'] : json && json.cookie) || null;
+        var body = json && json.body || {};
+        body = typeof body === 'string' ? Lampa.Arrays.decodeJson(body, {}) : body;
+
+        if (!body.success) {
+          if (body.message) Lampa.Noty.show(body.message);
+          if (error) error();
+          return;
+        }
+
+        var cookieHeaders = json && json.headers && json.headers['set-cookie'] || null;
 
         if (cookieHeaders && cookieHeaders.forEach) {
           cookieHeaders.forEach(function (param) {
@@ -14104,8 +14147,18 @@
 
           network.clear();
           network.timeout(8000);
-          network["native"](Utils.proxyLink(host + '/', prox, prox_enc), function (json) {
-            var cookieHeaders = (returnHeaders ? json && json.headers && json.headers['set-cookie'] : json && json.cookie) || null;
+          network["native"](Utils.proxyLink(host + '/', prox, prox_enc), function (str) {
+            var json = typeof str === 'string' ? Lampa.Arrays.decodeJson(str, {}) : str;
+            var body = (json && json.body || '').replace(/\n/g, '');
+            var error_form = body.match(/(<div class="error-code">[^<]*<div>[^<]*<\/div>[^<]*<\/div>)\s*(<div class="error-title">[^<]*<\/div>)/);
+
+            if (error_form) {
+              Lampa.Noty.show(error_form[0]);
+              if (error) error();
+              return;
+            }
+
+            var cookieHeaders = json && json.headers && json.headers['set-cookie'] || null;
 
             if (cookieHeaders && cookieHeaders.forEach) {
               cookieHeaders.forEach(function (param) {
@@ -14130,6 +14183,7 @@
           }, function (a, c) {
             if (success) success();
           }, false, {
+            dataType: 'text',
             headers: headers,
             returnHeaders: returnHeaders
           });
@@ -14157,7 +14211,7 @@
       var host = Utils.fanserialsHost();
 
       if (prox) {
-        prox_enc += 'get_cookie/param/Cookie=/';
+        prox_enc += 'cookie_plus/param/Cookie=/';
         returnHeaders = false;
       }
 
@@ -14167,11 +14221,21 @@
       postdata += '&login=submit';
       network.clear();
       network.timeout(8000);
-      network["native"](Utils.proxyLink(url, prox, prox_enc), function (json) {
+      network["native"](Utils.proxyLink(url, prox, prox_enc), function (str) {
         var cookie = '';
         var values = {};
         var sid = '';
-        var cookieHeaders = (returnHeaders ? json && json.headers && json.headers['set-cookie'] : json && json.cookie) || null;
+        var json = typeof str === 'string' ? Lampa.Arrays.decodeJson(str, {}) : str;
+        var body = (json && json.body || '').replace(/\n/g, '');
+        var error_form = body.match(/(<div class="berrors-inner">[^<]*<b class="berrors-title">[^<]*<\/b>[^<]*<\/div>)/);
+
+        if (error_form) {
+          Lampa.Noty.show(error_form[0]);
+          if (error) error();
+          return;
+        }
+
+        var cookieHeaders = json && json.headers && json.headers['set-cookie'] || null;
 
         if (cookieHeaders && cookieHeaders.forEach) {
           cookieHeaders.forEach(function (param) {
@@ -14205,8 +14269,18 @@
 
           network.clear();
           network.timeout(8000);
-          network["native"](Utils.proxyLink(host + '/', prox, prox_enc), function (json) {
-            var cookieHeaders = (returnHeaders ? json && json.headers && json.headers['set-cookie'] : json && json.cookie) || null;
+          network["native"](Utils.proxyLink(host + '/', prox, prox_enc), function (str) {
+            var json = typeof str === 'string' ? Lampa.Arrays.decodeJson(str, {}) : str;
+            var body = (json && json.body || '').replace(/\n/g, '');
+            var error_form = body.match(/(<div class="berrors-inner">[^<]*<b class="berrors-title">[^<]*<\/b>[^<]*<\/div>)/);
+
+            if (error_form) {
+              Lampa.Noty.show(error_form[0]);
+              if (error) error();
+              return;
+            }
+
+            var cookieHeaders = json && json.headers && json.headers['set-cookie'] || null;
 
             if (cookieHeaders && cookieHeaders.forEach) {
               cookieHeaders.forEach(function (param) {
@@ -14231,6 +14305,7 @@
           }, function (a, c) {
             if (success) success();
           }, false, {
+            dataType: 'text',
             headers: headers,
             returnHeaders: returnHeaders
           });
@@ -14241,6 +14316,7 @@
         Lampa.Noty.show(network.errorDecode(a, c));
         if (error) error();
       }, postdata, {
+        dataType: 'text',
         returnHeaders: returnHeaders
       });
     }
@@ -14311,7 +14387,11 @@
     }
 
     template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_rezka2_mirror\" data-type=\"input\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{online_mod_rezka2_mirror}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
-    template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_rezka2_mirror\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_rezka2_mirror}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
+
+    if (Utils.isDebug()) {
+      template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_rezka2_mirror\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_rezka2_mirror}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
+    }
+
     template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_rezka2_name\" data-type=\"input\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{online_mod_rezka2_name}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_rezka2_password\" data-type=\"input\" data-string=\"true\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{online_mod_rezka2_password}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
 
     if (Lampa.Platform.is('android')) {
@@ -14400,6 +14480,7 @@
             Lampa.Params.update(e.body.find('[data-name="online_mod_rezka2_cookie"]'), [], e.body);
           }, function () {
             rezka2_fill_cookie_status.removeClass('active error wait').addClass('error');
+            Lampa.Params.update(e.body.find('[data-name="online_mod_rezka2_cookie"]'), [], e.body);
           });
         });
         var fancdn_fill_cookie = e.body.find('[data-name="online_mod_fancdn_fill_cookie"]');
@@ -14410,6 +14491,7 @@
             Lampa.Params.update(e.body.find('[data-name="online_mod_fancdn_cookie"]'), [], e.body);
           }, function () {
             fancdn_fill_cookie_status.removeClass('active error wait').addClass('error');
+            Lampa.Params.update(e.body.find('[data-name="online_mod_fancdn_cookie"]'), [], e.body);
           });
         });
       }
