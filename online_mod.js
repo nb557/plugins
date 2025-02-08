@@ -7371,8 +7371,9 @@
                     var episode_num = parseInt(e_title.match(/\d+/));
                     var season_num = parseInt(s_title.match(/\d+/));
                     var items = extractItems(e.file);
+                    e_title = e_title.replace(/\d+/, '').replace(/серия/i, '').trim();
                     filtred.push({
-                      title: component.formatEpisodeTitle(season_num, episode_num),
+                      title: component.formatEpisodeTitle(season_num, episode_num, e_title),
                       quality: items[0] && items[0].quality ? items[0].quality + 'p' : '360p ~ 1080p',
                       info: '',
                       season: season_num,
@@ -7769,8 +7770,9 @@
                       var episode_num = parseInt(e_title.match(/\d+/));
                       var season_num = parseInt(s_title.match(/\d+/));
                       var items = extractItems(v.file);
+                      e_title = e_title.replace(/\d+/, '').replace(/серия/i, '').trim();
                       filtred.push({
-                        title: component.formatEpisodeTitle(season_num, episode_num),
+                        title: component.formatEpisodeTitle(season_num, episode_num, e_title),
                         quality: items[0] && items[0].quality ? items[0].quality + 'p' : '360p ~ 1080p',
                         info: ' / ' + Lampa.Utils.shortText(voice, 50),
                         season: season_num,
