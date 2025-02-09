@@ -140,7 +140,7 @@
         if (name === 'fancdn') return user_proxy3;
         if (name === 'fanserials') return user_proxy2;
         if (name === 'vibix') return user_proxy2;
-        if (name === 'redheadsound') return proxy_other ? proxy_secret : proxy_apn;
+        if (name === 'redheadsound') return user_proxy2;
         if (name === 'anilibria') return user_proxy2;
         if (name === 'anilibria2') return user_proxy2;
         if (name === 'animelib') return proxy_other ? proxy_secret : proxy_apn;
@@ -8343,7 +8343,7 @@
       }
     }
 
-    function redheadsound(component, _object) {
+    function redheadsound(component, _object, prefer_dash) {
       var network = new Lampa.Reguest();
       var extract = [];
       var object = _object;
@@ -8352,6 +8352,17 @@
       var prox = component.proxy('redheadsound');
       var host = 'https://redheadsound.studio';
       var ref = host + '/';
+      var headers = Lampa.Platform.is('android') ? {
+        'Origin': host,
+        'Referer': ref
+      } : {};
+      var prox_enc = '';
+
+      if (prox) {
+        prox_enc += 'param/Origin=' + encodeURIComponent(host) + '/';
+        prox_enc += 'param/Referer=' + encodeURIComponent(ref) + '/';
+      }
+
       var embed = ref;
       var filter_items = {};
       var choice = {
@@ -8512,17 +8523,18 @@
         network.timeout(10000);
         network["native"](component.proxyLink(url, prox), function (str) {
           str = (str || '').replace(/\n/g, '');
-          var player = str.match(/<iframe data-src="((https?:\/\/redheadsound[^"\/]*)\/[^"]*)"/);
+          var player = str.match(/<iframe data-src="((https?:\/\/embed\.new\.video[^"\/]*)\/[^"]*)"/);
 
           if (player) {
             network.clear();
             network.timeout(10000);
-            network["native"](component.proxyLink(player[1], prox), function (str) {
+            network["native"](component.proxyLink(player[1], prox, prox_enc), function (str) {
               parse(str, player[1]);
             }, function (a, c) {
               component.empty(network.errorDecode(a, c));
             }, false, {
-              dataType: 'text'
+              dataType: 'text',
+              headers: headers
             });
           } else component.emptyForQuery(select_title);
         }, function (a, c) {
@@ -8574,69 +8586,19 @@
         network.clear();
         extract = null;
       };
-      /**
-       * Получить потоки
-       * @param {String} str
-       * @returns array
-       */
-
-
-      function extractItems(str, url) {
-        if (!str) return [];
-
-        try {
-          var items = component.parsePlaylist(str).map(function (item) {
-            var quality = item.label.match(/(\d\d\d+)p/);
-            var link = item.links[0] || '';
-            return {
-              label: item.label,
-              quality: quality ? parseInt(quality[1]) : NaN,
-              file: component.proxyLink(component.fixLink(link, url), prox)
-            };
-          });
-          items.sort(function (a, b) {
-            if (b.quality > a.quality) return 1;
-            if (b.quality < a.quality) return -1;
-            if (b.label > a.label) return 1;
-            if (b.label < a.label) return -1;
-            return 0;
-          });
-          return items;
-        } catch (e) {}
-
-        return [];
-      }
-
-      function parseSubs(str, url) {
-        if (!str) return false;
-        var subtitles = component.parsePlaylist(str).map(function (item) {
-          var link = item.links[0] || '';
-          return {
-            label: item.label,
-            url: component.processSubs(component.proxyLink(component.fixLink(link, url), prox))
-          };
-        });
-        return subtitles.length ? subtitles : false;
-      }
 
       function parse(str, url) {
         component.loading(false);
         str = (str || '').replace(/\n/g, '');
-        var find = str.match(/Playerjs\(({.*?})\);/);
+        var find = str.match(/var playerOptions = ({.*?});/);
         var json;
 
         try {
           json = find && (0, eval)('"use strict"; (function(){ return ' + find[1] + '; })();');
         } catch (e) {}
 
-        if (json && json.file) {
-          extract = typeof json.file === 'string' ? [json] : json.file;
-          extract.forEach(function (data) {
-            data.media = {
-              items: extractItems(data.file, url),
-              subtitles: parseSubs(data.subtitle, url)
-            };
-          });
+        if (json && json.playlist && json.playlist.forEach) {
+          extract = json.playlist;
           filter();
           append(filtred());
         } else component.emptyForQuery(select_title);
@@ -8662,12 +8624,12 @@
       function filtred() {
         var filtred = [];
         extract.forEach(function (data) {
-          var max_quality = data.media.items[0] || {};
+          var file = data.sources && (prefer_dash && data.sources.shakadash && data.sources.shakadash.src || data.sources.hls && data.sources.hls.src) || '';
           filtred.push({
             title: data.title || data.comment || select_title,
-            quality: max_quality.label || '360p ~ 1080p',
+            quality: '360p ~ 1080p',
             info: '',
-            media: data.media
+            file: file
           });
         });
         return filtred;
@@ -8680,22 +8642,10 @@
 
 
       function getFile(element) {
-        var file = '';
-        var quality = false;
-        var items = element.media.items;
-
-        if (items && items.length) {
-          file = items[0].file;
-          quality = {};
-          items.forEach(function (item) {
-            quality[item.label] = item.file;
-          });
-        }
-
         return {
-          file: file,
-          quality: quality,
-          subtitles: element.media.subtitles
+          file: element.file,
+          quality: false,
+          subtitles: false
         };
       }
       /**
@@ -11986,7 +11936,14 @@
       }, {
         name: 'redheadsound',
         title: 'RedHeadSound',
-        source: new redheadsound(this, object),
+        source: new redheadsound(this, object, false),
+        search: true,
+        kp: false,
+        imdb: true
+      }, {
+        name: 'redheadsound-dash',
+        title: 'RedHeadSound (DASH)',
+        source: new redheadsound(this, object, true),
         search: true,
         kp: false,
         imdb: true
@@ -13256,12 +13213,13 @@
       Lampa.Storage.set('online_mod_proxy_cdnmovies', 'false');
       Lampa.Storage.set('online_mod_proxy_fancdn', 'false');
       Lampa.Storage.set('online_mod_proxy_fanserials', 'false');
-      Lampa.Storage.set('online_mod_proxy_redheadsound', 'false');
       Lampa.Storage.set('online_mod_proxy_animelib', 'false');
     }
 
+    Lampa.Storage.set('online_mod_proxy_lumex', Lampa.Platform.is('android') ? 'false' : 'true');
     Lampa.Storage.set('online_mod_proxy_filmix', Lampa.Platform.is('android') ? 'false' : 'true');
     Lampa.Storage.set('online_mod_proxy_vibix', Lampa.Platform.is('android') ? 'false' : 'true');
+    Lampa.Storage.set('online_mod_proxy_redheadsound', Lampa.Platform.is('android') ? 'false' : 'true');
     Lampa.Storage.set('online_mod_proxy_videodb', 'false');
     Lampa.Storage.set('online_mod_proxy_zetflix', 'false');
     Lampa.Storage.set('online_mod_proxy_kinopub', 'true');
@@ -13334,7 +13292,6 @@
         Lampa.Storage.set('online_mod_balanser', '');
       }
 
-      Lampa.Storage.set('online_mod_proxy_lumex', Lampa.Platform.is('android') ? 'false' : 'true');
       Lampa.Storage.set('online_mod_proxy_reset', '6');
     }
 
