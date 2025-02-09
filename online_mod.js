@@ -1,4 +1,4 @@
-//08.02.2025 - Fix
+//09.02.2025 - Fix
 
 (function () {
     'use strict';
@@ -2117,6 +2117,13 @@
 
         if (error_form) {
           error_message = ($(error_form[1]).text().trim() || '') + ':\n' + ($(error_form[2]).text().trim() || '');
+          return;
+        }
+
+        var verify_form = str.match(/<span>MIRROR<\/span>.*<button type="submit" onclick="\$\.cookie(\([^)]*\))/);
+
+        if (verify_form) {
+          error_message = Lampa.Lang.translate('online_mod_unsupported_mirror') + ' HDrezka';
           return;
         }
 
@@ -13229,7 +13236,7 @@
       };
     }
 
-    var mod_version = '08.02.2025';
+    var mod_version = '09.02.2025';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
@@ -13680,6 +13687,13 @@
         en: 'Authorization required',
         zh: '需要授权'
       },
+      online_mod_unsupported_mirror: {
+        ru: 'Неподдерживаемое зеркало',
+        uk: 'Непідтримуване дзеркало',
+        be: 'Непадтрымоўванае люстэрка',
+        en: 'Unsupported mirror',
+        zh: '不支持的镜子'
+      },
       online_mod_secret_password: {
         ru: 'Секретный пароль',
         uk: 'Секретний пароль',
@@ -14058,6 +14072,14 @@
               return;
             }
 
+            var verify_form = str.match(/<span>MIRROR<\/span>.*<button type="submit" onclick="\$\.cookie(\([^)]*\))/);
+
+            if (verify_form) {
+              Lampa.Noty.show(Lampa.Lang.translate('online_mod_unsupported_mirror') + ' HDrezka');
+              rezka2Logout(error, error);
+              return;
+            }
+
             if (success) success();
           }, function (a, c) {
             if (success) success();
@@ -14074,6 +14096,23 @@
         Lampa.Noty.show(network.errorDecode(a, c));
         if (error) error();
       }, postdata, {
+        withCredentials: true
+      });
+    }
+
+    function rezka2Logout(success, error) {
+      var url = Utils.rezka2Mirror() + '/logout/';
+      network.clear();
+      network.timeout(8000);
+      network.silent(url, function (str) {
+        Lampa.Storage.set('online_mod_rezka2_status', 'false');
+        if (success) success();
+      }, function (a, c) {
+        Lampa.Storage.set('online_mod_rezka2_status', 'false');
+        Lampa.Noty.show(network.errorDecode(a, c));
+        if (error) error();
+      }, false, {
+        dataType: 'text',
         withCredentials: true
       });
     }
@@ -14170,6 +14209,7 @@
                   if (parts[1] === 'deleted') delete values[parts[0]];else values[parts[0]] = parts[1] || '';
                 }
               });
+              sid = values['PHPSESSID'] || sid;
               delete values['PHPSESSID'];
               var _cookies = [];
 
@@ -14179,6 +14219,90 @@
 
               cookie = _cookies.join('; ');
               if (cookie) Lampa.Storage.set('online_mod_rezka2_cookie', cookie);
+            }
+
+            var verify_form = body.match(/<span>MIRROR<\/span>.*<button type="submit" onclick="\$\.cookie(\([^)]*\))/);
+
+            if (verify_form) {
+              var verify_cookie;
+
+              try {
+                verify_cookie = (0, eval)('"use strict"; (function(name, value){ return {name: name, value: value}; })' + verify_form[1] + ';');
+              } catch (e) {}
+
+              if (verify_cookie) {
+                values[verify_cookie.name] = verify_cookie.value;
+                var _cookies2 = [];
+
+                for (var _name2 in values) {
+                  _cookies2.push(_name2 + '=' + values[_name2]);
+                }
+
+                cookie = _cookies2.join('; ');
+                if (cookie) Lampa.Storage.set('online_mod_rezka2_cookie', cookie);
+                if (cookie.indexOf('PHPSESSID=') == -1) cookie = 'PHPSESSID=' + (sid || Utils.randomId(26)) + (cookie ? '; ' + cookie : '');
+                var _headers = {};
+
+                if (prox) {
+                  prox_enc += 'param/Cookie=' + encodeURIComponent(cookie) + '/';
+                } else {
+                  _headers['Cookie'] = cookie;
+                }
+
+                network.clear();
+                network.timeout(8000);
+                network["native"](Utils.proxyLink(host + '/', prox, prox_enc), function (str) {
+                  var json = typeof str === 'string' ? Lampa.Arrays.decodeJson(str, {}) : str;
+                  var body = (json && json.body || '').replace(/\n/g, '');
+                  var error_form = body.match(/(<div class="error-code">[^<]*<div>[^<]*<\/div>[^<]*<\/div>)\s*(<div class="error-title">[^<]*<\/div>)/);
+
+                  if (error_form) {
+                    Lampa.Noty.show(error_form[0]);
+                    if (error) error();
+                    return;
+                  }
+
+                  var verify_form = body.match(/<span>MIRROR<\/span>.*<button type="submit" onclick="\$\.cookie(\([^)]*\))/);
+
+                  if (verify_form) {
+                    Lampa.Storage.set('online_mod_rezka2_cookie', '');
+                    Lampa.Noty.show(Lampa.Lang.translate('online_mod_unsupported_mirror') + ' HDrezka');
+                    if (error) error();
+                    return;
+                  }
+
+                  var cookieHeaders = json && json.headers && json.headers['set-cookie'] || null;
+
+                  if (cookieHeaders && cookieHeaders.forEach) {
+                    cookieHeaders.forEach(function (param) {
+                      var parts = param.split(';')[0].split('=');
+
+                      if (parts[0]) {
+                        if (parts[1] === 'deleted') delete values[parts[0]];else values[parts[0]] = parts[1] || '';
+                      }
+                    });
+                    sid = values['PHPSESSID'] || sid;
+                    delete values['PHPSESSID'];
+                    var _cookies3 = [];
+
+                    for (var _name3 in values) {
+                      _cookies3.push(_name3 + '=' + values[_name3]);
+                    }
+
+                    cookie = _cookies3.join('; ');
+                    if (cookie) Lampa.Storage.set('online_mod_rezka2_cookie', cookie);
+                  }
+
+                  if (success) success();
+                }, function (a, c) {
+                  if (success) success();
+                }, false, {
+                  dataType: 'text',
+                  headers: _headers,
+                  returnHeaders: returnHeaders
+                });
+                return;
+              }
             }
 
             if (success) success();
@@ -14293,13 +14417,13 @@
                 }
               });
               delete values['PHPSESSID'];
-              var _cookies2 = [];
+              var _cookies4 = [];
 
-              for (var _name2 in values) {
-                _cookies2.push(_name2 + '=' + values[_name2]);
+              for (var _name4 in values) {
+                _cookies4.push(_name4 + '=' + values[_name4]);
               }
 
-              cookie = _cookies2.join('; ');
+              cookie = _cookies4.join('; ');
               if (cookie) Lampa.Storage.set('online_mod_fancdn_cookie', cookie);
             }
 
@@ -14320,23 +14444,6 @@
       }, postdata, {
         dataType: 'text',
         returnHeaders: returnHeaders
-      });
-    }
-
-    function rezka2Logout(success, error) {
-      var url = Utils.rezka2Mirror() + '/logout/';
-      network.clear();
-      network.timeout(8000);
-      network.silent(url, function (str) {
-        Lampa.Storage.set('online_mod_rezka2_status', 'false');
-        if (success) success();
-      }, function (a, c) {
-        Lampa.Storage.set('online_mod_rezka2_status', 'false');
-        Lampa.Noty.show(network.errorDecode(a, c));
-        if (error) error();
-      }, false, {
-        dataType: 'text',
-        withCredentials: true
       });
     } ///////Онлайн Мод/////////
 
