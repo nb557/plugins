@@ -1,4 +1,4 @@
-//09.02.2025 - Fix
+//11.02.2025 - Fix
 
 (function () {
     'use strict';
@@ -7267,7 +7267,7 @@
         var json;
 
         try {
-          json = find && (0, eval)('"use strict"; (function(){ return ' + find[1] + '; })();');
+          json = find && (0, eval)('"use strict"; (function(){ var token = ""; return ' + find[1] + '; })();');
         } catch (e) {}
 
         if (json && json.file) {
@@ -13193,7 +13193,7 @@
       };
     }
 
-    var mod_version = '09.02.2025';
+    var mod_version = '11.02.2025';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
@@ -13214,6 +13214,10 @@
       Lampa.Storage.set('online_mod_proxy_fancdn', 'false');
       Lampa.Storage.set('online_mod_proxy_fanserials', 'false');
       Lampa.Storage.set('online_mod_proxy_animelib', 'false');
+    } else if (!Lampa.Platform.is('android')) {
+      Lampa.Storage.set('online_mod_proxy_cdnmovies', 'true');
+      Lampa.Storage.set('online_mod_proxy_fancdn', 'true');
+      Lampa.Storage.set('online_mod_proxy_fanserials', 'true');
     }
 
     Lampa.Storage.set('online_mod_proxy_lumex', Lampa.Platform.is('android') ? 'false' : 'true');
