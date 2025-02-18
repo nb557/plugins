@@ -5713,11 +5713,11 @@
         };
 
         var error = component.empty.bind(component);
-        var api = (+kinopoisk_id ? 'kp=' : 'imdb=') + encodeURIComponent(kinopoisk_id);
+        var api = (+kinopoisk_id ? 'kinopoisk=' : 'imdb_id=') + encodeURIComponent(kinopoisk_id);
         fancdn_api_search(api, function (str) {
           parse(str || '', function () {
             if (!object.clarification && object.movie.imdb_id && kinopoisk_id != object.movie.imdb_id) {
-              fancdn_api_search('imdb=' + encodeURIComponent(object.movie.imdb_id), function (str) {
+              fancdn_api_search('imdb_id=' + encodeURIComponent(object.movie.imdb_id), function (str) {
                 parse(str || '', empty);
               }, error);
             } else empty();
