@@ -1,4 +1,4 @@
-//18.02.2025 - Fix
+//19.02.2025 - Fix
 
 (function () {
     'use strict';
@@ -8001,7 +8001,7 @@
         network.timeout(10000);
         network["native"](component.proxyLink(url, prox), function (str) {
           str = (str || '').replace(/\n/g, '');
-          var player = str.match(/<iframe data-src="((https?:\/\/embed\.new\.video[^"\/]*)\/[^"]*)"/);
+          var player = str.match(/<div [^>]*id="visearch"[^>]*>[^<]*<iframe data-src="((https?:\/\/embed\.new\.video[^"\/]*)\/[^"]*)"/);
 
           if (player) {
             network.clear();
@@ -11374,7 +11374,7 @@
         search: true,
         kp: false,
         imdb: false,
-        disabled: disable_dbg && !isAndroid
+        disabled: disable_dbg
       }, {
         name: 'fancdn2',
         title: 'FanCDN (ID)',
@@ -11382,7 +11382,7 @@
         search: false,
         kp: true,
         imdb: true,
-        disabled: disable_dbg && !isAndroid
+        disabled: disable_dbg
       }, {
         name: 'fanserials',
         title: 'FanSerials',
@@ -12665,7 +12665,7 @@
       };
     }
 
-    var mod_version = '18.02.2025';
+    var mod_version = '19.02.2025';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
@@ -13968,15 +13968,15 @@
       template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_rezka2_fix_stream\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_rezka2_fix_stream}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
     }
 
-    if (Utils.isDebug() || androidHeaders) {
+    if (Utils.isDebug()) {
       template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_fancdn_name\" data-type=\"input\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{online_mod_fancdn_name}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>\n    <div class=\"settings-param selector\" data-name=\"online_mod_fancdn_password\" data-type=\"input\" data-string=\"true\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{online_mod_fancdn_password}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
     }
 
-    if (Utils.isDebug() || Lampa.Platform.is('android')) {
+    if (Utils.isDebug()) {
       template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_fancdn_cookie\" data-type=\"input\" data-string=\"true\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{online_mod_fancdn_cookie}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
     }
 
-    if (Utils.isDebug() || androidHeaders) {
+    if (Utils.isDebug()) {
       template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_fancdn_fill_cookie\" data-static=\"true\">\n        <div class=\"settings-param__name\">#{online_mod_fancdn_fill_cookie}</div>\n        <div class=\"settings-param__status\"></div>\n    </div>";
     }
 
