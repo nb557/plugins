@@ -1,4 +1,4 @@
-//19.02.2025 - Fix
+//20.02.2025 - Fix
 
 (function () {
     'use strict';
@@ -75,7 +75,7 @@
     }
 
     function fancdnHost() {
-      return decodeSecret([89, 69, 64, 69, 67, 14, 26, 26, 91, 89, 95, 94, 83, 90, 30, 95, 79], atob('RnVja0Zhbg=='));
+      return fanserialsHost();
     }
 
     function filmixToken(dev_id, token) {
@@ -299,8 +299,16 @@
       return randomChars('0123456789abcdef', len);
     }
 
-    function randomId(len) {
-      return randomChars('0123456789abcdefghijklmnopqrstuvwxyz', len);
+    function randomId(len, extra) {
+      return randomChars('0123456789abcdefghijklmnopqrstuvwxyz' + (extra || ''), len);
+    }
+
+    function randomId2(len, extra) {
+      return randomChars('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ' + (extra || ''), len);
+    }
+
+    function randomCookie() {
+      return atob('Y2ZfY2xlYXJhbmNlPQ==') + randomId2(43) + '-' + Math.floor(Date.now() / 1000) + atob('LTEuMi4xLjEt') + randomId2(299, '_.');
     }
 
     function checkAndroidVersion(needVersion) {
@@ -340,6 +348,8 @@
       randomChars: randomChars,
       randomHex: randomHex,
       randomId: randomId,
+      randomId2: randomId2,
+      randomCookie: randomCookie,
       checkAndroidVersion: checkAndroidVersion
     };
 
@@ -5036,10 +5046,12 @@
 
       var host2 = Utils.fancdnHost();
       var ref2 = host2 + '/';
+      var cookie2 = Utils.randomCookie();
       var headers2 = Lampa.Platform.is('android') ? {
         'Origin': host2,
         'Referer': ref2,
-        'User-Agent': user_agent
+        'User-Agent': user_agent,
+        'Cookie': cookie2
       } : {};
       var prox_enc2 = '';
 
@@ -5047,6 +5059,7 @@
         prox_enc2 += 'param/Origin=' + encodeURIComponent(host2) + '/';
         prox_enc2 += 'param/Referer=' + encodeURIComponent(ref2) + '/';
         prox_enc2 += 'param/User-Agent=' + encodeURIComponent(user_agent) + '/';
+        prox_enc2 += 'param/Cookie=' + encodeURIComponent(cookie2) + '/';
       }
 
       var cookie = Lampa.Storage.get('online_mod_fancdn_cookie', '') + '';
@@ -5674,10 +5687,12 @@
       var host = Utils.fancdnHost();
       var ref = host + '/';
       var user_agent = Utils.baseUserAgent();
+      var cookie = Utils.randomCookie();
       var headers = Lampa.Platform.is('android') ? {
         'Origin': host,
         'Referer': ref,
-        'User-Agent': user_agent
+        'User-Agent': user_agent,
+        'Cookie': cookie
       } : {};
       var prox_enc = '';
 
@@ -5685,6 +5700,7 @@
         prox_enc += 'param/Origin=' + encodeURIComponent(host) + '/';
         prox_enc += 'param/Referer=' + encodeURIComponent(ref) + '/';
         prox_enc += 'param/User-Agent=' + encodeURIComponent(user_agent) + '/';
+        prox_enc += 'param/Cookie=' + encodeURIComponent(cookie) + '/';
       }
 
       var embed = atob('aHR0cHM6Ly9mYW5jZG4ubmV0L2lmcmFtZS8=');
@@ -12665,7 +12681,7 @@
       };
     }
 
-    var mod_version = '19.02.2025';
+    var mod_version = '20.02.2025';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
