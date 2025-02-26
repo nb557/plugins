@@ -1,4 +1,4 @@
-//20.02.2025 - Fix
+//26.02.2025 - Fix
 
 (function () {
     'use strict';
@@ -71,7 +71,7 @@
     }
 
     function fanserialsHost() {
-      return decodeSecret([89, 69, 64, 69, 67, 14, 26, 26, 67, 1, 31, 87, 85, 91, 67, 81, 71, 92, 81, 92, 31, 69, 66], atob('RnVja0Zhbg=='));
+      return decodeSecret([89, 69, 64, 69, 67, 14, 26, 26, 67, 3, 31, 87, 85, 91, 67, 81, 71, 92, 81, 92, 31, 69, 66], atob('RnVja0Zhbg=='));
     }
 
     function fancdnHost() {
@@ -149,7 +149,7 @@
         if (name === 'redheadsound') return user_proxy2;
         if (name === 'anilibria') return user_proxy2;
         if (name === 'anilibria2') return user_proxy2;
-        if (name === 'animelib') return proxy_other ? proxy_secret : proxy_apn;
+        if (name === 'animelib') return proxy_secret;
         if (name === 'kodik') return user_proxy2;
         if (name === 'kinopub') return user_proxy2;
       }
@@ -6662,6 +6662,7 @@
       var select_title = '';
       var prox = component.proxy('videoseed');
       var embed = atob('aHR0cHM6Ly90di0yLWtpbm9zZXJpYWwubmV0Lw==');
+      var suffix = atob('dG9rZW49dW5kZWZpbmVk');
       var filter_items = {};
       var choice = {
         season: 0,
@@ -6671,7 +6672,7 @@
       function videoseed_api_search(api, callback, error) {
         network.clear();
         network.timeout(10000);
-        network["native"](component.proxyLink(embed + api, prox), function (str) {
+        network["native"](component.proxyLink(api, prox), function (str) {
           if (callback) callback(str || '');
         }, function (a, c) {
           if (error) error(network.errorDecode(a, c));
@@ -6700,9 +6701,14 @@
         };
 
         var error = component.empty.bind(component);
-        var api = 'api.php?kp_id=' + encodeURIComponent(kinopoisk_id);
+        var api = embed + 'api_player.php?kp_id=' + encodeURIComponent(kinopoisk_id);
+        api = Lampa.Utils.addUrlComponent(api, suffix);
         videoseed_api_search(api, function (str) {
-          parse(str || '', empty);
+          if (str && str.indexOf('/embed/') !== -1) {
+            videoseed_api_search(str, function (str) {
+              parse(str || '', empty);
+            }, error);
+          } else empty();
         }, error);
       };
 
@@ -12681,7 +12687,7 @@
       };
     }
 
-    var mod_version = '20.02.2025';
+    var mod_version = '26.02.2025';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
