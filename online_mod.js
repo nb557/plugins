@@ -1,4 +1,4 @@
-//26.02.2025 - Fix
+//27.02.2025 - Fix
 
 (function () {
     'use strict';
@@ -11308,6 +11308,15 @@
         return this.proxyStream(url, name);
       };
 
+      this.isDebug3 = function () {
+        var res = false;
+        var origin = window.location.origin || '';
+        Utils.decodeSecret([65, 68, 92, 74, 91, 84, 25, 65, 65, 15, 93, 87, 88, 73, 95, 70, 95, 83, 28, 87, 82, 13, 87, 64, 90, 84, 90, 70, 83, 26, 94, 88, 89, 80, 88, 80], atob('cHJpc21pc2hl')).split(';').forEach(function (s) {
+          res |= endsWith(origin, s);
+        });
+        return res;
+      };
+
       var last;
       var extended;
       var selected_id;
@@ -11334,7 +11343,8 @@
         source: new lumex2(this, object),
         search: false,
         kp: false,
-        imdb: true
+        imdb: true,
+        disabled: this.isDebug3()
       }, {
         name: 'rezka2',
         title: 'HDrezka',
@@ -11522,6 +11532,11 @@
 
       if (filter_sources.indexOf(balanser) == -1) {
         balanser = default_balanser;
+
+        if (filter_sources.indexOf(balanser) == -1) {
+          balanser = filter_sources[0];
+        }
+
         Lampa.Storage.set('online_mod_balanser', balanser);
       }
 
@@ -12687,7 +12702,7 @@
       };
     }
 
-    var mod_version = '26.02.2025';
+    var mod_version = '27.02.2025';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
