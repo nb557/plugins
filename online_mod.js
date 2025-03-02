@@ -1,4 +1,4 @@
-//27.02.2025 - Fix
+//02.03.2025 - Fix
 
 (function () {
     'use strict';
@@ -1098,7 +1098,7 @@
       extract.season_num = [];
       extract.media = [];
       var select_title = '';
-      var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true;
+      Lampa.Storage.field('online_mod_prefer_http') === true;
       var embed = atob('aHR0cHM6Ly9hcGkubGFtcGEuc3RyZWFtL2x1bWV4Lw==');
       var api_suffix = '/' + encodeURIComponent(btoa(window.location.href));
       var filter_items = {};
@@ -1364,54 +1364,25 @@
       function getStream(element, call, error) {
         if (element.stream) return call(element);
         if (!element.media.playlist) error();
-        lumex_api(embed + 'tok/' + encodeURIComponent(element.media.playlist) + api_suffix, function (json) {
-          if (json && json.host && json.headers) {
-            var url = component.fixLink(element.media.playlist, json.host);
-            network.clear();
-            network.timeout(10000);
-            network["native"](url, function (json) {
-              var url = component.fixLinkProtocol(json && json.url || '', prefer_http);
+        component.checkMyIp(function () {
+          var ip = Utils.getMyIp();
 
-              if (url) {
-                element.subtitles = false ;
-                var file = url;
-                var quality = false;
+          if (!ip) {
+            error();
+            return;
+          }
 
-                if (endsWith(url, 'hls.m3u8')) {
-                  var base_url = url.substring(0, url.length - 'hls.m3u8'.length);
-                  var max_quality = element.media.max_quality || 1080;
-                  var quality_list = [1080, 720, 480, 360, 240];
-                  var items = [];
-                  quality_list.forEach(function (q) {
-                    if (q <= max_quality) {
-                      items.push({
-                        label: q + 'p',
-                        quality: q,
-                        file: base_url + q + '.mp4'
-                      });
-                    }
-                  });
-
-                  if (items && items.length) {
-                    file = items[0].file;
-                    quality = {};
-                    items.forEach(function (item) {
-                      quality[item.label] = item.file;
-                    });
-                  }
-                }
-
-                element.stream = file;
-                element.qualitys = quality;
-                call(element);
-              } else error();
-            }, function (a, c) {
-              error();
-            }, {}, {
-              headers: json.headers
-            });
-          } else error();
-        }, error);
+          var api = embed + 'videos/' + object.movie.id + '/' + encodeURIComponent(element.media.playlist) + api_suffix;
+          api = Lampa.Utils.addUrlComponent(api, 'ip=' + encodeURIComponent(ip));
+          api = Lampa.Utils.addUrlComponent(api, 'title=' + encodeURIComponent(object.movie.title));
+          lumex_api(api, function (json) {
+            if (json && json.url) {
+              element.stream = json.url;
+              element.qualitys = json.qualitys || false;
+              call(element);
+            } else error();
+          }, error);
+        });
       }
       /**
        * Добавить видео
@@ -11317,6 +11288,24 @@
         return res;
       };
 
+      this.checkMyIp = function (onComplite) {
+        var ip = Utils.getMyIp();
+
+        if (ip) {
+          onComplite();
+          return;
+        }
+
+        network.clear();
+        network.timeout(10000);
+        network.silent('https://api.ipify.org/?format=json', function (json) {
+          if (json.ip) Utils.setMyIp(json.ip);
+          onComplite();
+        }, function (a, c) {
+          onComplite();
+        });
+      };
+
       var last;
       var extended;
       var selected_id;
@@ -12702,7 +12691,7 @@
       };
     }
 
-    var mod_version = '27.02.2025';
+    var mod_version = '02.03.2025';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
