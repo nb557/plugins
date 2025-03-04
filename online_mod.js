@@ -1,4 +1,4 @@
-//02.03.2025 - Fix
+//04.03.2025 - Fix
 
 (function () {
     'use strict';
@@ -6632,31 +6632,18 @@
       var object = _object;
       var select_title = '';
       var prox = component.proxy('videoseed');
-      var embed = atob('aHR0cHM6Ly90di0yLWtpbm9zZXJpYWwubmV0Lw==');
+      var embed = atob('aHR0cHM6Ly92aWRlb3NlZWQudHYvYXBpLnBocA==');
       var suffix = atob('dG9rZW49dW5kZWZpbmVk');
       var filter_items = {};
       var choice = {
         season: 0,
         voice: 0
       };
-
-      function videoseed_api_search(api, callback, error) {
-        network.clear();
-        network.timeout(10000);
-        network["native"](component.proxyLink(api, prox), function (str) {
-          if (callback) callback(str || '');
-        }, function (a, c) {
-          if (error) error(network.errorDecode(a, c));
-        }, false, {
-          dataType: 'text'
-        });
-      }
       /**
        * Начать поиск
        * @param {Object} _object
        * @param {String} kinopoisk_id
        */
-
 
       this.search = function (_object, kinopoisk_id) {
         object = _object;
@@ -6672,15 +6659,27 @@
         };
 
         var error = component.empty.bind(component);
-        var api = embed + 'api_player.php?kp_id=' + encodeURIComponent(kinopoisk_id);
+        var api = embed;
+        api = Lampa.Utils.addUrlComponent(api, 'list=' + (object.movie.number_of_seasons ? 'serial' : 'movie'));
         api = Lampa.Utils.addUrlComponent(api, suffix);
-        videoseed_api_search(api, function (str) {
-          if (str && str.indexOf('/embed/') !== -1) {
-            videoseed_api_search(str, function (str) {
+        api = Lampa.Utils.addUrlComponent(api, 'kp=' + encodeURIComponent(kinopoisk_id));
+        network.clear();
+        network.timeout(10000);
+        network["native"](component.proxyLink(api, prox), function (json) {
+          if (json && json.data && json.data[0] && json.data[0].iframe) {
+            network.clear();
+            network.timeout(10000);
+            network["native"](component.proxyLink(json.data[0].iframe, prox), function (str) {
               parse(str || '', empty);
-            }, error);
+            }, function (a, c) {
+              error(network.errorDecode(a, c));
+            }, false, {
+              dataType: 'text'
+            });
           } else empty();
-        }, error);
+        }, function (a, c) {
+          error(network.errorDecode(a, c));
+        });
       };
 
       this.extendChoice = function (saved) {
@@ -12691,7 +12690,7 @@
       };
     }
 
-    var mod_version = '02.03.2025';
+    var mod_version = '04.03.2025';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
