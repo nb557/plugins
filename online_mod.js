@@ -1,4 +1,4 @@
-//04.03.2025 - Fix
+//08.03.2025 - Fix
 
 (function () {
     'use strict';
@@ -71,7 +71,7 @@
     }
 
     function fanserialsHost() {
-      return decodeSecret([89, 69, 64, 69, 67, 14, 26, 26, 67, 3, 31, 87, 85, 91, 67, 81, 71, 92, 81, 92, 31, 69, 66], atob('RnVja0Zhbg=='));
+      return decodeSecret([89, 69, 64, 69, 67, 14, 26, 26, 67, 4, 31, 87, 85, 91, 67, 81, 71, 92, 81, 92, 31, 69, 66], atob('RnVja0Zhbg=='));
     }
 
     function fancdnHost() {
@@ -10359,6 +10359,7 @@
 
       function decode(str) {
         try {
+          if (startsWith(str, 'http') || startsWith(str, '//')) return str;
           return atob(str.replace(/[a-z]/g, function (x) {
             return String.fromCharCode(x.charCodeAt(0) + (x > 'm' ? -13 : 13));
           }).replace(/[A-Z]/g, function (x) {
@@ -11417,7 +11418,8 @@
         source: new videoseed(this, object),
         search: false,
         kp: true,
-        imdb: true
+        imdb: true,
+        disabled: disable_dbg
       }, {
         name: 'vibix',
         title: 'Vibix',
@@ -12690,7 +12692,7 @@
       };
     }
 
-    var mod_version = '04.03.2025';
+    var mod_version = '08.03.2025';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
