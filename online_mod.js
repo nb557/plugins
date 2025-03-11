@@ -1,4 +1,4 @@
-//09.03.2025 - Fix
+//11.03.2025 - Fix
 
 (function () {
     'use strict';
@@ -71,7 +71,7 @@
     }
 
     function fanserialsHost() {
-      return decodeSecret([89, 69, 64, 69, 67, 14, 26, 26, 67, 4, 31, 87, 85, 91, 67, 81, 71, 92, 81, 92, 31, 69, 66], atob('RnVja0Zhbg=='));
+      return decodeSecret([89, 69, 64, 69, 67, 14, 26, 26, 67, 5, 31, 87, 85, 91, 67, 81, 71, 92, 81, 92, 31, 69, 66], atob('RnVja0Zhbg=='));
     }
 
     function fancdnHost() {
@@ -142,7 +142,7 @@
         if (name === 'filmix') return proxy_secret_ip || user_proxy1;
         if (name === 'videodb') return user_proxy2;
         if (name === 'fancdn') return user_proxy3;
-        if (name === 'fancdn2') return user_proxy2;
+        if (name === 'fancdn2') return proxy_secret || user_proxy3;
         if (name === 'fanserials') return user_proxy2;
         if (name === 'videoseed') return user_proxy2;
         if (name === 'vibix') return user_proxy2;
@@ -12705,7 +12705,7 @@
       };
     }
 
-    var mod_version = '09.03.2025';
+    var mod_version = '11.03.2025';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
