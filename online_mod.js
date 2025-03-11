@@ -6635,7 +6635,7 @@
       var select_title = '';
       var prox = component.proxy('videoseed');
       var embed = atob('aHR0cHM6Ly92aWRlb3NlZWQudHYvYXBpLnBocA==');
-      var suffix = atob('dG9rZW49dW5kZWZpbmVk');
+      var suffix = Utils.decodeSecret([67, 91, 90, 83, 90, 10, 80, 6, 95, 15, 13, 0, 0, 6, 7, 2, 86, 1, 15, 6, 1, 0, 87, 14, 87, 4, 93, 7, 0, 9, 0, 4, 83, 87, 9, 11, 86, 2]);
       var filter_items = {};
       var choice = {
         season: 0,
@@ -6667,11 +6667,18 @@
         api = Lampa.Utils.addUrlComponent(api, 'kp=' + encodeURIComponent(kinopoisk_id));
         network.clear();
         network.timeout(10000);
-        network["native"](component.proxyLink(api, prox), function (json) {
+        network["native"](component.proxyLink(api, prox, '', 'enc2'), function (json) {
           if (json && json.data && json.data[0] && json.data[0].iframe) {
+            var url = json.data[0].iframe;
+            var pos = url.indexOf('?');
+
+            if (pos !== -1) {
+              url = url.substring(0, pos);
+            }
+
             network.clear();
             network.timeout(10000);
-            network["native"](component.proxyLink(json.data[0].iframe, prox), function (str) {
+            network["native"](component.proxyLink(url, prox), function (str) {
               parse(str || '', empty);
             }, function (a, c) {
               error(network.errorDecode(a, c));
@@ -6729,11 +6736,12 @@
 
       function parse(str, empty) {
         str = (str || '').replace(/\n/g, '');
-        var find = str.match(/Playerjs\(({.*?})\);/);
+        var find = str.match(/Playerjs\("([^"]*)"\);/);
+        var player = find && decode(find[1]);
         var json;
 
         try {
-          json = find && (0, eval)('"use strict"; (function(){ var token = ""; return ' + find[1] + '; })();');
+          json = player && JSON.parse(player);
         } catch (e) {}
 
         if (json && json.file) {
@@ -6742,6 +6750,36 @@
           filter();
           append(filtred());
         } else empty();
+      }
+
+      function decode(data) {
+        if (!startsWith(data, '#')) return data;
+
+        var enc = function enc(str) {
+          return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, function (match, p1) {
+            return String.fromCharCode('0x' + p1);
+          }));
+        };
+
+        var dec = function dec(str) {
+          return decodeURIComponent(atob(str).split('').map(function (c) {
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+          }).join(''));
+        };
+
+        var trashList = ['qVNP035fDl3hd05QZUkkYsRYC1glOVERZU0YGNvpepEFC', 'g8c71IUSaroqb636BTt7hlKNMA4oR718nyDbbiMm6PCEh', '3dNupT1rfIIIQgFh5Xhbk2i18Rfe4GN8Dq6IxL5saG9Y1', 'hxFNhEtJfd1WeZkns6d7DLvJ8vv8E88XenAtZ4UvDJeBV', '7r3aw2Eat03AiCGA260OBqg7qYmtPbG7aFY8T2b1GSNuL'];
+        var x = data.substring(2);
+        trashList.forEach(function (trash) {
+          x = x.replace('|||' + enc(trash), '');
+        });
+
+        try {
+          x = dec(x);
+        } catch (e) {
+          x = '';
+        }
+
+        return x;
       }
       /**
        * Построить фильтр
@@ -12736,6 +12774,7 @@
 
     Lampa.Storage.set('online_mod_proxy_lumex', Lampa.Platform.is('android') ? 'false' : 'true');
     Lampa.Storage.set('online_mod_proxy_filmix', Lampa.Platform.is('android') ? 'false' : 'true');
+    Lampa.Storage.set('online_mod_proxy_videoseed', Lampa.Platform.is('android') ? 'false' : 'true');
     Lampa.Storage.set('online_mod_proxy_vibix', Lampa.Platform.is('android') ? 'false' : 'true');
     Lampa.Storage.set('online_mod_proxy_redheadsound', Lampa.Platform.is('android') ? 'false' : 'true');
     Lampa.Storage.set('online_mod_proxy_videodb', 'false');
