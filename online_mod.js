@@ -5193,7 +5193,7 @@
         network.timeout(10000);
         network["native"](component.proxyLink(url, prox, prox_enc), function (str) {
           str = (str || '').replace(/\n/g, '');
-          var player = str.match(/<iframe id="iframe-player" src="(https?:\/\/fancdn.net\/[^"]*)"/);
+          var player = str.match(/<iframe +id="iframe-player" +src=" *(https?:\/\/fancdn.net\/[^"]*)"/);
 
           if (player) {
             network.clear();
@@ -6635,7 +6635,7 @@
       var select_title = '';
       var prox = component.proxy('videoseed');
       var embed = atob('aHR0cHM6Ly92aWRlb3NlZWQudHYvYXBpLnBocA==');
-      var suffix = Utils.decodeSecret([67, 91, 90, 83, 90, 10, 80, 6, 95, 15, 13, 0, 0, 6, 7, 2, 86, 1, 15, 6, 1, 0, 87, 14, 87, 4, 93, 7, 0, 9, 0, 4, 83, 87, 9, 11, 86, 2]);
+      var suffix = Utils.decodeSecret([67, 91, 90, 83, 90, 10, 6, 86, 91, 85, 3, 0, 15, 1, 84, 82, 5, 95, 82, 12, 87, 15, 0, 83, 3, 1, 91, 83, 85, 83, 87, 81, 83, 5, 9, 13, 1, 5]);
       var filter_items = {};
       var choice = {
         season: 0,
@@ -6736,13 +6736,21 @@
 
       function parse(str, empty) {
         str = (str || '').replace(/\n/g, '');
-        var find = str.match(/Playerjs\("([^"]*)"\);/);
-        var player = find && decode(find[1]);
         var json;
+        var find = str.match(/Playerjs\(({.*?})\);/);
 
-        try {
-          json = player && JSON.parse(player);
-        } catch (e) {}
+        if (find) {
+          try {
+            json = find && (0, eval)('"use strict"; (function(){ var token = ""; return ' + find[1] + '; })();');
+          } catch (e) {}
+        } else {
+          find = str.match(/Playerjs\("([^"]*)"\);/);
+          var player = find && decode(find[1]);
+
+          try {
+            json = player && JSON.parse(player);
+          } catch (e) {}
+        }
 
         if (json && json.file) {
           component.loading(false);
