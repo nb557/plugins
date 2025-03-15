@@ -1,4 +1,4 @@
-//11.03.2025 - Fix
+//15.03.2025 - Fix
 
 (function () {
     'use strict';
@@ -5196,6 +5196,17 @@
           var player = str.match(/<iframe +id="iframe-player" +src=" *(https?:\/\/fancdn.net\/[^"]*)"/);
 
           if (player) {
+            if (!(Lampa.Storage.get('online_mod_fancdn_token', '') + '')) {
+              var pos = player[1].indexOf('?');
+
+              if (pos !== -1) {
+                var token = player[1].substring(pos + 1).split('&').filter(function (s) {
+                  return startsWith(s, 'key=');
+                }).join('&');
+                Lampa.Storage.set('online_mod_fancdn_token', token);
+              }
+            }
+
             network.clear();
             network.timeout(10000);
             network["native"](component.proxyLink(player[1], prox, prox_enc2), function (str) {
@@ -5677,6 +5688,7 @@
       }
 
       var embed = atob('aHR0cHM6Ly9mYW5jZG4ubmV0L2lmcmFtZS8=');
+      var token = Lampa.Storage.get('online_mod_fancdn_token', '') + '';
       var filter_items = {};
       var choice = {
         season: 0,
@@ -5685,9 +5697,15 @@
       };
 
       function fancdn_api_search(api, callback, error) {
+        var url = Lampa.Utils.addUrlComponent(embed, api);
+
+        if (token) {
+          url = Lampa.Utils.addUrlComponent(url, token);
+        }
+
         network.clear();
         network.timeout(10000);
-        network["native"](component.proxyLink(Lampa.Utils.addUrlComponent(embed, api), prox, prox_enc), function (str) {
+        network["native"](component.proxyLink(url, prox, prox_enc), function (str) {
           if (str && str.indexOf('<title>Доступ ограничен</title>') !== -1) {
             if (error) error(Lampa.Lang.translate('online_mod_authorization_required') + ' FanSerials');
             return;
@@ -6635,7 +6653,7 @@
       var select_title = '';
       var prox = component.proxy('videoseed');
       var embed = atob('aHR0cHM6Ly92aWRlb3NlZWQudHYvYXBpLnBocA==');
-      var suffix = Utils.decodeSecret([67, 91, 90, 83, 90, 10, 6, 86, 91, 85, 3, 0, 15, 1, 84, 82, 5, 95, 82, 12, 87, 15, 0, 83, 3, 1, 91, 83, 85, 83, 87, 81, 83, 5, 9, 13, 1, 5]);
+      var suffix = Utils.decodeSecret([69, 91, 92, 84, 89, 5, 1, 85, 83, 83, 6, 5, 14, 4, 84, 92, 4, 85, 84, 9, 87, 13, 3, 85, 2, 9, 83, 87, 80, 83, 80, 81, 83, 2, 14, 12, 7, 2], atob('U2Vla1Rva2Vu'));
       var filter_items = {};
       var choice = {
         season: 0,
@@ -7157,6 +7175,13 @@
         try {
           json = find && (0, eval)('"use strict"; (function(){ return ' + find[1] + '; })();');
         } catch (e) {}
+
+        if (json && json.file && typeof json.file === 'string') {
+          json.file = [{
+            file: json.file,
+            title: select_title
+          }];
+        }
 
         if (json && json.file && json.file.forEach) {
           component.loading(false);
@@ -11392,7 +11417,7 @@
         search: false,
         kp: false,
         imdb: true,
-        disabled: this.isDebug3()
+        disabled: disable_dbg || this.isDebug3()
       }, {
         name: 'rezka2',
         title: 'HDrezka',
@@ -11477,8 +11502,7 @@
         source: new videoseed(this, object),
         search: false,
         kp: true,
-        imdb: true,
-        disabled: disable_dbg
+        imdb: true
       }, {
         name: 'vibix',
         title: 'Vibix',
@@ -12751,7 +12775,7 @@
       };
     }
 
-    var mod_version = '11.03.2025';
+    var mod_version = '15.03.2025';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
@@ -12846,6 +12870,7 @@
     Lampa.Params.select('online_mod_fancdn_name', '', '');
     Lampa.Params.select('online_mod_fancdn_password', '', '');
     Lampa.Params.select('online_mod_fancdn_cookie', '', '');
+    Lampa.Params.select('online_mod_fancdn_token', '', '');
     Lampa.Params.select('online_mod_proxy_other_url', '', '');
     Lampa.Params.select('online_mod_secret_password', '', '');
 
@@ -13202,6 +13227,13 @@
         be: 'Запоўніць кукі для FanSerials',
         en: 'Fill cookie for FanSerials',
         zh: '为FanSerials填充Cookie'
+      },
+      online_mod_fancdn_token: {
+        ru: 'Токен для FanCDN',
+        uk: 'Токен для FanCDN',
+        be: 'Токен для FanCDN',
+        en: 'Token for FanCDN',
+        zh: 'FanCDN 代币'
       },
       online_mod_authorization_required: {
         ru: 'Требуется авторизация',
@@ -14065,6 +14097,10 @@
 
     if (Utils.isDebug()) {
       template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_fancdn_fill_cookie\" data-static=\"true\">\n        <div class=\"settings-param__name\">#{online_mod_fancdn_fill_cookie}</div>\n        <div class=\"settings-param__status\"></div>\n    </div>";
+    }
+
+    if (Utils.isDebug()) {
+      template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_fancdn_token\" data-type=\"input\" data-string=\"true\" placeholder=\"#{settings_cub_not_specified}\">\n        <div class=\"settings-param__name\">#{online_mod_fancdn_token}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
     }
 
     template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_use_stream_proxy\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_use_stream_proxy}</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
