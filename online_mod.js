@@ -1,4 +1,4 @@
-//15.03.2025 - Fix
+//23.03.2025 - Fix
 
 (function () {
     'use strict';
@@ -1372,7 +1372,7 @@
             return;
           }
 
-          var api = embed + 'videos/' + object.movie.id + '/' + encodeURIComponent(element.media.playlist) + api_suffix;
+          var api = embed + 'play/' + object.movie.id + '/' + encodeURIComponent(element.media.playlist) + api_suffix;
           api = Lampa.Utils.addUrlComponent(api, 'ip=' + encodeURIComponent(ip));
           api = Lampa.Utils.addUrlComponent(api, 'title=' + encodeURIComponent(object.movie.title));
           lumex_api(api, function (json) {
@@ -12775,7 +12775,7 @@
       };
     }
 
-    var mod_version = '15.03.2025';
+    var mod_version = '23.03.2025';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
