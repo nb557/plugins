@@ -3411,7 +3411,7 @@
             if (element.file) {
               var playlist = [];
               var first = {
-                url: element.file,
+                url: component.getDefaultQuality(null, element.file),
                 subtitles: element.subtitles,
                 translate: {
                   tracks: element.audio_tracks
@@ -3423,7 +3423,7 @@
               if (element.season) {
                 items.forEach(function (elem) {
                   playlist.push({
-                    url: elem.file,
+                    url: component.getDefaultQuality(null, elem.file),
                     subtitles: elem.subtitles,
                     translate: {
                       tracks: elem.audio_tracks
@@ -8524,7 +8524,7 @@
             if (element.file) {
               var playlist = [];
               var first = {
-                url: element.file,
+                url: component.getDefaultQuality(null, element.file),
                 timeline: element.timeline,
                 title: element.season ? element.title : select_title + (element.title == select_title ? '' : ' / ' + element.title)
               };
@@ -8532,7 +8532,7 @@
               if (element.season) {
                 items.forEach(function (elem) {
                   playlist.push({
-                    url: elem.file,
+                    url: component.getDefaultQuality(null, elem.file),
                     timeline: elem.timeline,
                     title: elem.title
                   });
@@ -12391,6 +12391,24 @@
       };
 
       this.getDefaultQuality = function (qualityMap, defValue) {
+        {
+          var needHackHlsLink = function needHackHlsLink(link) {
+            return link && endsWith(link, '.m3u8') && link.lastIndexOf('?') <= link.lastIndexOf('/');
+          };
+
+          if (qualityMap) {
+            for (var ID in qualityMap) {
+              if (needHackHlsLink(qualityMap[ID])) {
+                qualityMap[ID] += '?';
+              }
+            }
+          }
+
+          if (needHackHlsLink(defValue)) {
+            defValue += '?';
+          }
+        }
+
         if (qualityMap) {
           var preferably = forcedQuality;
 
