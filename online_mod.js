@@ -1,4 +1,4 @@
-//30.03.2025 - Fix
+//02.04.2025 - Fix
 
 (function () {
     'use strict';
@@ -11346,7 +11346,7 @@
         }
 
         if (url && rezka2_fix_stream && name === 'rezka2') {
-          return url.replace(/\/\/stream\.voidboost\.(cc|top|link|club)\//, '//femeretes.org/');
+          return url.replace(/\/\/(stream\.voidboost\.(cc|top|link|club)|[^\/]*.ukrtelcdn.net)\//, '//femeretes.org/');
         }
 
         return url;
@@ -12793,7 +12793,7 @@
       };
     }
 
-    var mod_version = '30.03.2025';
+    var mod_version = '02.04.2025';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
