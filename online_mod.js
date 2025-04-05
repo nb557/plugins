@@ -1101,6 +1101,7 @@
       Lampa.Storage.field('online_mod_prefer_http') === true;
       var embed = atob('aHR0cHM6Ly9hcGkubGFtcGEuc3RyZWFtL2x1bWV4Lw==');
       var api_suffix = '/' + encodeURIComponent(btoa(window.location.href));
+      var cub_id = encodeURIComponent(btoa(Lampa.Storage.get('account', '{}').email || 'none'));
       var filter_items = {};
       var choice = {
         season: 0,
@@ -1372,7 +1373,7 @@
             return;
           }
 
-          var api = embed + 'play/' + object.movie.id + '/' + encodeURIComponent(element.media.playlist) + api_suffix;
+          var api = embed + 'play/' + object.movie.id + '/' + encodeURIComponent(element.media.playlist) + '/' + cub_id + api_suffix;
           api = Lampa.Utils.addUrlComponent(api, 'ip=' + encodeURIComponent(ip));
           api = Lampa.Utils.addUrlComponent(api, 'title=' + encodeURIComponent(object.movie.title));
           lumex_api(api, function (json) {
@@ -11417,7 +11418,7 @@
         search: false,
         kp: false,
         imdb: true,
-        disabled: disable_dbg || this.isDebug3()
+        disabled: this.isDebug3()
       }, {
         name: 'rezka2',
         title: 'HDrezka',
