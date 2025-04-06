@@ -3288,7 +3288,12 @@
       }
 
       function fixUrl(url) {
-        url = (url || '').replace(atob('Ly9oeWUxZWFpcGJ5NHcubWF0aGFtLndzLw=='), atob('Ly9hYi5tYXRoYW0ud3Mv'));
+        url = url || '';
+
+        if (prox) {
+          url = url.replace(atob('Ly9oeWUxZWFpcGJ5NHcubWF0aGFtLndzLw=='), atob('Ly9hYi5tYXRoYW0ud3Mv'));
+        }
+
         url = component.fixLinkProtocol(url, prefer_http, true);
         return url;
       }
