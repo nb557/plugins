@@ -202,10 +202,10 @@
       if (type === 'tv') {
         result.name = title;
         result.original_name = original_title;
-        result.first_air_date = first_air_date;
-        if (last_air_date) result.last_air_date = last_air_date;
+        result.first_air_date = first_air_date + '';
+        if (last_air_date) result.last_air_date = last_air_date + '';
       } else {
-        result.release_date = first_air_date;
+        result.release_date = first_air_date + '';
       }
 
       if (elem.seasons_obj) {
