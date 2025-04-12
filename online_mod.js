@@ -1,4 +1,4 @@
-//06.04.2025 - Fix
+//12.04.2025 - Fix
 
 (function () {
     'use strict';
@@ -1136,21 +1136,23 @@
         object = _object;
         select_title = object.search || object.movie.title;
         var error = component.empty.bind(component);
-        var found = false;
         var src = embed;
 
         if (data && data[0] && data[0].content_type && data[0].id) {
-          found = true;
-          src += 'findID/' + encodeURIComponent(data[0].id) + '/' + encodeURIComponent(data[0].content_type.replace(/_/g, '-'));
+          var imdb_id = data[0].imdb_id || 'null';
+          var kp_id = data[0].kp_id || 'null';
+          src += 'searchId/mod/' + encodeURIComponent(imdb_id) + '/' + encodeURIComponent(kp_id);
         } else {
-          var imdb_id = (+kinopoisk_id ? !object.clarification && object.movie.imdb_id : kinopoisk_id) || 'null';
-          var kp_id = +kinopoisk_id ? kinopoisk_id : 'null';
-          src += 'searchId/' + encodeURIComponent(imdb_id) + '/' + encodeURIComponent(kp_id);
+          var _imdb_id = (+kinopoisk_id ? !object.clarification && object.movie.imdb_id : kinopoisk_id) || 'null';
+
+          var _kp_id = +kinopoisk_id ? kinopoisk_id : 'null';
+
+          src += 'searchId/mod/' + encodeURIComponent(_imdb_id) + '/' + encodeURIComponent(_kp_id);
         }
 
         lumex_api(src + api_suffix, function (json) {
-          if (found && json) success(json);else if (!found && json && json.content_type && json.id) {
-            var src2 = embed + 'findID/' + encodeURIComponent(json.id) + '/' + encodeURIComponent(json.content_type.replace(/_/g, '-'));
+          if (json && json.content_type && json.id && json.plgs) {
+            var src2 = embed + 'finds/' + encodeURIComponent(json.plgs) + '/' + encodeURIComponent(json.id) + '/' + encodeURIComponent(json.content_type.replace(/_/g, '-'));
             lumex_api(src2 + api_suffix, function (json) {
               if (json) success(json);else component.emptyForQuery(select_title);
             }, error);
@@ -12805,7 +12807,7 @@
       };
     }
 
-    var mod_version = '06.04.2025';
+    var mod_version = '12.04.2025';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
