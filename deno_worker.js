@@ -22,6 +22,7 @@ async function handle(request, connInfo) {
       let redirect = request.method === "POST" ? "manual" : "follow";
       let get_cookie = false;
       let cookie_plus = false;
+      let get_redirect = false;
       let remove_compression = false;
       let params = [];
       let cdn_info = "cdn_pDvQc7ZT";
@@ -34,7 +35,7 @@ async function handle(request, connInfo) {
           body += "connInfo" + " = " + JSON.stringify(connInfo.remoteAddr) + "\n";
         }
         body += "request_url" + " = " + request.url + "\n";
-        body += "worker_version = 1.10\n";
+        body += "worker_version = 1.12\n";
         return new Response(body, corsHeaders);
       }
 
@@ -76,6 +77,11 @@ async function handle(request, connInfo) {
           remove_compression = true;
           api_pos += 12;
           api = api.substring(12);
+        } else if (api.startsWith("get_redirect/")) {
+          get_redirect = true;
+          redirect = "manual";
+          api_pos += 13;
+          api = api.substring(13);
         } else if (api.startsWith("param?") || api.startsWith("param/")) {
           api_pos += 6;
           api = api.substring(6);
@@ -241,6 +247,7 @@ async function handle(request, connInfo) {
       let response = await fetch(request, {
         redirect: redirect,
       });
+      let currentUrl = response.url;
 
       // Recreate the response so you can modify the headers
       response = new Response(response.body, response);
@@ -251,11 +258,21 @@ async function handle(request, connInfo) {
       // Append to/Add Vary header so browser will cache response correctly
       response.headers.append("Vary", "Origin");
 
-      if (response.status >= 200 && response.status < 300) {
+      if (response.status >= 200 && response.status < (get_redirect ? 400 : 300)) {
         let ctype = (response.headers.get("Content-Type") || "").split(";")[0].toLowerCase();
-        if (get_cookie || cookie_plus) {
+        if (get_cookie || cookie_plus || get_redirect) {
           let json = {};
-          json.cookie = response.headers.getSetCookie();
+          json.currentUrl = currentUrl;
+          if (get_redirect) {
+            let target = response.headers.get("Location");
+            if (target) {
+                json.redirectUrl = fixLink(target, apiUrl, apiBase);
+                response.headers.set("Location", json.redirectUrl);
+            }
+          }
+          if (get_cookie || cookie_plus) {
+            json.cookie = response.headers.getSetCookie();
+          }
           if (cookie_plus) {
             let headers = {};
             for (let key of response.headers.keys()) {
