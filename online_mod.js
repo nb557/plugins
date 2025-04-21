@@ -1,4 +1,4 @@
-//19.04.2025 - Fix
+//21.04.2025 - Fix
 
 (function () {
     'use strict';
@@ -8998,7 +8998,7 @@
       var object = _object;
       var select_title = '';
       var prox = component.proxy('anilibria2');
-      var embed = 'https://anilibria.top/api/v1/';
+      var embed = 'https://anilibria.wtf/api/v1/';
       var filter_items = {};
       var choice = {
         season: 0,
@@ -12832,7 +12832,7 @@
       };
     }
 
-    var mod_version = '19.04.2025';
+    var mod_version = '21.04.2025';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
