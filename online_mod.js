@@ -1,4 +1,4 @@
-//21.04.2025 - Fix
+//02.05.2025 - Fix
 
 (function () {
     'use strict';
@@ -80,7 +80,7 @@
     }
 
     function fanserialsHost() {
-      return currentFanserialsHost || decodeSecret([89, 69, 64, 69, 67, 14, 26, 26, 86, 81, 95, 66, 81, 71, 89, 85, 89, 27, 68, 70], atob('RnVja0Zhbg=='));
+      return currentFanserialsHost || decodeSecret([89, 69, 64, 69, 67, 14, 26, 26, 86, 94, 66, 84, 70, 92, 81, 88, 70, 27, 94, 85, 69], atob('RnVja0Zhbg=='));
     }
 
     function fancdnHost() {
@@ -12832,7 +12832,7 @@
       };
     }
 
-    var mod_version = '21.04.2025';
+    var mod_version = '02.05.2025';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
