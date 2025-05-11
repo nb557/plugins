@@ -1517,7 +1517,7 @@
       var prefer_mp4 = Lampa.Storage.field('online_mod_prefer_mp4') === true;
       var proxy_mirror = Lampa.Storage.field('online_mod_proxy_rezka2_mirror') === true;
       var prox = component.proxy('rezka2');
-      var host = prox && !proxy_mirror ? 'https://rezka.ag' : Utils.rezka2Mirror();
+      var host = prox && !proxy_mirror ? 'https://rezka.pub' : Utils.rezka2Mirror();
       var ref = host + '/';
       var logged_in = !(prox || Lampa.Platform.is('android'));
       var user_agent = Utils.baseUserAgent();
