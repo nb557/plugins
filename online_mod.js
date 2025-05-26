@@ -1,4 +1,4 @@
-//18.05.2025 - Fix
+//26.05.2025 - Fix
 
 (function () {
     'use strict';
@@ -11378,7 +11378,7 @@
           if (name === 'lumex') return url;
 
           if (name === 'rezka2') {
-            return url.replace(/\/\/(stream\.voidboost\.(cc|top|link|club)|[^\/]*.ukrtelcdn.net|vdbmate.org|sambray.org|femeretes.org)\//, rezka2_prx_ukr);
+            return url.replace(/\/\/(stream\.voidboost\.(cc|top|link|club)|[^\/]*.ukrtelcdn.net|vdbmate.org|sambray.org|rumbegg.org|laptostack.org|frntroy.org|femeretes.org)\//, rezka2_prx_ukr);
           }
 
           return (prefer_http ? 'http://apn.cfhttp.top/' : 'https://apn.watch/') + url;
@@ -12832,7 +12832,7 @@
       };
     }
 
-    var mod_version = '18.05.2025';
+    var mod_version = '26.05.2025';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
@@ -12921,6 +12921,8 @@
       'prx.ukrtelcdn.net': 'prx.ukrtelcdn.net',
       'prx-cogent.ukrtelcdn.net': 'prx-cogent.ukrtelcdn.net',
       'prx2-cogent.ukrtelcdn.net': 'prx2-cogent.ukrtelcdn.net',
+      'prx3-cogent.ukrtelcdn.net': 'prx3-cogent.ukrtelcdn.net',
+      'prx4-cogent.ukrtelcdn.net': 'prx4-cogent.ukrtelcdn.net',
       'prx-ams.ukrtelcdn.net': 'prx-ams.ukrtelcdn.net',
       'prx2-ams.ukrtelcdn.net': 'prx2-ams.ukrtelcdn.net'
     }, 'prx.ukrtelcdn.net');
@@ -13467,7 +13469,7 @@
         return;
       }
 
-      var prox = Utils.proxy('fancdn');
+      var prox = Utils.proxy('cookie');
       var prox_enc = '';
       var returnHeaders = androidHeaders;
 
