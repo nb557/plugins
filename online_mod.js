@@ -1,4 +1,4 @@
-//26.05.2025 - Fix
+//03.06.2025 - Fix
 
 (function () {
     'use strict';
@@ -8119,12 +8119,24 @@
         network["native"](component.proxyLink(url, prox), function (str) {
           str = (str || '').replace(/\n/g, '');
           var player = str.match(/<div [^>]*id="visearch"[^>]*>[^<]*<iframe data-src="((https?:\/\/embed\.new\.video[^"\/]*)\/[^"]*)"/);
+          var player_link = player && player[1];
 
-          if (player) {
+          if (!player_link) {
+            var find = str.match(/\.create\('player',\s*({.*?})\s*\)/);
+            var json;
+
+            try {
+              json = find && (0, eval)('"use strict"; (function(){ return ' + find[1] + '; })();');
+            } catch (e) {}
+
+            player_link = json && json.url;
+          }
+
+          if (player_link) {
             network.clear();
             network.timeout(10000);
-            network["native"](component.proxyLink(player[1], prox, prox_enc), function (str) {
-              parse(str, player[1]);
+            network["native"](component.proxyLink(player_link, prox, prox_enc), function (str) {
+              parse(str);
             }, function (a, c) {
               component.empty(network.errorDecode(a, c));
             }, false, {
@@ -12832,7 +12844,7 @@
       };
     }
 
-    var mod_version = '26.05.2025';
+    var mod_version = '03.06.2025';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
