@@ -1,4 +1,4 @@
-//03.06.2025 - Fix
+//05.06.2025 - Fix
 
 (function () {
     'use strict';
@@ -7370,6 +7370,22 @@
                       });
                     }
                   });
+                } else if (e.file) {
+                  var _e_title = e.title || e.comment || '';
+
+                  var episode_num = parseInt(_e_title.match(/\d+/));
+                  var season_num = parseInt(s_title.match(/\d+/));
+                  var items = extractItems(e.file);
+                  _e_title = _e_title.replace(/\d+/, '').replace(/серия/i, '').trim();
+                  filtred.push({
+                    title: component.formatEpisodeTitle(season_num, episode_num, _e_title),
+                    quality: items[0] && items[0].quality ? items[0].quality + 'p' : '360p ~ 1080p',
+                    info: '',
+                    season: season_num,
+                    episode: episode_num,
+                    media: items,
+                    subtitles: parseSubs(e.subtitle)
+                  });
                 }
               });
             }
@@ -12844,7 +12860,7 @@
       };
     }
 
-    var mod_version = '03.06.2025';
+    var mod_version = '05.06.2025';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
