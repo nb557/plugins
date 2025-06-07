@@ -16,7 +16,7 @@
     var prox = (window.location.protocol === 'https:' ? 'https://' : 'http://') + 'iqslgbok.deploy.cx/';
     var host = atob('aHR0cHM6Ly93d3cuaW1kYi5jb20=');
     var ref = host + '/';
-    var user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36';
+    var user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36';
     var headers = Lampa.Platform.is('android') ? {
       'Origin': host,
       'Referer': ref,

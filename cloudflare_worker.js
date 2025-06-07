@@ -24,16 +24,17 @@ export default {
       let get_cookie = false;
       let cookie_plus = false;
       let get_redirect = false;
+      let force_head = false;
       let remove_compression = false;
       let params = [];
       let cdn_info = "cdn_X8v8IbU8";
-      let user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36";
+      let user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36";
 
       if (api === "headers") {
         let body = "";
         request.headers.forEach((value, key) => body += key + " = " + value + "\n");
         body += "request_url" + " = " + request.url + "\n";
-        body += "worker_version = 1.12\n";
+        body += "worker_version = 1.13\n";
         return new Response(body, corsHeaders);
       }
 
@@ -80,6 +81,10 @@ export default {
           redirect = "manual";
           api_pos += 13;
           api = api.substring(13);
+        } else if (api.startsWith("head/")) {
+          force_head = true;
+          api_pos += 5;
+          api = api.substring(5);
         } else if (api.startsWith("param?") || api.startsWith("param/")) {
           api_pos += 6;
           api = api.substring(6);
@@ -154,6 +159,9 @@ export default {
       // so you can add the correct Origin header to make the API server think
       // that this request is not cross-site.
       request = new Request(api, request);
+      if (force_head) {
+        request = new Request(request, {method: "HEAD"});
+      }
 
       let cdn_loop = request.headers.get("CDN-Loop");
       if (cdn_loop && cdn_loop.indexOf(cdn_info) !== -1) {

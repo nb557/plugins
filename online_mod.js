@@ -1,4 +1,4 @@
-//05.06.2025 - Fix
+//07.06.2025 - Fix
 
 (function () {
     'use strict';
@@ -96,7 +96,7 @@
     }
 
     function baseUserAgent() {
-      return 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36';
+      return 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36';
     }
 
     function vcdnToken() {
@@ -12860,7 +12860,7 @@
       };
     }
 
-    var mod_version = '05.06.2025';
+    var mod_version = '07.06.2025';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
