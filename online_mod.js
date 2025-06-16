@@ -1,4 +1,4 @@
-//08.06.2025 - Fix
+//16.06.2025 - Fix
 
 (function () {
     'use strict';
@@ -14,7 +14,7 @@
     }
 
     var myIp = '';
-    var currentFanserialsHost = '';
+    var currentFanserialsHost = decodeSecret([89, 69, 64, 69, 67, 14, 26, 26, 93, 73, 87, 80, 90, 70, 85, 70, 92, 84, 92, 30, 95, 84, 64], atob('RnVja0Zhbg=='));
 
     function decodeSecret(input, password) {
       var result = '';
@@ -122,7 +122,7 @@
       var proxy_secret_ip = '';
 
       if (isDebug()) {
-        proxy_apn = (window.location.protocol === 'https:' ? 'https://' : 'http://') + decodeSecret([92, 81, 68, 79, 64, 92, 78, 65, 23, 83, 81, 65, 90, 91, 78, 24, 83, 65, 24]);
+        proxy_apn = (window.location.protocol === 'https:' ? 'https://' : 'http://') + decodeSecret([64, 90, 72, 90, 92, 91, 87, 87, 23, 83, 81, 65, 90, 91, 78, 24, 83, 65, 24]);
         proxy_secret = decodeSecret([95, 64, 69, 70, 71, 13, 25, 31, 88, 71, 90, 28, 91, 86, 2, 3, 6, 23, 92, 91, 72, 83, 86, 25, 87, 64, 73, 24]);
         proxy_secret_ip = proxy_secret + (param_ip || 'ip/');
       }
@@ -12860,7 +12860,7 @@
       };
     }
 
-    var mod_version = '08.06.2025';
+    var mod_version = '16.06.2025';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;

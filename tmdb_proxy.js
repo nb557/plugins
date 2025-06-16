@@ -6,7 +6,7 @@
     }
 
     function proxyLink(u) {
-      var proxy = Lampa.Storage.field('proxy_tmdb') ? Lampa.Utils.protocol() + 'keuytkxq.deploy.cx/' : '';
+      var proxy = Lampa.Storage.field('proxy_tmdb') ? 'https://apn-latest.onrender.com/' : '';
       return proxy + u;
     }
 
