@@ -1,4 +1,4 @@
-//16.06.2025 - Fix
+//19.06.2025 - Fix
 
 (function () {
     'use strict';
@@ -3138,7 +3138,7 @@
       var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true; //let prefer_dash  = Lampa.Storage.field('online_mod_prefer_dash') === true
 
       var prox = component.proxy('collaps');
-      var base = 'api.embess.ws';
+      var base = 'api.atomics.ws';
       var host = 'https://' + base;
       var ref = host + '/';
       var user_agent = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1';
@@ -3303,10 +3303,6 @@
 
       function fixUrl(url) {
         url = url || '';
-
-        {
-          url = url.replace(atob('Ly9oeWUxZWFpcGJ5NHcubWF0aGFtLndzLw=='), atob('Ly9hYi5tYXRoYW0ud3Mv'));
-        }
 
         url = component.fixLinkProtocol(url, prefer_http, true);
         return url;
@@ -12860,7 +12856,7 @@
       };
     }
 
-    var mod_version = '16.06.2025';
+    var mod_version = '19.06.2025';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
