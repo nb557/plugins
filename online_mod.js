@@ -3137,6 +3137,7 @@
       var select_title = '';
       var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true; //let prefer_dash  = Lampa.Storage.field('online_mod_prefer_dash') === true
 
+      var lampa_player = Lampa.Storage.field('online_mod_collaps_lampa_player') === true;
       var prox = component.proxy('collaps');
       var base = 'api.atomics.ws';
       var host = 'https://' + base;
@@ -3158,7 +3159,8 @@
         prox_enc_stream += 'param/Referer=' + encodeURIComponent(ref) + '/';
       }
 
-      var play_headers = !prox ? {
+      var net_method = lampa_player ? 'silent' : 'native';
+      var play_headers = !prox && !lampa_player ? {
         'User-Agent': user_agent,
         'Origin': host,
         'Referer': ref
@@ -3172,7 +3174,7 @@
       function collaps_api_search(api, callback, error) {
         network.clear();
         network.timeout(10000);
-        network.silent(component.proxyLink(embed + api, prox, prox_enc), function (str) {
+        network[net_method](component.proxyLink(embed + api, prox, prox_enc), function (str) {
           if (callback) callback(str || '');
         }, function (a, c) {
           if (a.status == 404 && (!a.responseText || a.responseText.indexOf('видео недоступно') !== -1)) {
@@ -3180,18 +3182,20 @@
           } else {
             network.clear();
             network.timeout(10000);
-            network.silent(component.proxyLink(embed2 + api, prox, prox_enc), function (str) {
+            network[net_method](component.proxyLink(embed2 + api, prox, prox_enc), function (str) {
               if (callback) callback(str || '');
             }, function (a, c) {
               if (a.status == 404 && (!a.responseText || a.responseText.indexOf('видео недоступно') !== -1) || a.status == 0 && a.statusText !== 'timeout') {
                 if (callback) callback('');
               } else if (error) error(network.errorDecode(a, c));
             }, false, {
-              dataType: 'text'
+              dataType: 'text',
+              headers: play_headers
             });
           }
         }, false, {
-          dataType: 'text'
+          dataType: 'text',
+          headers: play_headers
         });
       }
       /**
@@ -3461,7 +3465,7 @@
               }
 
               if (playlist.length > 1) first.playlist = playlist;
-              if (options && options.runas) Lampa.Player.runas(options.runas);else if (Lampa.Storage.field('online_mod_collaps_lampa_player') === true) Lampa.Player.runas('lampa');
+              if (options && options.runas) Lampa.Player.runas(options.runas);else if (lampa_player) Lampa.Player.runas('lampa');
               Lampa.Player.play(first);
               Lampa.Player.playlist(playlist);
 
