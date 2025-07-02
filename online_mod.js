@@ -7783,7 +7783,7 @@
         var postdata = extract.postdata;
         network.clear();
         network.timeout(10000);
-        network["native"](component.proxyLink(extract.domain + 'movie/' + element.media.id, prox2, extract.prox2, 'enc2'), function (json) {
+        network["native"](component.proxyLink(extract.domain + 'api/movie/' + element.media.id, prox2, extract.prox2, 'enc2'), function (json) {
           if (json && json.hlsSource && json.hlsSource.length) {
             var file = '';
             var quality = false;
