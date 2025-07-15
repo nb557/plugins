@@ -8794,7 +8794,7 @@
           });
         }
 
-        if (items.length && sources.hlsUrl) {
+        if (!items.length && sources.hlsUrl) {
           items.push({
             label: 'HLS',
             quality: NaN,
