@@ -397,13 +397,23 @@
       var onerror = arguments.length > 2 ? arguments[2] : undefined;
       var parts_limit = 5;
       var parts_data = [function (call) {
-        getList('api/v2.2/films/top?type=TOP_100_POPULAR_FILMS', params, function (json) {
-          json.title = Lampa.Lang.translate('title_now_watch');
+        getList('api/v2.2/films/collections?type=TOP_POPULAR_MOVIES', params, function (json) {
+          json.title = 'Сейчас смотрят фильмы';
           call(json);
         }, call);
       }, function (call) {
-        getList('api/v2.2/films/top?type=TOP_250_BEST_FILMS', params, function (json) {
-          json.title = Lampa.Lang.translate('title_top_movie');
+        getList('api/v2.2/films/collections?type=POPULAR_SERIES', params, function (json) {
+          json.title = 'Сейчас смотрят сериалы';
+          call(json);
+        }, call);
+      }, function (call) {
+        getList('api/v2.2/films/collections?type=TOP_250_MOVIES', params, function (json) {
+          json.title = 'Топ фильмы';
+          call(json);
+        }, call);
+      }, function (call) {
+        getList('api/v2.2/films/collections?type=TOP_250_TV_SHOWS', params, function (json) {
+          json.title = 'Топ сериалы';
           call(json);
         }, call);
       }, function (call) {
@@ -436,19 +446,19 @@
         var rus_id = countries_map['Россия'];
 
         if (rus_id) {
-          parts_data.splice(3, 0, function (call) {
+          parts_data.splice(5, 0, function (call) {
             getList('api/v2.2/films?order=NUM_VOTE&countries=' + rus_id + '&type=FILM', params, function (json) {
               json.title = 'Популярные российские фильмы';
               call(json);
             }, call);
           });
-          parts_data.splice(5, 0, function (call) {
+          parts_data.splice(7, 0, function (call) {
             getList('api/v2.2/films?order=NUM_VOTE&countries=' + rus_id + '&type=TV_SERIES', params, function (json) {
               json.title = 'Популярные российские сериалы';
               call(json);
             }, call);
           });
-          parts_data.splice(7, 0, function (call) {
+          parts_data.splice(9, 0, function (call) {
             getList('api/v2.2/films?order=NUM_VOTE&countries=' + rus_id + '&type=MINI_SERIES', params, function (json) {
               json.title = 'Популярные российские мини-сериалы';
               call(json);
