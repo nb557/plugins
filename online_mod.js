@@ -1,4 +1,4 @@
-//29.07.2025 - Fix
+//08.08.2025 - Fix
 
 (function () {
     'use strict';
@@ -87,6 +87,10 @@
       return fanserialsHost();
     }
 
+    function filmixHost$1() {
+      return 'https://filmix.my';
+    }
+
     function filmixToken(dev_id, token) {
       return '?user_dev_id=' + dev_id + '&user_dev_name=Xiaomi&user_dev_token=' + token + '&user_dev_vendor=Xiaomi&user_dev_os=14&user_dev_apk=2.2.0&app_lang=ru-rRU';
     }
@@ -142,7 +146,7 @@
 
       if (Lampa.Storage.field('online_mod_proxy_' + name) === true) {
         if (name === 'iframe') return user_proxy2;
-        if (name === 'lumex') return user_proxy2;
+        if (name === 'lumex') return proxy_other ? proxy_secret : proxy_apn;
         if (name === 'rezka') return user_proxy2;
         if (name === 'rezka2') return user_proxy2;
         if (name === 'kinobase') return proxy_apn;
@@ -345,6 +349,7 @@
       getCurrentFanserialsHost: getCurrentFanserialsHost,
       fanserialsHost: fanserialsHost,
       fancdnHost: fancdnHost,
+      filmixHost: filmixHost$1,
       filmixToken: filmixToken,
       filmixUserAgent: filmixUserAgent,
       baseUserAgent: baseUserAgent,
@@ -539,7 +544,6 @@
         prox_enc += 'param/Sec-Fetch-Dest=empty/';
         prox_enc += 'param/Sec-Fetch-Mode=cors/';
         prox_enc += 'param/Sec-Fetch-Site=same-site/';
-        prox_enc += 'enc/aXAyNjA2OjQ3MDA6MzAzMTo6NjgxNTo0NmQ5Lw%3D%3D/';
       }
 
       var prox_enc2 = prox_enc;
@@ -875,7 +879,7 @@
             return {
               label: quality ? quality + 'p' : '360p ~ 1080p',
               quality: quality,
-              file: component.proxyStream(component.fixLink(link, url), 'lumex')
+              file: component.proxyLink(component.fixLink(link, url), prox, prox_enc)
             };
           });
           items.sort(function (a, b) {
@@ -926,13 +930,13 @@
         var hls_file = file.replace(/\/\d\d\d+([^\/]*\.m3u8)$/, '/hls$1');
         network.clear();
         network.timeout(5000);
-        network["native"](component.proxyStream(hls_file, 'lumex'), function (str) {
+        network["native"](component.proxyLink(hls_file, prox, prox_enc), function (str) {
           parseStream(element, call, error, extractItems, str, hls_file);
         }, function (a, c) {
           if (file != hls_file) {
             network.clear();
             network.timeout(5000);
-            network["native"](component.proxyStream(file, 'lumex'), function (str) {
+            network["native"](component.proxyLink(file, prox, prox_enc), function (str) {
               parseStream(element, call, error, extractItems, str, file);
             }, function (a, c) {
               error();
@@ -957,7 +961,7 @@
           link = component.fixLinkProtocol(link, prefer_http);
           return {
             label: item.label,
-            url: component.proxyStreamSubs(link, 'lumex')
+            url: component.proxyLink(link, prox, prox_enc)
           };
         }).filter(function (s) {
           return s.url;
@@ -987,7 +991,7 @@
               return;
             }
 
-            element.stream = component.proxyStream(url, 'lumex');
+            element.stream = component.proxyLink(url, prox, prox_enc);
             element.qualitys = false;
             call(element);
           } else error();
@@ -4024,7 +4028,7 @@
       }
 
       var embed = 'http://filmixapp.cyou/api/v2/';
-      var site = 'https://filmix.quest/';
+      var site = Utils.filmixHost() + '/';
       var select_title = '';
       var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true;
       var filter_items = {};
@@ -13122,13 +13126,14 @@
       };
     }
 
-    var mod_version = '29.07.2025';
+    var mod_version = '08.08.2025';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
     var isIFrame = window.parent !== window;
     var isLocal = !startsWith(window.location.protocol, 'http');
     var androidHeaders = Lampa.Platform.is('android') && Utils.checkAndroidVersion(339);
+    var filmixHost = Utils.filmixHost();
     console.log('App', 'is MSX:', isMSX);
     console.log('App', 'is Tizen:', isTizen);
     console.log('App', 'is iframe:', isIFrame);
@@ -13662,11 +13667,11 @@
         zh: '将设备添加到 Filmix'
       },
       online_mod_filmix_modal_text: {
-        ru: 'Введите его на странице https://filmix.quest/consoles в вашем авторизованном аккаунте!',
-        uk: 'Введіть його на сторінці https://filmix.quest/consoles у вашому авторизованому обліковому записі!',
-        be: 'Увядзіце яго на старонцы https://filmix.quest/consoles у вашым аўтарызаваным акаўнце!',
-        en: 'Enter it at https://filmix.quest/consoles in your authorized account!',
-        zh: '在您的授权帐户中的 https://filmix.quest/consoles 中输入！'
+        ru: 'Введите его на странице ' + filmixHost + '/consoles в вашем авторизованном аккаунте!',
+        uk: 'Введіть його на сторінці ' + filmixHost + '/consoles у вашому авторизованому обліковому записі!',
+        be: 'Увядзіце яго на старонцы ' + filmixHost + '/consoles у вашым аўтарызаваным акаўнце!',
+        en: 'Enter it at ' + filmixHost + '/consoles in your authorized account!',
+        zh: '在您的授权帐户中的 ' + filmixHost + '/consoles 中输入！'
       },
       online_mod_filmix_modal_wait: {
         ru: 'Ожидаем код',
