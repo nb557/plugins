@@ -36,8 +36,25 @@ async function handle(request, connInfo) {
           body += "connInfo" + " = " + JSON.stringify(connInfo.remoteAddr) + "\n";
         }
         body += "request_url" + " = " + request.url + "\n";
-        body += "worker_version = 1.13\n";
+        body += "worker_version = 1.14\n";
         return new Response(body, corsHeaders);
+      }
+
+      let real_ip = "";
+      let forwarded_for = request.headers.get("X-Forwarded-For");
+      if (forwarded_for) real_ip = forwarded_for.split(",").map(s=>s.trim()).find(s=>s && !s.match(/^(127\.|10\.|172\.1[6-9]|172\.2[0-9]|172\.3[01]|192\.168\.)/)) || "";
+      if (!real_ip) real_ip = request.headers.get("cf-connecting-ip");
+      if (!real_ip) real_ip = request.headers.get("X-Real-IP");
+      if (!real_ip) real_ip = connInfo && connInfo.remoteAddr && connInfo.remoteAddr.hostname || "";
+
+      if (api === "jsonip") {
+          return new Response(JSON.stringify({ip: real_ip}), {
+            headers: {
+              "Access-Control-Allow-Origin": "*",
+              "Vary": "Origin",
+              "Content-Type": "application/json; charset=utf-8",
+            },
+          });
       }
 
       if (api.startsWith("?")) {
@@ -139,13 +156,7 @@ async function handle(request, connInfo) {
       if (forwarded_proto) forwarded_proto = forwarded_proto.split(",")[0].trim();
       if (forwarded_proto === "https") proxy = proxy.replace("http://", "https://");
 
-      if (!ip) {
-        let forwarded_for = request.headers.get("X-Forwarded-For");
-        if (forwarded_for) ip = forwarded_for.split(",").map(s=>s.trim()).find(s=>s && !s.match(/^(127\.|10\.|172\.1[6-9]|172\.2[0-9]|172\.3[01]|192\.168\.)/)) || "";
-      }
-      if (!ip) ip = request.headers.get("cf-connecting-ip");
-      if (!ip) ip = request.headers.get("X-Real-IP");
-      if (!ip) ip = connInfo && connInfo.remoteAddr && connInfo.remoteAddr.hostname || "";
+      if (!ip) ip = real_ip;
 
       if (!api || !/^https?:\/\/[^\/]/.test(api)) {
         let error = "Malformed URL";
