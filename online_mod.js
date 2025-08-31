@@ -1,4 +1,4 @@
-//08.08.2025 - Fix
+//31.08.2025 - Fix
 
 (function () {
     'use strict';
@@ -80,7 +80,7 @@
     }
 
     function fanserialsHost() {
-      return currentFanserialsHost || decodeSecret([89, 69, 64, 69, 67, 14, 26, 26, 86, 81, 95, 66, 81, 71, 89, 85, 89, 27, 83, 83], atob('RnVja0Zhbg=='));
+      return currentFanserialsHost || decodeSecret([89, 69, 64, 69, 67, 14, 26, 26, 1, 86, 80, 95, 71, 80, 66, 93, 84, 89, 67, 30, 67, 68], atob('RnVja0Zhbg=='));
     }
 
     function fancdnHost() {
@@ -115,6 +115,31 @@
       return myIp;
     }
 
+    function checkMyIp$1(network, onComplite) {
+      var ip = getMyIp();
+
+      if (ip) {
+        onComplite();
+        return;
+      }
+
+      network.clear();
+      network.timeout(10000);
+      network.silent('https://api.ipify.org/?format=json', function (json) {
+        if (json.ip) setMyIp(json.ip);
+        onComplite();
+      }, function (a, c) {
+        network.clear();
+        network.timeout(10000);
+        network.silent(proxy('ip') + 'jsonip', function (json) {
+          if (json.ip) setMyIp(json.ip);
+          onComplite();
+        }, function (a, c) {
+          onComplite();
+        });
+      });
+    }
+
     function proxy(name) {
       var ip = getMyIp() || '';
       var param_ip = Lampa.Storage.field('online_mod_proxy_find_ip') === true ? 'ip' + ip + '/' : '';
@@ -143,6 +168,7 @@
       if (name === 'cookie') return user_proxy1;
       if (name === 'cookie2') return user_proxy2;
       if (name === 'cookie3') return user_proxy3;
+      if (name === 'ip') return proxy2;
 
       if (Lampa.Storage.field('online_mod_proxy_' + name) === true) {
         if (name === 'iframe') return user_proxy2;
@@ -356,6 +382,7 @@
       vcdnToken: vcdnToken,
       setMyIp: setMyIp,
       getMyIp: getMyIp,
+      checkMyIp: checkMyIp$1,
       proxy: proxy,
       parseURL: parseURL,
       fixLink: fixLink,
@@ -1162,6 +1189,9 @@
           src += encodeURIComponent(_kp_id) + '/' + encodeURIComponent(_imdb_id);
         }
 
+        var original_title = !object.clarification && (object.movie.original_title || object.movie.original_name) || '';
+        var search_date = object.search_date || !object.clarification && (object.movie.release_date || object.movie.first_air_date || object.movie.last_air_date) || '0000';
+        var search_year = parseInt((search_date + '').slice(0, 4));
         component.checkMyIp(function () {
           var ip = Utils.getMyIp();
 
@@ -1173,6 +1203,8 @@
           var api = src + '/' + cub_id + api_suffix;
           api = Lampa.Utils.addUrlComponent(api, 'ip=' + encodeURIComponent(ip));
           api = Lampa.Utils.addUrlComponent(api, 'search=' + encodeURIComponent(select_title));
+          api = Lampa.Utils.addUrlComponent(api, 'original_title=' + encodeURIComponent(original_title));
+          api = Lampa.Utils.addUrlComponent(api, 'year=' + search_year);
           lumex_api(api, function (json) {
             if (json) success(json);else component.emptyForQuery(select_title);
           }, error);
@@ -7943,7 +7975,7 @@
         var postdata = extract.postdata;
         network.clear();
         network.timeout(10000);
-        network["native"](component.proxyLink(extract.domain + 'api/movie/' + element.media.id, prox2, extract.prox2, 'enc2'), function (json) {
+        network["native"](component.proxyLink(extract.domain + 'api/movies/' + element.media.id, prox2, extract.prox2, 'enc2'), function (json) {
           if (json && json.hlsSource && json.hlsSource.length) {
             var file = '';
             var quality = false;
@@ -8514,7 +8546,7 @@
       var select_title = '';
       var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true;
       var prox = component.proxy('cdnvideohub');
-      var embed = atob('aHR0cHM6Ly9wbGFwaS5jZG52aWRlb2h1Yi5jb20vYXBpL3YxL3BsYXllci9zdj9wdWI9MTI=');
+      var embed = atob('aHR0cHM6Ly9wbGFwaS5jZG52aWRlb2h1Yi5jb20vYXBpL3YxL3BsYXllci9zdi8=');
       var filter_items = {};
       var choice = {
         season: 0,
@@ -8536,8 +8568,7 @@
           return;
         }
 
-        var url = Lampa.Utils.addUrlComponent(embed, 'id=' + kinopoisk_id);
-        url = Lampa.Utils.addUrlComponent(url, 'aggr=kp');
+        var url = Lampa.Utils.addUrlComponent(embed + atob('cGxheWxpc3Q/cHViPTEyJmFnZ3I9a3A='), 'id=' + kinopoisk_id);
         network.clear();
         network.timeout(10000);
         network["native"](component.proxyLink(url, prox), function (json) {
@@ -8597,17 +8628,17 @@
       function parse(json) {
         component.loading(false);
 
-        if (json && json.video && json.video.forEach) {
+        if (json && json.items && json.items.forEach) {
           var seasons = [];
-          var items = json.video;
+          var items = json.items;
           items.sort(function (a, b) {
             var cmp = (a.season || 0) - (b.season || 0);
             if (cmp) return cmp;
             cmp = (a.episode || 0) - (b.episode || 0);
             if (cmp) return cmp;
-            if ((a.voice_studio || a.voice_type || '') > (b.voice_studio || b.voice_type || '')) return 1;
-            if ((a.voice_studio || a.voice_type || '') < (b.voice_studio || b.voice_type || '')) return -1;
-            cmp = (a.unitedVideoId || 0) - (b.unitedVideoId || 0);
+            if ((a.voiceStudio || a.voiceType || '') > (b.voiceStudio || b.voiceType || '')) return 1;
+            if ((a.voiceStudio || a.voiceType || '') < (b.voiceStudio || b.voiceType || '')) return -1;
+            cmp = (a.vkId || 0) - (b.vkId || 0);
             return cmp;
           });
           items.forEach(function (data) {
@@ -8625,7 +8656,7 @@
                 seasons.push(s);
               }
 
-              var voice = data.voice_studio || data.voice_type || '';
+              var voice = data.voiceStudio || data.voiceType || '';
               if (s.voices.indexOf(voice) == -1) s.voices.push(voice);
             }
           });
@@ -8676,30 +8707,28 @@
         if (extract.seasons.length) {
           var season_id = extract.seasons[choice.season] && extract.seasons[choice.season].id;
           extract.items.forEach(function (data) {
-            var voice = data.voice_studio || data.voice_type || '';
+            var voice = data.voiceStudio || data.voiceType || '';
 
             if (data.season == season_id && voice == filter_items.voice[choice.voice]) {
-              var items = extractItems(data.sources);
               filtred.push({
                 title: component.formatEpisodeTitle(season_id, data.episode),
-                quality: items[0] && items[0].quality ? items[0].quality + 'p' : '360p ~ 1080p',
-                info: ' / ' + Lampa.Utils.shortText(voice, 50) + (data.unitedVideoId ? ' / id: ' + data.unitedVideoId : ''),
-                data_id: data.unitedVideoId,
+                quality: '360p ~ 1080p',
+                info: ' / ' + Lampa.Utils.shortText(voice, 50) + (data.vkId ? ' / id: ' + data.vkId : ''),
+                data_id: data.vkId,
                 season: '' + season_id,
                 episode: data.episode,
-                media: items
+                media: data
               });
             }
           });
         } else {
           extract.items.forEach(function (data) {
-            var items = extractItems(data.sources);
             filtred.push({
-              title: data.voice_studio || data.voice_type || extract.title_name,
-              quality: items[0] && items[0].quality ? items[0].quality + 'p' : '360p ~ 1080p',
-              info: data.unitedVideoId ? ' / id: ' + data.unitedVideoId : '',
-              data_id: data.unitedVideoId,
-              media: items
+              title: data.voiceStudio || data.voiceType || extract.title_name,
+              quality: '360p ~ 1080p',
+              info: data.vkId ? ' / id: ' + data.vkId : '',
+              data_id: data.vkId,
+              media: data
             });
           });
         }
@@ -8804,29 +8833,40 @@
         return items;
       }
       /**
-       * Найти поток
-       * @param {Object} element
-       * @returns string
+       * Получить поток
+       * @param {*} element
        */
 
 
-      function getFile(element) {
-        var file = '';
-        var quality = false;
-        var items = element.media;
+      function getStream(element, call, error) {
+        if (element.stream) return call(element);
+        if (!element.data_id) return error();
+        var url = embed + 'video/' + element.data_id;
+        network.clear();
+        network.timeout(10000);
+        network["native"](component.proxyLink(url, prox), function (json) {
+          if (json && json.sources) {
+            var file = '',
+                quality = false;
+            var items = extractItems(json.sources);
 
-        if (items && items.length) {
-          file = items[0].file;
-          quality = {};
-          items.forEach(function (item) {
-            quality[item.label] = item.file;
-          });
-        }
+            if (items && items.length) {
+              file = items[0].file;
+              quality = {};
+              items.forEach(function (item) {
+                quality[item.label] = item.file;
+              });
+            }
 
-        return {
-          file: file,
-          quality: quality
-        };
+            if (file) {
+              element.stream = file;
+              element.qualitys = quality;
+              call(element);
+            } else error();
+          } else error();
+        }, function (a, c) {
+          error();
+        });
       }
       /**
        * Показать файлы
@@ -8850,42 +8890,56 @@
 
           if (viewed.indexOf(hash_file) !== -1) item.append('<div class="torrent-item__viewed">' + Lampa.Template.get('icon_star', {}, true) + '</div>');
           item.on('hover:enter', function () {
+            if (element.loading) return;
             if (object.movie.id) Lampa.Favorite.add('history', object.movie, 100);
-            var extra = getFile(element);
-
-            if (extra.file) {
-              var playlist = [];
+            element.loading = true;
+            getStream(element, function (element) {
+              element.loading = false;
               var first = {
-                url: component.getDefaultQuality(extra.quality, extra.file),
-                quality: component.renameQualityMap(extra.quality),
+                url: component.getDefaultQuality(element.qualitys, element.stream),
+                quality: component.renameQualityMap(element.qualitys),
                 timeline: element.timeline,
                 title: element.season ? element.title : select_title + (element.title == select_title ? '' : ' / ' + element.title)
               };
-
-              if (element.season) {
-                items.forEach(function (elem) {
-                  var ex = getFile(elem);
-                  playlist.push({
-                    url: component.getDefaultQuality(ex.quality, ex.file),
-                    quality: component.renameQualityMap(ex.quality),
-                    timeline: elem.timeline,
-                    title: elem.title
-                  });
-                });
-              } else {
-                playlist.push(first);
-              }
-
-              if (playlist.length > 1) first.playlist = playlist;
               Lampa.Player.play(first);
-              Lampa.Player.playlist(playlist);
+
+              if (element.season && Lampa.Platform.version) {
+                var playlist = [];
+                items.forEach(function (elem) {
+                  if (elem == element) {
+                    playlist.push(first);
+                  } else {
+                    var cell = {
+                      url: function url(call) {
+                        getStream(elem, function (elem) {
+                          cell.url = component.getDefaultQuality(elem.qualitys, elem.stream);
+                          cell.quality = component.renameQualityMap(elem.qualitys);
+                          call();
+                        }, function () {
+                          cell.url = '';
+                          call();
+                        });
+                      },
+                      timeline: elem.timeline,
+                      title: elem.title
+                    };
+                    playlist.push(cell);
+                  }
+                });
+                Lampa.Player.playlist(playlist);
+              } else {
+                Lampa.Player.playlist([first]);
+              }
 
               if (viewed.indexOf(hash_file) == -1) {
                 viewed.push(hash_file);
                 item.append('<div class="torrent-item__viewed">' + Lampa.Template.get('icon_star', {}, true) + '</div>');
                 Lampa.Storage.set('online_view', viewed);
               }
-            } else Lampa.Noty.show(Lampa.Lang.translate('online_mod_nolink'));
+            }, function () {
+              element.loading = false;
+              Lampa.Noty.show(Lampa.Lang.translate('online_mod_nolink'));
+            });
           });
           component.append(item);
           component.contextmenu({
@@ -8894,7 +8948,14 @@
             viewed: viewed,
             hash_file: hash_file,
             file: function file(call) {
-              call(getFile(element));
+              getStream(element, function (element) {
+                call({
+                  file: element.stream,
+                  quality: element.qualitys
+                });
+              }, function () {
+                Lampa.Noty.show(Lampa.Lang.translate('online_mod_nolink'));
+              });
             }
           });
         });
@@ -11704,21 +11765,7 @@
       };
 
       this.checkMyIp = function (onComplite) {
-        var ip = Utils.getMyIp();
-
-        if (ip) {
-          onComplite();
-          return;
-        }
-
-        network.clear();
-        network.timeout(10000);
-        network.silent('https://api.ipify.org/?format=json', function (json) {
-          if (json.ip) Utils.setMyIp(json.ip);
-          onComplite();
-        }, function (a, c) {
-          onComplite();
-        });
+        Utils.checkMyIp(network, onComplite);
       };
 
       var last;
@@ -11732,7 +11779,7 @@
       var disable_dbg = !Utils.isDebug();
       var isAndroid = Lampa.Platform.is('android');
       isAndroid && Utils.checkAndroidVersion(339);
-      var collapsBlocked = (!startsWith(window.location.protocol, 'http') || window.location.hostname === 'lampa.mx') && disable_dbg;
+      var collapsBlocked = (!startsWith(window.location.protocol, 'http') || window.location.hostname.indexOf('lampa') !== -1) && disable_dbg;
       var all_sources = [{
         name: 'lumex',
         title: 'Lumex',
@@ -13126,7 +13173,7 @@
       };
     }
 
-    var mod_version = '08.08.2025';
+    var mod_version = '31.08.2025';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
@@ -13739,21 +13786,12 @@
     }
 
     function checkMyIp(onComplite) {
-      var ip = Utils.getMyIp();
-
-      if (ip || Lampa.Storage.field('online_mod_proxy_find_ip') !== true) {
+      if (Lampa.Storage.field('online_mod_proxy_find_ip') !== true) {
         onComplite();
         return;
       }
 
-      network.clear();
-      network.timeout(10000);
-      network.silent('https://api.ipify.org/?format=json', function (json) {
-        if (json.ip) Utils.setMyIp(json.ip);
-        onComplite();
-      }, function (a, c) {
-        onComplite();
-      });
+      Utils.checkMyIp(network, onComplite);
     }
 
     function checkCurrentFanserialsHost(onComplite) {
