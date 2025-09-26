@@ -1,4 +1,4 @@
-//11.09.2025 - Fix
+//26.09.2025 - Fix
 
 (function () {
     'use strict';
@@ -89,6 +89,10 @@
 
     function filmixHost$1() {
       return 'https://filmix.my';
+    }
+
+    function filmixAppHost() {
+      return 'http://filmixapp.vip';
     }
 
     function filmixToken(dev_id, token) {
@@ -376,6 +380,7 @@
       fanserialsHost: fanserialsHost,
       fancdnHost: fancdnHost,
       filmixHost: filmixHost$1,
+      filmixAppHost: filmixAppHost,
       filmixToken: filmixToken,
       filmixUserAgent: filmixUserAgent,
       baseUserAgent: baseUserAgent,
@@ -4053,7 +4058,7 @@
       var ref = host + '/';
       var user_agent = Utils.baseUserAgent();
       var site = ref;
-      var embed = 'http://filmixapp.vip/api/v2/';
+      var embed = Utils.filmixAppHost() + '/api/v2/';
       var headers = Lampa.Platform.is('android') ? {
         'User-Agent': Utils.filmixUserAgent()
       } : {};
@@ -6725,8 +6730,8 @@
       var select_title = '';
       var prox = component.proxy('videoseed');
       var user_agent = Utils.baseUserAgent();
-      var embed = atob('aHR0cHM6Ly90di0yLWtpbm9zZXJpYWwubmV0L2FwaV9wbGF5ZXIucGhw');
-      var suffix = Utils.decodeSecret([69, 91, 92, 84, 89, 5, 1, 85, 83, 83, 6, 5, 14, 4, 84, 92, 4, 85, 84, 9, 87, 13, 3, 85, 2, 9, 83, 87, 80, 83, 80, 81, 83, 2, 14, 12, 7, 2], atob('U2Vla1Rva2Vu'));
+      var embed = atob('aHR0cHM6Ly92aWRlb3NlZWQudHYvYXBpdjIucGhw');
+      var suffix = Utils.decodeSecret([69, 92, 88, 86, 86, 11, 7, 0, 80, 85, 5, 2, 85, 0, 8, 5, 5, 93, 6, 5, 87, 86, 86, 6, 13, 6, 6, 0, 11, 1, 0, 7, 6, 5, 14, 80, 1, 91], atob('dmlkZW9zZWVk'));
       var headers = Lampa.Platform.is('android') ? {
         'User-Agent': user_agent
       } : {};
@@ -6763,13 +6768,14 @@
 
         var error = component.empty.bind(component);
         var api = embed;
-        api = Lampa.Utils.addUrlComponent(api, 'kp_id=' + encodeURIComponent(kinopoisk_id));
+        api = Lampa.Utils.addUrlComponent(api, 'item=' + (object.movie.number_of_seasons ? 'serial' : 'movie'));
+        api = Lampa.Utils.addUrlComponent(api, 'kp=' + encodeURIComponent(kinopoisk_id));
         api = Lampa.Utils.addUrlComponent(api, suffix);
         network.clear();
         network.timeout(10000);
-        network["native"](component.proxyLink(api, prox, prox_enc, 'enc2'), function (str) {
-          if (str && str !== 'NONE' && startsWith(str, 'http')) {
-            var url = str;
+        network["native"](component.proxyLink(api, prox, prox_enc, 'enc2'), function (json) {
+          if (json && json.data && json.data[0] && json.data[0].iframe) {
+            var url = json.data[0].iframe;
             var pos = url.indexOf('?');
 
             if (pos !== -1) {
@@ -6790,7 +6796,6 @@
         }, function (a, c) {
           error(network.errorDecode(a, c));
         }, false, {
-          dataType: 'text',
           headers: headers
         });
       };
@@ -6859,6 +6864,7 @@
         }
 
         if (json && json.file && typeof json.file === 'string') {
+          json.file = decode(json.file);
           json = {
             file: [json]
           };
@@ -10315,7 +10321,7 @@
       var prefer_mp4 = false;
       var prox = component.proxy('kodik');
       var embed = 'https://kodikapi.com/search';
-      var token = atob('NDVjNTM1NzhmMTFlY2ZiNzRlMzEyNjdiNjM0Y2M2YTg=');
+      var token = Utils.decodeSecret([5, 1, 86, 86, 11, 6, 86, 9, 4, 82, 2, 3, 5, 3, 10, 82, 1, 9, 85, 6, 81, 5, 3, 2, 8, 3, 2, 2, 7, 83, 0, 7], atob('a29kaWs='));
       var last_player = '';
       var last_info = '';
       var filter_items = {};
@@ -11697,7 +11703,7 @@
     var proxyInitialized = {};
     var proxyWindow = {};
     var proxyCalls = {};
-    var default_balanser = 'lumex2';
+    var default_balanser = 'vibix';
 
     function component(object) {
       var network = new Lampa.Reguest();
@@ -11811,7 +11817,7 @@
         search: false,
         kp: false,
         imdb: true,
-        disabled: this.isDebug3()
+        disabled: true
       }, {
         name: 'rezka2',
         title: 'HDrezka',
@@ -13189,7 +13195,7 @@
       };
     }
 
-    var mod_version = '11.09.2025';
+    var mod_version = '26.09.2025';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
@@ -13936,7 +13942,7 @@
     var filmix_headers = Lampa.Platform.is('android') ? {
       'User-Agent': Utils.filmixUserAgent()
     } : {};
-    var api_url = 'http://filmixapp.cyou/api/v2/';
+    var api_url = Utils.filmixAppHost() + '/api/v2/';
     var dev_id = Utils.randomHex(16);
     var ping_auth;
     Lampa.Params.select('filmix_token', '', '');
