@@ -1,4 +1,4 @@
-//26.09.2025 - Fix
+//27.09.2025 - Fix
 
 (function () {
     'use strict';
@@ -6731,7 +6731,7 @@
       var prox = component.proxy('videoseed');
       var user_agent = Utils.baseUserAgent();
       var embed = atob('aHR0cHM6Ly92aWRlb3NlZWQudHYvYXBpdjIucGhw');
-      var suffix = Utils.decodeSecret([69, 92, 88, 86, 86, 11, 7, 0, 80, 85, 5, 2, 85, 0, 8, 5, 5, 93, 6, 5, 87, 86, 86, 6, 13, 6, 6, 0, 11, 1, 0, 7, 6, 5, 14, 80, 1, 91], atob('dmlkZW9zZWVk'));
+      var suffix = Utils.decodeSecret([67, 91, 90, 83, 90, 10, 4, 8, 90, 84, 0, 0, 80, 7, 7, 5, 0, 92, 2, 7, 87, 83, 81, 2, 3, 0, 10, 15, 12, 6, 7, 0, 2, 0, 6, 95, 3, 87]);
       var headers = Lampa.Platform.is('android') ? {
         'User-Agent': user_agent
       } : {};
@@ -11832,7 +11832,7 @@
         search: true,
         kp: false,
         imdb: false,
-        disabled: disable_dbg
+        disabled: true
       }, {
         name: 'collaps',
         title: 'Collaps',
@@ -11902,7 +11902,8 @@
         source: new videoseed(this, object),
         search: false,
         kp: true,
-        imdb: true
+        imdb: true,
+        disabled: disable_dbg
       }, {
         name: 'vibix',
         title: 'Vibix',
@@ -11969,7 +11970,7 @@
         search: false,
         kp: true,
         imdb: true,
-        disabled: disable_dbg
+        disabled: true
       }, {
         name: 'kinopub',
         title: 'KinoPub',
@@ -13195,7 +13196,7 @@
       };
     }
 
-    var mod_version = '26.09.2025';
+    var mod_version = '27.09.2025';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
@@ -13932,10 +13933,18 @@
       });
     }
 
-    if (Lampa.VPN && Lampa.VPN.region && (Utils.isDebug() || Utils.isDebug2())) {
-      Lampa.VPN.region = function (call) {
-        if (call) call('de');
-      };
+    if (Lampa.VPN && (Utils.isDebug() || Utils.isDebug2())) {
+      if (Lampa.VPN.region) {
+        Lampa.VPN.region = function (call) {
+          if (call) call('de');
+        };
+      }
+
+      if (Lampa.VPN.code) {
+        Lampa.VPN.code = function () {
+          return 'de';
+        };
+      }
     } ///////FILMIX/////////
 
 
