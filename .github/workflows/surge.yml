@@ -10,7 +10,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
       - name: Deploy to surge.sh
-        uses: dswistowski/surge-sh-action@v1.0.2
+        uses: dswistowski/surge-sh-action@v1.1.0
         with:
           domain: ${{ secrets.SURGE_DOMAIN }}
           project: '.'
