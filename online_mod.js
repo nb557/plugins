@@ -1,4 +1,4 @@
-//27.09.2025 - Fix
+//11.10.2025 - Fix
 
 (function () {
     'use strict';
@@ -581,6 +581,7 @@
       var prox_enc2 = prox_enc;
       var embed = atob('aHR0cHM6Ly9hcGkubHVtZXguc3BhY2Uv');
       var suffix = atob('Y2xpZW50SWQ9Q1dmS1hMYzFhaklkJmRvbWFpbj1tb3ZpZWxhYi5vbmUmdXJsPW1vdmllbGFiLm9uZQ==');
+      var no_prox = atob('LmVudG91YWVkb24uY29tLw==');
       var filter_items = {};
       var choice = {
         season: 0,
@@ -908,10 +909,12 @@
               if (alt_height > quality && alt_height <= 4320) quality = alt_height;
             }
 
+            link = component.fixLink(link, url);
+            var link_prox = link.indexOf(no_prox) !== -1 ? '' : prox;
             return {
               label: quality ? quality + 'p' : '360p ~ 1080p',
               quality: quality,
-              file: component.proxyLink(component.fixLink(link, url), prox, prox_enc)
+              file: component.proxyLink(link, link_prox, prox_enc)
             };
           });
           items.sort(function (a, b) {
@@ -960,15 +963,16 @@
       function getStreamM3U(element, call, error, file) {
         file = file.replace(/\.mp4:hls:manifest/, '');
         var hls_file = file.replace(/\/\d\d\d+([^\/]*\.m3u8)$/, '/hls$1');
+        var link_prox = file.indexOf(no_prox) !== -1 ? '' : prox;
         network.clear();
         network.timeout(5000);
-        network["native"](component.proxyLink(hls_file, prox, prox_enc), function (str) {
+        network["native"](component.proxyLink(hls_file, link_prox, prox_enc), function (str) {
           parseStream(element, call, error, extractItems, str, hls_file);
         }, function (a, c) {
           if (file != hls_file) {
             network.clear();
             network.timeout(5000);
-            network["native"](component.proxyLink(file, prox, prox_enc), function (str) {
+            network["native"](component.proxyLink(file, link_prox, prox_enc), function (str) {
               parseStream(element, call, error, extractItems, str, file);
             }, function (a, c) {
               error();
@@ -991,9 +995,10 @@
             return link;
           })[0] || '';
           link = component.fixLinkProtocol(link, prefer_http);
+          var link_prox = link.indexOf(no_prox) !== -1 ? '' : prox;
           return {
             label: item.label,
-            url: component.proxyLink(link, prox, prox_enc)
+            url: component.proxyLink(link, link_prox, prox_enc)
           };
         }).filter(function (s) {
           return s.url;
@@ -1023,7 +1028,8 @@
               return;
             }
 
-            element.stream = component.proxyLink(url, prox, prox_enc);
+            var link_prox = url.indexOf(no_prox) !== -1 ? '' : prox;
+            element.stream = component.proxyLink(url, link_prox, prox_enc);
             element.qualitys = false;
             call(element);
           } else error();
@@ -2288,7 +2294,7 @@
         try {
           var items = component.parsePlaylist(str).map(function (item) {
             var int_quality = NaN;
-            var quality = item.label.match(/(\d\d\d+)p/);
+            var quality = item.label.match(/(\d\d\d+)/);
 
             if (quality) {
               int_quality = parseInt(quality[1]);
@@ -2821,7 +2827,7 @@
             var voices = {};
             component.parsePlaylist(file).forEach(function (item) {
               var prev = voices[item.voice || ''];
-              var quality_str = item.label.match(/(\d\d\d+)p/);
+              var quality_str = item.label.match(/(\d\d\d+)/);
               var quality = quality_str ? parseInt(quality_str[1]) : NaN;
 
               if (!prev || quality > prev.quality) {
@@ -3038,7 +3044,7 @@
           }
 
           var items = list.map(function (item) {
-            var quality = item.label.match(/(\d\d\d+)p/);
+            var quality = item.label.match(/(\d\d\d+)/);
             var file = item.links[0] || '';
             return {
               label: item.label,
@@ -3725,7 +3731,7 @@
 
         try {
           var items = component.parsePlaylist(str).map(function (item) {
-            var quality = item.label.match(/(\d\d\d+)p/);
+            var quality = item.label.match(/(\d\d\d+)/);
             var link = item.links[0] || '';
             link = link.replace('/sundb.coldcdn.xyz/', '/sundb.nl/');
             link = component.fixLinkProtocol(link, prefer_http, true);
@@ -4830,7 +4836,7 @@
 
         try {
           var items = component.parsePlaylist(str).map(function (item) {
-            var quality = item.label.match(/(\d\d\d+)p/);
+            var quality = item.label.match(/(\d\d\d+)/);
             var link = item.links[0] || '';
             link = component.fixLinkProtocol(link, prefer_http, true);
             return {
@@ -5398,7 +5404,7 @@
 
         try {
           var items = component.parsePlaylist(str).map(function (item) {
-            var quality = item.label.match(/(\d\d\d+)p/);
+            var quality = item.label.match(/(\d\d\d+)/);
             var link = item.links[0] || '';
             link = component.fixLinkProtocol(link, prefer_http, true);
             return {
@@ -5919,7 +5925,7 @@
 
         try {
           var items = component.parsePlaylist(str).map(function (item) {
-            var quality = item.label.match(/(\d\d\d+)p/);
+            var quality = item.label.match(/(\d\d\d+)/);
             var link = item.links[0] || '';
             link = component.fixLinkProtocol(link, prefer_http, true);
             return {
@@ -7017,7 +7023,7 @@
           }
 
           var items = list.map(function (item) {
-            var quality = item.label.match(/(\d\d\d+)p/);
+            var quality = item.label.match(/(\d\d\d+)/);
             var file = item.links[0] || '';
             return {
               label: item.label,
@@ -7501,7 +7507,7 @@
               label = label.substring('MP4 '.length).trim();
             }
 
-            var quality = label.match(/(\d\d\d+)p/);
+            var quality = label.match(/(\d\d\d+)/);
             var file = item.links[0] || '';
             return {
               label: label,
@@ -8262,15 +8268,25 @@
                 }
               }
 
-              if (cards.length > 1 && search_year) {
+              {
                 var _tmp2 = cards.filter(function (c) {
+                  return !endsWith(c.title, ' - обзор');
+                });
+
+                if (_tmp2.length) {
+                  cards = _tmp2;
+                }
+              }
+
+              if (cards.length > 1 && search_year) {
+                var _tmp3 = cards.filter(function (c) {
                   return c.year == search_year;
                 });
 
-                if (!_tmp2.length) _tmp2 = cards.filter(function (c) {
+                if (!_tmp3.length) _tmp3 = cards.filter(function (c) {
                   return c.year && c.year > search_year - 2 && c.year < search_year + 2;
                 });
-                if (_tmp2.length) cards = _tmp2;
+                if (_tmp3.length) cards = _tmp3;
               }
             }
 
@@ -11817,7 +11833,7 @@
         search: false,
         kp: false,
         imdb: true,
-        disabled: true
+        disabled: this.isDebug3()
       }, {
         name: 'rezka2',
         title: 'HDrezka',
@@ -12479,24 +12495,28 @@
 
         try {
           if (startsWith(str, '[')) {
-            str.substring(1).split(',[').forEach(function (item) {
-              if (endsWith(item, ',')) item = item.substring(0, item.length - 1);
+            str.substring(1).split(/, *\[/).forEach(function (item) {
+              item = item.trim();
+              if (endsWith(item, ',')) item = item.substring(0, item.length - 1).trim();
               var label_end = item.indexOf(']');
 
               if (label_end >= 0) {
-                var label = item.substring(0, label_end);
+                var label = item.substring(0, label_end).trim();
 
                 if (item.charAt(label_end + 1) === '{') {
-                  item.substring(label_end + 2).split(';{').forEach(function (voice_item) {
-                    if (endsWith(voice_item, ';')) voice_item = voice_item.substring(0, voice_item.length - 1);
+                  item.substring(label_end + 2).split(/; *\{/).forEach(function (voice_item) {
+                    voice_item = voice_item.trim();
+                    if (endsWith(voice_item, ';')) voice_item = voice_item.substring(0, voice_item.length - 1).trim();
                     var voice_end = voice_item.indexOf('}');
 
                     if (voice_end >= 0) {
-                      var voice = voice_item.substring(0, voice_end);
+                      var voice = voice_item.substring(0, voice_end).trim();
                       pl.push({
                         label: label,
                         voice: voice,
-                        links: voice_item.substring(voice_end + 1).split(' or ').filter(function (link) {
+                        links: voice_item.substring(voice_end + 1).split(' or ').map(function (link) {
+                          return link.trim();
+                        }).filter(function (link) {
                           return link;
                         })
                       });
@@ -12505,7 +12525,9 @@
                 } else {
                   pl.push({
                     label: label,
-                    links: item.substring(label_end + 1).split(' or ').filter(function (link) {
+                    links: item.substring(label_end + 1).split(' or ').map(function (link) {
+                      return link.trim();
+                    }).filter(function (link) {
                       return link;
                     })
                   });
@@ -12820,7 +12842,7 @@
             if (preferably === '1080p') preferably = '1080p Ultra';
           }
 
-          var items = ['2160p', '4K', '1440p', '2K', '1080p Ultra', '1080p', '720p', '480p', '360p', '240p'];
+          var items = ['2160p', '2160', '4K', '1440p', '1440', '2K', '1080p Ultra', '1080p', '1080', '720p', '720', '480p', '480', '360p', '360', '240p', '240'];
           var idx = items.indexOf(preferably);
 
           if (idx !== -1) {
@@ -13196,7 +13218,7 @@
       };
     }
 
-    var mod_version = '27.09.2025';
+    var mod_version = '11.10.2025';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
