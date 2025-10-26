@@ -11821,7 +11821,7 @@
       var disable_dbg = !Utils.isDebug();
       var isAndroid = Lampa.Platform.is('android');
       isAndroid && Utils.checkAndroidVersion(339);
-      var collapsBlocked = startsWith(window.location.protocol, 'http') && window.location.hostname.indexOf('lampa') !== -1 && !isAndroid && disable_dbg;
+      var collapsBlocked = (!startsWith(window.location.protocol, 'http') || window.location.hostname.indexOf('lampa') !== -1) && disable_dbg;
       var all_sources = [{
         name: 'lumex',
         title: 'Lumex',
