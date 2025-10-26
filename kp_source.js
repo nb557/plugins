@@ -595,14 +595,16 @@
             data.query.more = true;
           }
 
-          var movie = Object.assign({}, data.query);
+          var movie = {};
+          Lampa.Arrays.extend(movie, data.query);
           movie.results = data.query.results.filter(function (elem) {
             return elem.type === 'movie';
           });
           movie.title = Lampa.Lang.translate('menu_movies');
           movie.type = 'movie';
           if (movie.results.length) items.push(movie);
-          var tv = Object.assign({}, data.query);
+          var tv = {};
+          Lampa.Arrays.extend(tv, data.query);
           tv.results = data.query.results.filter(function (elem) {
             return elem.type === 'tv';
           });
@@ -822,13 +824,12 @@
             return KP;
           }
         });
-        var sources;
+        var sources = {};
 
         if (Lampa.Params.values && Lampa.Params.values['source']) {
-          sources = Object.assign({}, Lampa.Params.values['source']);
+          Lampa.Arrays.extend(sources, Lampa.Params.values['source']);
           sources[KP.SOURCE_NAME] = KP.SOURCE_TITLE;
         } else {
-          sources = {};
           ALL_SOURCES.forEach(function (s) {
             if (Lampa.Api.sources[s.name]) sources[s.name] = s.title;
           });

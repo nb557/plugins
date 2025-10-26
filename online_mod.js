@@ -1,4 +1,4 @@
-//11.10.2025 - Fix
+//26.10.2025 - Fix
 
 (function () {
     'use strict';
@@ -3200,9 +3200,7 @@
 
       var net_method = lampa_player ? 'silent' : 'native';
       var play_headers = !prox && !lampa_player ? {
-        'User-Agent': user_agent,
-        'Origin': host,
-        'Referer': ref
+        'User-Agent': user_agent
       } : {};
       var filter_items = {};
       var choice = {
@@ -4713,6 +4711,8 @@
       var select_id = '';
       var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true;
       var prox = component.proxy('zetflix');
+      var prox_enc = '';
+
       var embed = (prefer_http ? 'http:' : 'https:') + '//hidxlglk.deploy.cx/lite/zetflix';
       var filter_items = {};
       var choice = {
@@ -4842,7 +4842,7 @@
             return {
               label: item.label,
               quality: quality ? parseInt(quality[1]) : NaN,
-              file: component.proxyLink(link, prox)
+              file: component.proxyLink(link, prox, prox_enc)
             };
           });
           items.sort(function (a, b) {
@@ -6321,7 +6321,9 @@
         network["native"](component.proxyLink(url, prox, prox_enc), function (str) {
           parse(str);
         }, function (a, c) {
-          component.empty(network.errorDecode(a, c));
+          if (a.status == 404 && (!a.responseText || a.responseText.indexOf('Сериал не найден :(') !== -1) || a.status == 0 && a.statusText !== 'timeout') {
+            component.emptyForQuery(select_title);
+          } else component.empty(network.errorDecode(a, c));
         }, false, {
           dataType: 'text',
           headers: headers
@@ -11817,7 +11819,7 @@
       var disable_dbg = !Utils.isDebug();
       var isAndroid = Lampa.Platform.is('android');
       isAndroid && Utils.checkAndroidVersion(339);
-      var collapsBlocked = (!startsWith(window.location.protocol, 'http') || window.location.hostname.indexOf('lampa') !== -1) && disable_dbg;
+      var collapsBlocked = startsWith(window.location.protocol, 'http') && window.location.hostname.indexOf('lampa') !== -1 && !isAndroid && disable_dbg;
       var all_sources = [{
         name: 'lumex',
         title: 'Lumex',
@@ -13218,7 +13220,7 @@
       };
     }
 
-    var mod_version = '11.10.2025';
+    var mod_version = '26.10.2025';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;

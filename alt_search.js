@@ -325,14 +325,16 @@
             data.query.more = true;
           }
 
-          var movie = Object.assign({}, data.query);
+          var movie = {};
+          Lampa.Arrays.extend(movie, data.query);
           movie.results = data.query.results.filter(function (elem) {
             return elem.type === 'movie';
           });
           movie.title = Lampa.Lang.translate('menu_movies');
           movie.type = 'movie';
           if (movie.results.length) items.push(movie);
-          var tv = Object.assign({}, data.query);
+          var tv = {};
+          Lampa.Arrays.extend(tv, data.query);
           tv.results = data.query.results.filter(function (elem) {
             return elem.type === 'tv';
           });
