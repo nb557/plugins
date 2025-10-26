@@ -8204,10 +8204,42 @@
         season: 0,
         voice: 0
       };
+      var secret = atob('MWM2MzYyNTY3ZjNmNzQ5ZDVkOTZjOWVmYjZlM2UwYmRhYzY4NjI3OA==');
+      var secret_timestamp = null;
+
+      function decodeSecretToken(callback) {
+
+        var timestamp = new Date().getTime();
+        var cache_timestamp = timestamp - 1000 * 60 * 10;
+
+        if (secret && secret_timestamp && secret_timestamp > cache_timestamp) {
+          if (callback) callback();
+          return;
+        }
+
+        network.clear();
+        network.timeout(10000);
+        network["native"](component.proxyLink(embed, prox), function (str) {
+          str = (str || '').replace(/\n/g, '');
+          var found = str.match(/\bdle_login_hash = '([^']+)'/);
+
+          if (found) {
+            secret = found[1];
+            secret_timestamp = timestamp;
+          }
+
+          if (callback) callback();
+        }, function (a, c) {
+          if (callback) callback();
+        }, false, {
+          dataType: 'text'
+        });
+      }
       /**
        * Поиск
        * @param {Object} _object
        */
+
 
       this.search = function (_object, kinopoisk_id, data) {
         var _this = this;
@@ -8227,23 +8259,21 @@
 
         if (object.movie.original_title) orig_titles.push(object.movie.original_title);
         if (object.movie.original_name) orig_titles.push(object.movie.original_name);
-        var url = embed + 'index.php?do=search';
+        var url = embed + 'engine/ajax/controller.php?mod=search';
 
         var display = function display(links) {
           if (links && links.length && links.forEach) {
             var is_sure = false;
             var items = links.map(function (l) {
-              var article = $(l);
-              var link = $('.card__title>a', article);
+              var h4 = $(l.link);
+              var link = $('a', h4);
               var titl = link.text().trim() || '';
-              var orig_span = $('.card__title>.pmovie__original-title', article);
-              var orig_title = orig_span.text().trim() || '';
-              var year_link = $('.card__desc span:contains("Год выпуска:")+a', article);
+              var year_link = $(l.year);
               var year = parseInt(year_link.text().trim() || '');
               return {
                 year: year,
                 title: titl,
-                orig_title: orig_title,
+                orig_title: '',
                 link: link.attr('href') || ''
               };
             });
@@ -8324,18 +8354,29 @@
         };
 
         var query_search = function query_search(query, data, callback) {
-          var postdata = 'do=search';
-          postdata += '&subaction=search';
-          postdata += '&search_start=0';
-          postdata += '&full_search=0';
-          postdata += '&result_from=1';
-          postdata += '&story=' + encodeURIComponent(query);
+          var postdata = 'query=' + encodeURIComponent(query);
+          postdata += '&skin=rhs_new';
+          postdata += '&user_hash=' + secret;
           network.clear();
           network.timeout(10000);
           network["native"](component.proxyLink(url, prox), function (str) {
             str = (str || '').replace(/\n/g, '');
-            var links = str.match(/<article class="card d-flex">.*?<\/article>/g);
-            if (links && links.length) data = data.concat(links);
+            var pos = str.indexOf('<div class="move-item">');
+
+            if (pos !== -1) {
+              str.substring(pos + '<div class="move-item">'.length).split('<div class="move-item">').forEach(function (item) {
+                var link = item.match(/<div class="move-item__content">\s*(<h4 class="title">\s*<a [^>]*>[^<]*<\/a>[^<]*<\/h4>)/);
+                var year = item.match(/(<span class="year [^>]*>\s*(<a [^>]*>[^<]*<\/a>)?[^<]*<\/span>)/);
+
+                if (link) {
+                  data.push({
+                    link: link[1],
+                    year: year && year[1] || ''
+                  });
+                }
+              });
+            }
+
             if (callback) callback(data);
           }, function (a, c) {
             component.empty(network.errorDecode(a, c));
@@ -8350,15 +8391,13 @@
           });
         };
 
-        if (!object.clarification && (object.movie.imdb_id || +object.movie.kinopoisk_id)) {
-          query_search('+' + (object.movie.imdb_id || +object.movie.kinopoisk_id), [], function (data) {
-            if (data && data.length && data.forEach) display(data);else if (object.movie.imdb_id && +object.movie.kinopoisk_id) {
-              query_search('+' + +object.movie.kinopoisk_id, [], function (data) {
-                if (data && data.length && data.forEach) display(data);else query_title_search();
-              });
-            } else query_title_search();
-          });
-        } else query_title_search();
+        var apiSearch = function apiSearch() {
+          query_title_search();
+        };
+
+        decodeSecretToken(function () {
+          return apiSearch();
+        });
       };
 
       function getPage(card) {
@@ -8368,19 +8407,8 @@
         network.timeout(10000);
         network["native"](component.proxyLink(url, prox), function (str) {
           str = (str || '').replace(/\n/g, '');
-          var player = str.match(/<div [^>]*id="visearch"[^>]*>[^<]*<iframe data-src="((https?:\/\/embed\.new\.video[^"\/]*)\/[^"]*)"/);
+          var player = str.match(/\bvideoUrl = '(http[^']*)'/);
           var player_link = player && player[1];
-
-          if (!player_link) {
-            var find = str.match(/\.create\('player',\s*({.*?})\s*\)/);
-            var json;
-
-            try {
-              json = find && (0, eval)('"use strict"; (function(){ return ' + find[1] + '; })();');
-            } catch (e) {}
-
-            player_link = json && json.url;
-          }
 
           if (player_link) {
             network.clear();
