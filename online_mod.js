@@ -3200,7 +3200,9 @@
 
       var net_method = lampa_player ? 'silent' : 'native';
       var play_headers = !prox && !lampa_player ? {
-        'User-Agent': user_agent
+        'User-Agent': user_agent,
+        'Origin': host,
+        'Referer': ref
       } : {};
       var filter_items = {};
       var choice = {
