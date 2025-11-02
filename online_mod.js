@@ -1,4 +1,4 @@
-//26.10.2025 - Fix
+//02.11.2025 - Fix
 
 (function () {
     'use strict';
@@ -6875,9 +6875,14 @@
 
         if (json && json.file && typeof json.file === 'string') {
           json.file = decode(json.file);
-          json = {
-            file: [json]
-          };
+
+          try {
+            json.file = JSON.parse(json.file);
+          } catch (e) {
+            json = {
+              file: [json]
+            };
+          }
         }
 
         if (json && json.file && json.file.forEach) {
@@ -13250,7 +13255,7 @@
       };
     }
 
-    var mod_version = '26.10.2025';
+    var mod_version = '02.11.2025';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
@@ -14053,9 +14058,9 @@
             title: '',
             html: modal,
             onBack: function onBack() {
+              clearInterval(ping_auth);
               Lampa.Modal.close();
               Lampa.Controller.toggle('settings_component');
-              clearInterval(ping_auth);
             },
             onSelect: function onSelect() {
               Lampa.Utils.copyTextToClipboard(user_code, function () {
@@ -14067,8 +14072,8 @@
           });
           ping_auth = setInterval(function () {
             checkPro(user_token, function () {
-              Lampa.Modal.close();
               clearInterval(ping_auth);
+              Lampa.Modal.close();
               Lampa.Storage.set("filmix_token", user_token);
               e.body.find('[data-name="filmix_token"] .settings-param__value').text(user_token);
               Lampa.Controller.toggle('settings_component');
@@ -14082,9 +14087,15 @@
               user_code = found.user_code;
               modal.find('.selector').text(user_code); //modal.find('.broadcast__scan').remove()
             } else {
-              Lampa.Noty.show(found);
+              clearInterval(ping_auth);
+              modal.find('.selector').text(Lampa.Lang.translate('network_401'));
+              modal.find('.broadcast__scan').remove();
+              Lampa.Noty.show(Lampa.Lang.translate('network_401'));
             }
           }, function (a, c) {
+            clearInterval(ping_auth);
+            modal.find('.selector').text(Lampa.Lang.translate('network_noconnect') + ': ' + network.errorCode(a));
+            modal.find('.broadcast__scan').remove();
             Lampa.Noty.show(network.errorDecode(a, c));
           }, false, {
             headers: filmix_headers

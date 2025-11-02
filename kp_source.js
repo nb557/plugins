@@ -137,6 +137,7 @@
       var type = !elem.type || elem.type === 'FILM' || elem.type === 'VIDEO' ? 'movie' : 'tv';
       var kinopoisk_id = elem.kinopoiskId || elem.filmId || 0;
       var kp_rating = +elem.rating || +elem.ratingKinopoisk || 0;
+      var imdb_rating = +elem.ratingImdb || 0;
       var title = elem.nameRu || elem.nameEn || elem.nameOriginal || '';
       var original_title = elem.nameOriginal || elem.nameEn || elem.nameRu || '';
       var adult = false;
@@ -158,7 +159,7 @@
           return {
             "id": e.genre && genres_map[e.genre] || 0,
             "name": e.genre,
-            "url": ''
+            "url": 'genre'
           };
         }) || [],
         "production_companies": [],
@@ -172,7 +173,7 @@
         "kinopoisk_id": kinopoisk_id,
         "kp_rating": kp_rating,
         "imdb_id": elem.imdbId || '',
-        "imdb_rating": elem.ratingImdb || 0
+        "imdb_rating": imdb_rating
       };
       result.adult = adult;
       var first_air_date = elem.year && elem.year !== 'null' ? elem.year : '';
@@ -281,7 +282,7 @@
       return {
         "id": person.staffId,
         "name": person.nameRu || person.nameEn || '',
-        "url": '',
+        "url": 'person',
         "img": person.posterUrl || '',
         "character": person.description || '',
         "job": Lampa.Utils.capitalizeFirstLetter((person.professionKey || '').toLowerCase())
@@ -475,62 +476,97 @@
       var params = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
       var oncomplite = arguments.length > 1 ? arguments[1] : undefined;
       var onerror = arguments.length > 2 ? arguments[2] : undefined;
-      var show = ['movie', 'tv'].indexOf(params.url) > -1 && !params.genres;
-      var books = show ? Lampa.Favorite.continues(params.url) : [];
-      books.forEach(function (elem) {
-        if (!elem.source) elem.source = 'tmdb';
-      });
-      books = books.filter(function (elem) {
-        return [SOURCE_NAME, 'tmdb', 'cub'].indexOf(elem.source) !== -1;
-      });
-      var recomend = show ? Lampa.Arrays.shuffle(Lampa.Recomends.get(params.url)).slice(0, 19) : [];
-      recomend.forEach(function (elem) {
-        if (!elem.source) elem.source = 'tmdb';
-      });
-      recomend = recomend.filter(function (elem) {
-        return [SOURCE_NAME, 'tmdb', 'cub'].indexOf(elem.source) !== -1;
-      });
       var parts_limit = 5;
-      var parts_data = [function (call) {
-        call({
-          results: books,
-          title: params.url == 'tv' ? Lampa.Lang.translate('title_continue') : Lampa.Lang.translate('title_watched')
+      var parts_data = [];
+
+      if (['movie', 'tv'].indexOf(params.url) > -1 && !params.genres) {
+        var books = Lampa.Favorite.continues(params.url);
+        books.forEach(function (elem) {
+          if (!elem.source) elem.source = 'tmdb';
         });
-      }, function (call) {
-        call({
-          results: recomend,
-          title: Lampa.Lang.translate('title_recomend_watch')
+        books = books.filter(function (elem) {
+          return [SOURCE_NAME, 'tmdb', 'cub'].indexOf(elem.source) !== -1;
         });
-      }];
+        var recomend = Lampa.Arrays.shuffle(Lampa.Recomends.get(params.url)).slice(0, 19);
+        recomend.forEach(function (elem) {
+          if (!elem.source) elem.source = 'tmdb';
+        });
+        recomend = recomend.filter(function (elem) {
+          return [SOURCE_NAME, 'tmdb', 'cub'].indexOf(elem.source) !== -1;
+        });
+        parts_data = [function (call) {
+          call({
+            results: books,
+            title: params.url == 'tv' ? Lampa.Lang.translate('title_continue') : Lampa.Lang.translate('title_watched')
+          });
+        }, function (call) {
+          call({
+            results: recomend,
+            title: Lampa.Lang.translate('title_recomend_watch')
+          });
+        }];
+      }
 
       function loadPart(partLoaded, partEmpty) {
         Lampa.Api.partNext(parts_data, parts_limit, partLoaded, partEmpty);
       }
 
       menu({}, function () {
-        var priority_list = ['семейный', 'детский', 'короткометражка', 'мультфильм', 'аниме'];
-        priority_list.forEach(function (g) {
-          var id = genres_map[g];
+        var url = 'api/v2.2/films?order=NUM_VOTE';
+        var filter = '';
+        if (params.url == 'movie') filter = '&type=FILM';else if (params.url == 'tv') filter = '&type=TV_SERIES';else if (params.url == 'anime') filter = '&genres=' + genres_map['аниме'];else if (params.url == 'cartoon') filter = '&genres=' + genres_map['мультфильм'];
+        {
+          var now = new Date();
+          var yearFrom = now.getFullYear() - (now.getMonth() < 6);
+          var yearTo = now.getFullYear();
+          parts_data.push(function (call) {
+            getList(url + filter + '&yearFrom=' + yearFrom + '&yearTo=' + yearTo, params, function (json) {
+              json.title = 'За год';
+              call(json);
+            }, call);
+          });
+        }
 
-          if (id) {
-            parts_data.push(function (call) {
-              getList('api/v2.2/films?order=NUM_VOTE&genres=' + id + '&type=' + (params.url == 'tv' ? 'TV_SERIES' : 'FILM'), params, function (json) {
-                json.title = Lampa.Utils.capitalizeFirstLetter(g);
-                call(json);
-              }, call);
-            });
-          }
-        });
-        menu_list.forEach(function (g) {
-          if (!g.hide && !g.separator && priority_list.indexOf(g.title) == -1) {
-            parts_data.push(function (call) {
-              getList('api/v2.2/films?order=NUM_VOTE&genres=' + g.id + '&type=' + (params.url == 'tv' ? 'TV_SERIES' : 'FILM'), params, function (json) {
-                json.title = Lampa.Utils.capitalizeFirstLetter(g.title);
-                call(json);
-              }, call);
-            });
-          }
-        });
+        if (!startsWith(filter, '&type=')) {
+          parts_data.push(function (call) {
+            getList(url + filter + '&type=FILM', params, function (json) {
+              json.title = 'Фильмы';
+              call(json);
+            }, call);
+          });
+          parts_data.push(function (call) {
+            getList(url + filter + '&type=TV_SERIES', params, function (json) {
+              json.title = 'Сериалы';
+              call(json);
+            }, call);
+          });
+          parts_data.push(function (call) {
+            getList(url + filter + '&type=MINI_SERIES', params, function (json) {
+              json.title = 'Мини-сериалы';
+              call(json);
+            }, call);
+          });
+          parts_data.push(function (call) {
+            getList(url + filter + '&type=TV_SHOW', params, function (json) {
+              json.title = 'Телешоу';
+              call(json);
+            }, call);
+          });
+        }
+
+        if (!startsWith(filter, '&genres=')) {
+          menu_list.forEach(function (g) {
+            if (!g.hide && !g.separator) {
+              parts_data.push(function (call) {
+                getList(url + filter + '&genres=' + g.id, params, function (json) {
+                  json.title = Lampa.Utils.capitalizeFirstLetter(g.title);
+                  call(json);
+                }, call);
+              });
+            }
+          });
+        }
+
         loadPart(oncomplite, onerror);
       });
       return loadPart;
@@ -569,7 +605,7 @@
       var onerror = arguments.length > 2 ? arguments[2] : undefined;
       var method = params.url;
 
-      if (method === '' && params.genres) {
+      if ((method === '' || method === 'movie' || method === 'tv' || method === 'genre') && params.genres) {
         method = 'api/v2.2/films?order=NUM_VOTE&genres=' + params.genres;
       }
 
@@ -658,7 +694,7 @@
           result.person = {
             "id": p.personId,
             "name": p.nameRu || p.nameEn || '',
-            "url": '',
+            "url": 'person',
             "img": p.posterUrl || '',
             "gender": p.sex === 'MALE' ? 2 : p.sex === 'FEMALE' ? 1 : 0,
             "birthday": p.birthday,
@@ -731,16 +767,24 @@
       if (menu_list.length) oncomplite(menu_list);else {
         get('api/v2.2/films/filters', function (j) {
           if (j.genres) {
+            var priority_order = ['семейный', 'детский', 'короткометражка', 'мультфильм', 'аниме'];
+            var priority_list = [];
+            var other_list = [];
             j.genres.forEach(function (g) {
-              menu_list.push({
+              var list = priority_order.indexOf(g.genre) !== -1 ? priority_list : other_list;
+              list.push({
                 "id": g.id,
                 "title": g.genre,
-                "url": '',
+                "url": 'genre',
                 "hide": g.genre === 'для взрослых',
                 "separator": !g.genre
               });
               genres_map[g.genre] = g.id;
             });
+            priority_list.sort(function (a, b) {
+              return priority_order.indexOf(a.title) - priority_order.indexOf(b.title);
+            });
+            menu_list = priority_list.concat(other_list);
           }
 
           if (j.countries) {
@@ -836,6 +880,23 @@
         }
 
         Lampa.Params.select('source', sources, 'tmdb');
+
+        if (Lampa.Router) {
+          Lampa.Listener.follow('menu', function (e) {
+            if (e.type == 'action' && Lampa.Storage.field('source') == KP.SOURCE_NAME) {
+              if (
+              /*e.action == 'anime' ||*/
+              e.action == 'cartoon') {
+                Lampa.Router.call('category', {
+                  url: e.action,
+                  title: (e.action == 'anime' ? Lampa.Lang.translate('menu_anime') : Lampa.Lang.translate('menu_multmovie')) + ' - ' + KP.SOURCE_NAME.toUpperCase(),
+                  source: KP.SOURCE_NAME
+                });
+                e.abort();
+              }
+            }
+          });
+        }
       }
 
       if (window.appready) addPlugin();else {

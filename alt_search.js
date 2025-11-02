@@ -189,7 +189,6 @@
         url += encodeURIComponent(clean_title) + SEARCH_SUFFIX;
       }
 
-      var page = params.page || 1;
       getFromCache(url, function (json, cached) {
         var items = [];
         if (json && json.d && json.d.length) items = json.d;
@@ -200,14 +199,13 @@
         results = results.filter(function (elem) {
           return !elem.adult;
         });
-        var total_pages = 1;
         var res = {
           "results": results,
           "url": method,
-          "page": page,
-          "total_pages": total_pages,
+          "page": 1,
+          "total_pages": 1,
           "total_results": 0,
-          "more": total_pages > page
+          "more": 0
         };
         oncomplite(res);
       }, onerror);
