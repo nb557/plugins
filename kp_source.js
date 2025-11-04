@@ -10,7 +10,8 @@
     var total_cnt = 0;
     var proxy_cnt = 0;
     var good_cnt = 0;
-    var menu_list = [];
+    var genres_list = [];
+    var countries_list = [];
     var genres_map = {};
     var countries_map = {};
     var CACHE_SIZE = 100;
@@ -24,7 +25,7 @@
       var kp_prox = 'https://cors.kp556.workers.dev:8443/';
       var url = 'https://kinopoiskapiunofficial.tech/';
       url += method;
-      network.timeout(15000);
+      network.timeout(20000);
       network.silent((use_proxy ? kp_prox : '') + url, function (json) {
         oncomplite(json);
       }, function (a, c) {
@@ -32,7 +33,7 @@
 
         if (use_proxy && (a.status == 429 || a.status == 0 && a.statusText !== 'timeout')) {
           proxy_cnt++;
-          network.timeout(15000);
+          network.timeout(20000);
           network.silent(kp_prox + url, function (json) {
             good_cnt++;
             oncomplite(json);
@@ -392,7 +393,7 @@
       });
     }
 
-    function main() {
+    function main$1() {
       var params = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
       var oncomplite = arguments.length > 1 ? arguments[1] : undefined;
       var onerror = arguments.length > 2 ? arguments[2] : undefined;
@@ -555,7 +556,7 @@
         }
 
         if (!startsWith(filter, '&genres=')) {
-          menu_list.forEach(function (g) {
+          genres_list.forEach(function (g) {
             if (!g.hide && !g.separator) {
               parts_data.push(function (call) {
                 getList(url + filter + '&genres=' + g.id, params, function (json) {
@@ -609,10 +610,14 @@
         method = 'api/v2.2/films?order=NUM_VOTE&genres=' + params.genres;
       }
 
+      if (method === 'filter' && params.filter_url) {
+        method = params.filter_url;
+      }
+
       getList(method, params, oncomplite, onerror);
     }
 
-    function search() {
+    function search$1() {
       var params = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
       var oncomplite = arguments.length > 1 ? arguments[1] : undefined;
       var title = decodeURIComponent(params.query || '');
@@ -660,7 +665,7 @@
     function discovery() {
       return {
         title: SOURCE_TITLE,
-        search: search,
+        search: search$1,
         params: {
           align_left: true,
           object: {
@@ -762,9 +767,9 @@
       }, status.error.bind(status));
     }
 
-    function menu() {
+    function kpFilters() {
       var oncomplite = arguments.length > 1 ? arguments[1] : undefined;
-      if (menu_list.length) oncomplite(menu_list);else {
+      if (genres_list.length) oncomplite(genres_list, countries_list, genres_map, countries_map);else {
         get('api/v2.2/films/filters', function (j) {
           if (j.genres) {
             var priority_order = ['семейный', 'детский', 'короткометражка', 'мультфильм', 'аниме'];
@@ -784,20 +789,45 @@
             priority_list.sort(function (a, b) {
               return priority_order.indexOf(a.title) - priority_order.indexOf(b.title);
             });
-            menu_list = priority_list.concat(other_list);
+            genres_list = priority_list.concat(other_list);
           }
 
           if (j.countries) {
+            var _priority_order = ['Россия', 'СССР', 'США', 'Индия', 'Япония', 'Корея Южная', 'Китай', 'Гонконг', 'Тайвань', 'Великобритания', 'Австралия', 'Франция', 'Канада'];
+            var _priority_list = [];
+            var _other_list = [];
             j.countries.forEach(function (c) {
+              var list = _priority_order.indexOf(c.country) !== -1 ? _priority_list : _other_list;
+              list.push({
+                "id": c.id,
+                "title": c.country,
+                "url": 'country',
+                "hide": false,
+                "separator": !c.country
+              });
               countries_map[c.country] = c.id;
             });
+
+            _priority_list.sort(function (a, b) {
+              return _priority_order.indexOf(a.title) - _priority_order.indexOf(b.title);
+            });
+
+            countries_list = _priority_list.concat(_other_list);
           }
 
-          oncomplite(menu_list);
+          oncomplite(genres_list, countries_list, genres_map, countries_map);
         }, function () {
-          oncomplite([]);
+          oncomplite([], [], {}, {});
         });
       }
+    }
+
+    function menu() {
+      var params = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+      var oncomplite = arguments.length > 1 ? arguments[1] : undefined;
+      kpFilters(params, function (menu_list) {
+        oncomplite(menu_list);
+      });
     }
 
     function menuCategory(params, oncomplite) {
@@ -824,7 +854,8 @@
     var KP = {
       SOURCE_NAME: SOURCE_NAME,
       SOURCE_TITLE: SOURCE_TITLE,
-      main: main,
+      kpFilters: kpFilters,
+      main: main$1,
       menu: menu,
       full: full,
       list: list,
@@ -834,6 +865,303 @@
       seasons: seasons,
       menuCategory: menuCategory,
       discovery: discovery
+    };
+
+    var data = {};
+    var initialized = false;
+    data.type = {
+      title: '#{title_type}',
+      items: [{
+        title: '#{filter_any}'
+      }, {
+        selected: true,
+        title: 'Фильмы',
+        typeName: 'FILM'
+      }, {
+        title: 'Сериалы',
+        typeName: 'TV_SERIES'
+      }, {
+        title: 'Мини-сериалы',
+        typeName: 'MINI_SERIES'
+      }, {
+        title: 'Телешоу',
+        typeName: 'TV_SHOW'
+      }]
+    };
+    data.rating = {
+      title: '#{title_rating}',
+      items: [{
+        selected: true,
+        title: '#{filter_any}'
+      }, {
+        title: '#{filter_rating_from} 9',
+        ratingFrom: 9,
+        ratingTo: 10
+      }, {
+        title: '#{filter_rating_from} 8',
+        ratingFrom: 8,
+        ratingTo: 10
+      }, {
+        title: '#{filter_rating_from} 8 #{filter_rating_to} 9',
+        ratingFrom: 8,
+        ratingTo: 9
+      }, {
+        title: '#{filter_rating_from} 6',
+        ratingFrom: 6,
+        ratingTo: 10
+      }, {
+        title: '#{filter_rating_from} 6 #{filter_rating_to} 8',
+        ratingFrom: 6,
+        ratingTo: 8
+      }, {
+        title: '#{filter_rating_to} 6',
+        ratingFrom: 0,
+        ratingTo: 6
+      }, {
+        title: '#{filter_rating_to} 4',
+        ratingFrom: 0,
+        ratingTo: 4
+      }, {
+        title: '#{filter_rating_to} 2',
+        ratingFrom: 0,
+        ratingTo: 2
+      }, {
+        title: '#{filter_rating_to} 1',
+        ratingFrom: 0,
+        ratingTo: 1
+      }]
+    };
+    data.sort = {
+      title: '#{filter_sorted}',
+      items: [{
+        selected: true,
+        title: 'Популярность',
+        sortName: 'NUM_VOTE'
+      }, {
+        title: 'Рейтинг',
+        sortName: 'RATING'
+      }]
+    };
+    data.genre = {
+      title: '#{title_genre}',
+      items: [{
+        selected: true,
+        title: '#{filter_any}'
+      }]
+    };
+    data.country = {
+      title: '#{title_country}',
+      items: [{
+        selected: true,
+        title: '#{filter_any}'
+      }]
+    };
+    data.year = {
+      title: '#{title_year}',
+      items: [{
+        selected: true,
+        title: '#{filter_any}'
+      }]
+    };
+    var now = new Date().getFullYear();
+    var i = now - now % 10;
+
+    for (var a = 0; a < 5; a++) {
+      var y = now - a;
+      data.year.items.push({
+        title: y + '',
+        yearFrom: y,
+        yearTo: y
+      });
+    }
+
+    if (i != now) {
+      data.year.items.push({
+        title: i + '-' + now,
+        yearFrom: i,
+        yearTo: now
+      });
+    }
+
+    i -= 10;
+
+    while (i >= 1900) {
+      data.year.items.push({
+        title: i + '-' + (i + 9),
+        yearFrom: i,
+        yearTo: i + 9
+      });
+      i -= 10;
+    }
+    /**
+     * Главное меню фильтрации
+     */
+
+
+    function main() {
+      for (var i in data) {
+        selected(data[i]);
+      }
+
+      var items = [{
+        title: Lampa.Lang.translate('search_start'),
+        search: true
+      }, data.type, data.rating, data.sort, data.genre, data.country, data.year];
+      items.forEach(function (itm) {
+        itm.title = Lampa.Lang.translate(itm.title);
+        if (itm.subtitle) itm.subtitle = Lampa.Lang.translate(itm.subtitle);
+
+        if (itm.items) {
+          itm.items.forEach(function (inr) {
+            inr.title = Lampa.Lang.translate(inr.title);
+          });
+        }
+      });
+      Lampa.Select.show({
+        title: Lampa.Lang.translate('title_filter'),
+        items: items,
+        onBack: function onBack() {
+          Lampa.Controller.toggle('content');
+        },
+        onSelect: function onSelect(a) {
+          if (a.search) search();else submenu(a);
+        }
+      });
+    }
+    /**
+     * Запрос для KP
+     * @returns {string} - строка запроса
+     */
+
+
+    function getFilterUrl() {
+      var url = 'api/v2.2/films?order=' + (data.sort.items.find(function (s) {
+        return s.selected;
+      }).sortName || 'NUM_VOTE');
+      var typeName = data.type.items.find(function (s) {
+        return s.selected;
+      }).typeName;
+      if (typeName) url += '&type=' + typeName;
+      var genre = data.genre.items.find(function (s) {
+        return s.selected;
+      }).id;
+      if (genre != null) url += '&genres=' + genre;
+      var country = data.country.items.find(function (s) {
+        return s.selected;
+      }).id;
+      if (country != null) url += '&countries=' + country;
+      var ratingFrom = data.rating.items.find(function (s) {
+        return s.selected;
+      }).ratingFrom;
+      if (ratingFrom != null) url += '&ratingFrom=' + ratingFrom;
+      var ratingTo = data.rating.items.find(function (s) {
+        return s.selected;
+      }).ratingTo;
+      if (ratingTo != null) url += '&ratingTo=' + ratingTo;
+      var yearFrom = data.year.items.find(function (s) {
+        return s.selected;
+      }).yearFrom;
+      if (yearFrom != null) url += '&yearFrom=' + yearFrom;
+      var yearTo = data.year.items.find(function (s) {
+        return s.selected;
+      }).yearTo;
+      if (yearTo != null) url += '&yearTo=' + yearTo;
+      return url;
+    }
+    /**
+     * Запуск поиска
+     */
+
+
+    function search() {
+      Lampa.Controller.toggle('content');
+      var source = Lampa.Storage.field('source');
+      var activity = {
+        url: 'filter',
+        filter_url: getFilterUrl(),
+        title: Lampa.Lang.translate('title_filter'),
+        component: 'category_full',
+        source: source,
+        card_type: true,
+        page: 1
+      };
+      var object = Lampa.Activity.active();
+      if (object.component == 'category_full' && object.url == 'filter') Lampa.Activity.replace(activity, true);else Lampa.Activity.push(activity);
+    }
+    /**
+     * Выбор элемента
+     * @param {Array} where - массив элементов
+     * @param {Object} a - выбранный элемент
+     */
+
+
+    function select(where, a) {
+      where.forEach(function (element) {
+        element.selected = false;
+      });
+      a.selected = true;
+    }
+    /**
+     * Обновление подзаголовка
+     * @param {Object} where - объект с массивом items
+     */
+
+
+    function selected(where) {
+      var title = [];
+      where.items.forEach(function (a) {
+        if (a.selected || a.checked) title.push(a.title);
+      });
+      where.subtitle = title.length ? title.join(', ') : Lampa.Lang.translate('nochoice');
+    }
+    /**
+     * Подменю
+     * @param {Object} item - объект элемента
+     */
+
+
+    function submenu(item) {
+      Lampa.Select.show({
+        title: item.title,
+        items: item.items,
+        onBack: main,
+        onSelect: function onSelect(a) {
+          select(item.items, a);
+          main();
+        }
+      });
+    }
+    /**
+     * Запуск фильтра
+     */
+
+
+    function show(genres_list, countries_list) {
+      if (!initialized) {
+        initialized = true;
+        genres_list.forEach(function (g) {
+          if (!g.hide) {
+            data.genre.items.push({
+              title: g.title,
+              id: g.id
+            });
+          }
+        });
+        countries_list.forEach(function (c) {
+          if (!c.hide) {
+            data.country.items.push({
+              title: c.title,
+              id: c.id
+            });
+          }
+        });
+      }
+
+      main();
+    }
+
+    var KP_FILTER = {
+      show: show
     };
 
     var ALL_SOURCES = [{
@@ -891,6 +1219,13 @@
                   url: e.action,
                   title: (e.action == 'anime' ? Lampa.Lang.translate('menu_anime') : Lampa.Lang.translate('menu_multmovie')) + ' - ' + KP.SOURCE_NAME.toUpperCase(),
                   source: KP.SOURCE_NAME
+                });
+                e.abort();
+              }
+
+              if (e.action == 'filter') {
+                KP.kpFilters({}, function (genres_list, countries_list) {
+                  KP_FILTER.show(genres_list, countries_list);
                 });
                 e.abort();
               }
