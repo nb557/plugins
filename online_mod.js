@@ -1,4 +1,4 @@
-//02.11.2025 - Fix
+//12.11.2025 - Fix
 
 (function () {
     'use strict';
@@ -11862,7 +11862,7 @@
         search: false,
         kp: false,
         imdb: true,
-        disabled: disable_dbg
+        disabled: true
       }, {
         name: 'lumex2',
         title: 'Lumex (Ads)',
@@ -11870,7 +11870,7 @@
         search: false,
         kp: false,
         imdb: true,
-        disabled: this.isDebug3()
+        disabled: true
       }, {
         name: 'rezka2',
         title: 'HDrezka',
@@ -11924,7 +11924,7 @@
         search: false,
         kp: true,
         imdb: false,
-        disabled: disable_dbg
+        disabled: true
       }, {
         name: 'fancdn',
         title: 'FanCDN',
@@ -11970,7 +11970,8 @@
         source: new redheadsound(this, object, false),
         search: true,
         kp: false,
-        imdb: true
+        imdb: true,
+        disabled: true
       }, {
         name: 'redheadsound-dash',
         title: 'RedHeadSound (DASH)',
@@ -13255,7 +13256,7 @@
       };
     }
 
-    var mod_version = '02.11.2025';
+    var mod_version = '12.11.2025';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
