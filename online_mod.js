@@ -165,6 +165,7 @@
       var user_proxy1 = (proxy_other_url || proxy1) + param_ip;
       var user_proxy2 = (proxy_other_url || proxy2) + param_ip;
       var user_proxy3 = (proxy_other_url || proxy3) + param_ip;
+      if (name === 'lumex_api') return user_proxy2;
       if (name === 'filmix_site') return proxy_secret_ip || user_proxy1;
       if (name === 'filmix_abuse') return window.location.protocol === 'https:' ? 'https://cors.apn.monster/' : 'http://cors.cfhttp.top/';
       if (name === 'zetflix') return proxy_apn;
@@ -12254,7 +12255,7 @@
       };
 
       this.vcdn_api_search = function (api, data, callback, error) {
-        var prox = this.proxy('lumex');
+        var prox = this.proxy('lumex_api');
         var url = 'https://portal.lumex.host/api/';
         network.clear();
         network.timeout(1000 * 20);
@@ -13296,13 +13297,13 @@
       Lampa.Storage.set('online_mod_proxy_fanserials', 'false');
       Lampa.Storage.set('online_mod_proxy_animelib', 'false');
     } else if (!Lampa.Platform.is('android')) {
+      Lampa.Storage.set('online_mod_proxy_lumex', 'true');
       Lampa.Storage.set('online_mod_proxy_cdnmovies', 'true');
       Lampa.Storage.set('online_mod_proxy_fancdn', 'true');
       Lampa.Storage.set('online_mod_proxy_fancdn2', 'true');
       Lampa.Storage.set('online_mod_proxy_fanserials', 'true');
     }
 
-    Lampa.Storage.set('online_mod_proxy_lumex', Lampa.Platform.is('android') ? 'false' : 'true');
     Lampa.Storage.set('online_mod_proxy_filmix', Lampa.Platform.is('android') ? 'false' : 'true');
     Lampa.Storage.set('online_mod_proxy_videoseed', Lampa.Platform.is('android') ? 'false' : 'true');
     Lampa.Storage.set('online_mod_proxy_vibix', Lampa.Platform.is('android') ? 'false' : 'true');
@@ -13378,12 +13379,9 @@
       Lampa.Storage.set('online_mod_prefer_http', 'false');
     }
 
-    if (Lampa.Storage.get('online_mod_proxy_reset', '') != 6) {
-      if (['collaps', 'collaps-dash'].indexOf(Lampa.Storage.get('online_mod_balanser', '') + '') !== -1) {
-        Lampa.Storage.set('online_mod_balanser', '');
-      }
-
-      Lampa.Storage.set('online_mod_proxy_reset', '6');
+    if (Lampa.Storage.get('online_mod_proxy_reset', '') != 7) {
+      Lampa.Storage.set('online_mod_proxy_lumex', 'true');
+      Lampa.Storage.set('online_mod_proxy_reset', '7');
     }
 
     if (!Lampa.Lang) {
@@ -14578,7 +14576,7 @@
 
     var template = "<div>";
 
-    {
+    if (Utils.isDebug()) {
       template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_lumex\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} Lumex</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
     }
 
