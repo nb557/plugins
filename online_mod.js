@@ -1,4 +1,4 @@
-//12.11.2025 - Fix
+//29.11.2025 - Fix
 
 (function () {
     'use strict';
@@ -88,7 +88,7 @@
     }
 
     function filmixHost$1() {
-      return 'https://filmix.my';
+      return 'https://filmix.lat';
     }
 
     function filmixAppHost() {
@@ -7267,6 +7267,21 @@
         prox_enc += 'param/Authorization=' + encodeURIComponent(auth) + '/';
       }
 
+      var host = 'https://vk.com';
+      var ref = host + '/';
+      var headers2 = Lampa.Platform.is('android') ? {
+        'User-Agent': user_agent,
+        'Origin': host,
+        'Referer': ref
+      } : {};
+      var prox_enc2 = '';
+
+      if (prox) {
+        prox_enc2 += 'param/User-Agent=' + encodeURIComponent(user_agent) + '/';
+        prox_enc2 += 'param/Origin=' + encodeURIComponent(host) + '/';
+        prox_enc2 += 'param/Referer=' + encodeURIComponent(ref) + '/';
+      }
+
       var embed = atob('aHR0cHM6Ly92aWJpeC5vcmcvYXBpL3YxL3B1Ymxpc2hlci92aWRlb3Mv');
       var filter_items = {};
       var choice = {
@@ -7369,12 +7384,13 @@
 
         network.clear();
         network.timeout(10000);
-        network["native"](json.iframe_url, function (str) {
+        network["native"](component.proxyLink(json.iframe_url, prox, prox_enc2), function (str) {
           parse(str || '', empty);
         }, function (a, c) {
           empty();
         }, false, {
-          dataType: 'text'
+          dataType: 'text',
+          headers: headers2
         });
       }
 
@@ -11862,7 +11878,7 @@
         search: false,
         kp: false,
         imdb: true,
-        disabled: true
+        disabled: disable_dbg
       }, {
         name: 'lumex2',
         title: 'Lumex (Ads)',
@@ -11870,7 +11886,7 @@
         search: false,
         kp: false,
         imdb: true,
-        disabled: true
+        disabled: this.isDebug3()
       }, {
         name: 'rezka2',
         title: 'HDrezka',
@@ -13256,7 +13272,7 @@
       };
     }
 
-    var mod_version = '12.11.2025';
+    var mod_version = '29.11.2025';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
