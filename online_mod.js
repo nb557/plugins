@@ -1,4 +1,4 @@
-//29.11.2025 - Fix
+//07.12.2025 - Fix
 
 (function () {
     'use strict';
@@ -7268,21 +7268,6 @@
         prox_enc += 'param/Authorization=' + encodeURIComponent(auth) + '/';
       }
 
-      var host = 'https://vk.com';
-      var ref = host + '/';
-      var headers2 = Lampa.Platform.is('android') ? {
-        'User-Agent': user_agent,
-        'Origin': host,
-        'Referer': ref
-      } : {};
-      var prox_enc2 = '';
-
-      if (prox) {
-        prox_enc2 += 'param/User-Agent=' + encodeURIComponent(user_agent) + '/';
-        prox_enc2 += 'param/Origin=' + encodeURIComponent(host) + '/';
-        prox_enc2 += 'param/Referer=' + encodeURIComponent(ref) + '/';
-      }
-
       var embed = atob('aHR0cHM6Ly92aWJpeC5vcmcvYXBpL3YxL3B1Ymxpc2hlci92aWRlb3Mv');
       var filter_items = {};
       var choice = {
@@ -7377,45 +7362,74 @@
         extract = null;
       };
 
+      function parseIFrame(iframe_url) {
+        var serial = iframe_url.match(/\/embed-serials\/(\d+)/);
+        var movie = iframe_url.match(/\/embed\/(\d+)/);
+
+        if (serial) {
+          return {
+            type: 'serial',
+            id: serial[1]
+          };
+        } else if (movie) {
+          return {
+            type: 'movie',
+            id: movie[1]
+          };
+        }
+
+        return null;
+      }
+
+      function encrypt(str) {
+        var result = 0;
+
+        for (var i = 0; i < str.length; i++) {
+          result = (result << 5) - result + str.charCodeAt(i);
+        }
+
+        return Math.abs(result).toString(36);
+      }
+
       function getPage(json, empty) {
-        if (!json || !json.iframe_url) {
+        var info = json && json.iframe_url && parseIFrame(json.iframe_url);
+
+        if (!info) {
           empty();
           return;
         }
 
+        var parsed = Utils.parseURL(json.iframe_url);
+        var host = parsed.origin;
+        var ref = parsed.origin + parsed.pathname;
+        var headers2 = Lampa.Platform.is('android') ? {
+          'User-Agent': user_agent,
+          'Origin': host,
+          'Referer': ref
+        } : {};
+        var prox_enc2 = '';
+
+        if (prox) {
+          prox_enc2 += 'param/User-Agent=' + encodeURIComponent(user_agent) + '/';
+          prox_enc2 += 'param/Origin=' + encodeURIComponent(host) + '/';
+          prox_enc2 += 'param/Referer=' + encodeURIComponent(ref) + '/';
+        }
+
+        var url = host + (info.type === 'movie' ? '/api/v1/embed/' : '/api/v1/embed-serials/') + info.id + '?kp=' + encrypt(Date.now().toString());
         network.clear();
         network.timeout(10000);
-        network["native"](component.proxyLink(json.iframe_url, prox, prox_enc2), function (str) {
-          parse(str || '', empty);
+        network["native"](component.proxyLink(url, prox, prox_enc2), function (json) {
+          if (json && json.data && json.data.playlist && json.data.playlist.forEach) {
+            component.loading(false);
+            extract = json.data;
+            filter();
+            append(filtred());
+          } else empty();
         }, function (a, c) {
           empty();
         }, false, {
-          dataType: 'text',
           headers: headers2
         });
-      }
-
-      function parse(str, empty) {
-        str = (str || '').replace(/\n/g, '');
-        var find = str.match(/Playerjs\(({.*?})\);/);
-        var json;
-
-        try {
-          json = find && (0, eval)('"use strict"; (function(){ return ' + find[1] + '; })();');
-        } catch (e) {}
-
-        if (json && json.file && typeof json.file === 'string') {
-          json = {
-            file: [json]
-          };
-        }
-
-        if (json && json.file && json.file.forEach) {
-          component.loading(false);
-          extract = json;
-          filter();
-          append(filtred());
-        } else empty();
       }
 
       function extractVoices(str) {
@@ -7446,7 +7460,7 @@
           voice: []
         };
         var season_objs = [];
-        extract.file.forEach(function (s) {
+        extract.playlist.forEach(function (s) {
           if (s.folder) {
             s.title = s.title || s.comment || '';
             s.season_num = parseInt(s.title.match(/\d+/));
@@ -7574,7 +7588,7 @@
 
       function filtred() {
         var filtred = [];
-        extract.file.forEach(function (data) {
+        extract.playlist.forEach(function (data) {
           if (data.folder) {
             var s_title = data.title || data.comment || '';
 
@@ -13273,7 +13287,7 @@
       };
     }
 
-    var mod_version = '29.11.2025';
+    var mod_version = '07.12.2025';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
