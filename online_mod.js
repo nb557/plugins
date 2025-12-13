@@ -104,7 +104,7 @@
     }
 
     function baseUserAgent() {
-      return 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36';
+      return 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36';
     }
 
     function vcdnToken() {
@@ -3183,7 +3183,7 @@
       var base = 'api.namy.ws';
       var host = 'https://' + base;
       var ref = host + '/';
-      var user_agent = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1';
+      var user_agent = Utils.baseUserAgent();
       var embed = (prefer_http ? 'http:' : 'https:') + '//' + base + '/embed/';
       var embed2 = (prefer_http ? 'http:' : 'https:') + '//api.kinogram.best/embed/';
       var prox_enc = '';
