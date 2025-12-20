@@ -1,4 +1,4 @@
-//13.12.2025 - Fix
+//20.12.2025 - Fix
 
 (function () {
     'use strict';
@@ -7390,7 +7390,9 @@
           prox_enc2 += 'param/Referer=' + encodeURIComponent(ref) + '/';
         }
 
-        var url = host + (info.type === 'movie' ? '/api/v1/embed/' : '/api/v1/embed-serials/') + info.id + '?kp=' + encrypt(Date.now().toString());
+        var url = host + (info.type === 'movie' ? '/api/v1/embed/' : '/api/v1/embed-serials/') + info.id;
+        url = Lampa.Utils.addUrlComponent(url, 'iframe_url=' + encodeURIComponent(json.iframe_url));
+        url = Lampa.Utils.addUrlComponent(url, 'kp=' + encrypt(Date.now().toString()));
         network.clear();
         network.timeout(10000);
         network["native"](component.proxyLink(url, prox, prox_enc2), function (json) {
@@ -13262,7 +13264,7 @@
       };
     }
 
-    var mod_version = '13.12.2025';
+    var mod_version = '20.12.2025';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
