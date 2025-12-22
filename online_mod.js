@@ -4230,7 +4230,7 @@
         var siteSearch = function siteSearch() {
           var url = site + 'api/v2/suggestions?search_word=' + encodeURIComponent(clean_title);
           network.clear();
-          network.timeout(10000);
+          network.timeout(15000);
           network["native"](component.proxyLink(url, prox2, prox2_enc), function (json) {
             display(json && json.posts || []);
           }, function (a, c) {
@@ -4245,7 +4245,7 @@
           url = Lampa.Utils.addUrlComponent(url, 'story=' + encodeURIComponent(clean_title));
           url = abuse ? component.proxyLink(url, prox3, '', '') : component.proxyLink(url, prox, prox_enc, 'enc2');
           network.clear();
-          network.timeout(10000);
+          network.timeout(15000);
           network["native"](url, function (json) {
             if (json && json.length && json.forEach) display(json);else siteSearch();
           }, function (a, c) {
@@ -4269,7 +4269,7 @@
           if (token) {
             var url = embed + 'user_profile' + dev_token;
             network.clear();
-            network.timeout(10000);
+            network.timeout(15000);
             network["native"](component.proxyLink(url, prox, prox_enc, 'enc2'), function (found) {
               if (found && found.user_data) {
                 window.mod_filmix.max_qualitie = 720;
@@ -4295,7 +4295,7 @@
           };
 
           network.clear();
-          network.timeout(10000);
+          network.timeout(15000);
           network["native"](url, function (found) {
             var pl_links = found && found.player_links || {};
 
@@ -13284,6 +13284,7 @@
     console.log('App', 'supports headers:', androidHeaders);
 
     if (!Utils.isDebug()) {
+      Lampa.Storage.set('online_mod_proxy_lumex', 'false');
       Lampa.Storage.set('online_mod_proxy_rezka2', 'false');
       Lampa.Storage.set('online_mod_proxy_kinobase', 'false');
       Lampa.Storage.set('online_mod_proxy_collaps', 'false');
@@ -13301,7 +13302,10 @@
       Lampa.Storage.set('online_mod_proxy_fanserials', 'true');
     }
 
-    Lampa.Storage.set('online_mod_proxy_filmix', Lampa.Platform.is('android') ? 'false' : 'true');
+    if (!Lampa.Platform.is('android')) {
+      Lampa.Storage.set('online_mod_proxy_filmix', 'true');
+    }
+
     Lampa.Storage.set('online_mod_proxy_videoseed', Lampa.Platform.is('android') ? 'false' : 'true');
     Lampa.Storage.set('online_mod_proxy_vibix', Lampa.Platform.is('android') ? 'false' : 'true');
     Lampa.Storage.set('online_mod_proxy_redheadsound', Lampa.Platform.is('android') ? 'false' : 'true');
@@ -14583,8 +14587,9 @@
       template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_kinobase\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} Kinobase</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
       template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_collaps\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} Collaps</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
       template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_cdnmovies\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} CDNMovies</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
-      template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_filmix\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} Filmix</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
     }
+
+    template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_filmix\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} Filmix</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
 
     if (Utils.isDebug()) {
       template += "\n    <div class=\"settings-param selector\" data-name=\"online_mod_proxy_fancdn\" data-type=\"toggle\">\n        <div class=\"settings-param__name\">#{online_mod_proxy_balanser} FanCDN</div>\n        <div class=\"settings-param__value\"></div>\n    </div>";
