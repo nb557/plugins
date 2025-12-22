@@ -1,4 +1,4 @@
-//20.12.2025 - Fix
+//22.12.2025 - Fix
 
 (function () {
     'use strict';
@@ -4301,8 +4301,12 @@
 
             if (pl_links.movie && Object.keys(pl_links.movie).length > 0 || pl_links.playlist && Object.keys(pl_links.playlist).length > 0) {
               if (!abuse && abuse_token && checkAbuse(found)) find(filmix_id, true, found);else success(found, low_quality);
-            } else not_found();
+            } else {
+              console.log('Filmix', 'not found:', pl_links.movie, pl_links.playlist);
+              not_found();
+            }
           }, function (a, c) {
+            console.log('Filmix', 'error:', network.errorDecode(a, c));
             not_found(network.errorDecode(a, c));
           }, false, {
             headers: headers
@@ -4385,6 +4389,7 @@
                   secret_url = '';
                 }
 
+                console.log('Filmix', 'abuse:', Object.keys(pl_links.movie).length);
                 return true;
               }
             }
@@ -13264,7 +13269,7 @@
       };
     }
 
-    var mod_version = '20.12.2025';
+    var mod_version = '22.12.2025';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
