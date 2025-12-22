@@ -4302,11 +4302,11 @@
             if (pl_links.movie && Object.keys(pl_links.movie).length > 0 || pl_links.playlist && Object.keys(pl_links.playlist).length > 0) {
               if (!abuse && abuse_token && checkAbuse(found)) find(filmix_id, true, found);else success(found, low_quality);
             } else {
-              console.log('Filmix', 'not found:', pl_links.movie, pl_links.playlist);
+              console.log('Filmix', 'not found:', filmix_id, pl_links.movie, pl_links.playlist);
               not_found();
             }
           }, function (a, c) {
-            console.log('Filmix', 'error:', network.errorDecode(a, c));
+            console.log('Filmix', 'error:', filmix_id, network.errorDecode(a, c));
             not_found(network.errorDecode(a, c));
           }, false, {
             headers: headers
@@ -4389,7 +4389,7 @@
                   secret_url = '';
                 }
 
-                console.log('Filmix', 'abuse:', Object.keys(pl_links.movie).length);
+                console.log('Filmix', 'abuse:', data.id, Object.keys(pl_links.movie).length);
                 return true;
               }
             }
