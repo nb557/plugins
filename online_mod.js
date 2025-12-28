@@ -1,4 +1,4 @@
-//22.12.2025 - Fix
+//28.12.2025 - Fix
 
 (function () {
     'use strict';
@@ -148,16 +148,24 @@
       var ip = getMyIp() || '';
       var param_ip = Lampa.Storage.field('online_mod_proxy_find_ip') === true ? 'ip' + ip + '/' : '';
       var proxy1 = new Date().getHours() % 2 ? 'https://cors.nb557.workers.dev:8443/' : 'https://cors.fx666.workers.dev:8443/';
-      var proxy2 = (window.location.protocol === 'https:' ? 'https://' : 'http://') + 'iqslgbok.deploy.cx/';
+      /*
+          let proxy2 = (window.location.protocol === 'https:' ? 'https://' : 'http://') + 'iqslgbok.deploy.cx/'
+      */
+
+      var proxy2 = 'https://apn-latest.onrender.com/' + (param_ip ? '' : 'ip/');
       var proxy3 = 'https://cors557.deno.dev/';
       var proxy_apn = '';
       var proxy_secret = '';
       var proxy_secret_ip = '';
 
       if (isDebug()) {
-        proxy_apn = (window.location.protocol === 'https:' ? 'https://' : 'http://') + decodeSecret([64, 90, 72, 90, 92, 91, 87, 87, 23, 83, 81, 65, 90, 91, 78, 24, 83, 65, 24]);
+        /*
+                proxy_apn = (window.location.protocol === 'https:' ? 'https://' : 'http://') + decodeSecret([64, 90, 72, 90, 92, 91, 87, 87, 23, 83, 81, 65, 90, 91, 78, 24, 83, 65, 24])
+                proxy_apn_ip = proxy_apn + (param_ip || 'ip/')
+        */
         proxy_secret = decodeSecret([95, 64, 69, 70, 71, 13, 25, 31, 88, 71, 90, 28, 91, 86, 2, 3, 6, 23, 92, 91, 72, 83, 86, 25, 87, 64, 73, 24]);
         proxy_secret_ip = proxy_secret + (param_ip || 'ip/');
+        proxy_apn = proxy_secret;
       }
 
       var proxy_other = Lampa.Storage.field('online_mod_proxy_other') === true;
@@ -3201,7 +3209,7 @@
       }
 
       var net_method = lampa_player ? 'silent' : 'native';
-      var play_headers = !prox && !lampa_player ? {
+      var play_headers = !prox && !lampa_player && Lampa.Platform.is('android') ? {
         'User-Agent': user_agent,
         'Origin': host,
         'Referer': ref
@@ -7396,6 +7404,7 @@
         }
 
         var url = host + (info.type === 'movie' ? '/api/v1/embed/' : '/api/v1/embed-serials/') + info.id;
+        url = Lampa.Utils.addUrlComponent(url, 'domain=' + encodeURIComponent(atob('dmliaXgub3Jn')));
         url = Lampa.Utils.addUrlComponent(url, 'iframe_url=' + encodeURIComponent(json.iframe_url));
         url = Lampa.Utils.addUrlComponent(url, 'kp=' + encrypt(Date.now().toString()));
         network.clear();
@@ -13269,7 +13278,7 @@
       };
     }
 
-    var mod_version = '22.12.2025';
+    var mod_version = '28.12.2025';
     console.log('App', 'start address:', window.location.href);
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;

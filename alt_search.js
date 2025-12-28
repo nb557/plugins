@@ -13,7 +13,11 @@
     var SOURCE_TITLE = atob('SU1EQg==');
     var SEARCH_METHOD = atob('c3VnZ2VzdGlvbi90aXRsZXMveC8=');
     var SEARCH_SUFFIX = atob('Lmpzb24/aW5jbHVkZVZpZGVvcz0x');
-    var prox = (window.location.protocol === 'https:' ? 'https://' : 'http://') + 'iqslgbok.deploy.cx/';
+    /*
+    let prox = (window.location.protocol === 'https:' ? 'https://' : 'http://') + 'iqslgbok.deploy.cx/'
+    */
+
+    var prox = 'https://apn-latest.onrender.com/ip/';
     var host = atob('aHR0cHM6Ly93d3cuaW1kYi5jb20=');
     var ref = host + '/';
     var user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36';
