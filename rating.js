@@ -1,6 +1,137 @@
 (function () {
 	'use strict';
 
+	// Default configuration
+	var DEFAULT_CONFIG = {
+		url: 'https://kinopoiskapiunofficial.tech/',
+		rating_url: 'https://rating.kinopoisk.ru/',
+		api_key: '',
+		cache_time: 24 // hours
+	};
+
+	function getConfig() {
+		return {
+			url: Lampa.Storage.get('rating_url', DEFAULT_CONFIG.url),
+			rating_url: Lampa.Storage.get('rating_rating_url', DEFAULT_CONFIG.rating_url),
+			api_key: Lampa.Storage.get('rating_api_key', DEFAULT_CONFIG.api_key),
+			cache_time: Lampa.Storage.get('rating_cache_time', DEFAULT_CONFIG.cache_time) * 60 * 60 * 1000
+		};
+	}
+
+	function initSettings() {
+		// Remove old component if exists
+		try {
+			if (Lampa.SettingsApi.removeComponent) {
+				Lampa.SettingsApi.removeComponent('rating_plugin');
+			}
+		} catch (e) {}
+
+		// Add settings component
+		Lampa.SettingsApi.addComponent({
+			component: 'rating_plugin',
+			name: 'Рейтинг Кинопоиск/IMDB',
+			icon: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" fill="currentColor"/></svg>'
+		});
+
+		// KinoPoisk API URL
+		Lampa.SettingsApi.addParam({
+			component: 'rating_plugin',
+			param: {
+				name: 'rating_url',
+				type: 'input',
+				placeholder: DEFAULT_CONFIG.url,
+				values: Lampa.Storage.get('rating_url', DEFAULT_CONFIG.url),
+				default: DEFAULT_CONFIG.url
+			},
+			field: {
+				name: 'URL для API Кинопоиска',
+				description: 'Базовый URL для API Кинопоиска'
+			},
+			onChange: function(value) {
+				Lampa.Storage.set('rating_url', value || DEFAULT_CONFIG.url);
+			}
+		});
+
+		// Rating URL
+		Lampa.SettingsApi.addParam({
+			component: 'rating_plugin',
+			param: {
+				name: 'rating_rating_url',
+				type: 'input',
+				placeholder: DEFAULT_CONFIG.rating_url,
+				values: Lampa.Storage.get('rating_rating_url', DEFAULT_CONFIG.rating_url),
+				default: DEFAULT_CONFIG.rating_url
+			},
+			field: {
+				name: 'URL для рейтинга',
+				description: 'URL для сервиса rating.kinopoisk.ru'
+			},
+			onChange: function(value) {
+				Lampa.Storage.set('rating_rating_url', value || DEFAULT_CONFIG.rating_url);
+			}
+		});
+
+		// API Key
+		Lampa.SettingsApi.addParam({
+			component: 'rating_plugin',
+			param: {
+				name: 'rating_api_key',
+				type: 'input',
+				placeholder: DEFAULT_CONFIG.api_key,
+				values: Lampa.Storage.get('rating_api_key', DEFAULT_CONFIG.api_key),
+				default: DEFAULT_CONFIG.api_key
+			},
+			field: {
+				name: 'Ключ API',
+				description: 'Зарегистрируйтесь на сайте kinopoiskapiunofficial.tech и введите ваш API-KEY из раздела "Профиль"'
+			},
+			onChange: function(value) {
+				Lampa.Storage.set('rating_api_key', value || DEFAULT_CONFIG.api_key);
+			}
+		});
+
+		// Cache Time
+		Lampa.SettingsApi.addParam({
+			component: 'rating_plugin',
+			param: {
+				name: 'rating_cache_time',
+				type: 'select',
+				values: {
+					'1': '1 час',
+					'6': '6 часов',
+					'12': '12 часов',
+					'24': '24 часа',
+					'48': '48 часов',
+					'72': '72 часа',
+					'168': '1 неделя'
+				},
+				default: DEFAULT_CONFIG.cache_time.toString()
+			},
+			field: {
+				name: 'Время кеширования',
+				description: 'Как долго хранить данные о рейтинге'
+			},
+			onChange: function(value) {
+				Lampa.Storage.set('rating_cache_time', parseInt(value) || DEFAULT_CONFIG.cache_time);
+			}
+		});
+	}
+
+	function getErrorMessageByCode(statusCode) {
+		switch (statusCode) {
+			case 401:
+				return 'Неправильный API ключ. Проверьте настройки плагина.';
+			case 402:
+				return 'Превышен лимит запросов (или дневной, или общий).';
+			case 403:
+				return 'Фильм не найден.';
+			case 429:
+				return 'Слишком много запросов.';
+			default:
+				return null;
+		}
+	}
+
 	function rating_kp_imdb(card) {
 		var network = new Lampa.Reguest();
 		var clean_title = kpCleanTitle(card.title);
@@ -8,14 +139,16 @@
 		var search_year = parseInt((search_date + '').slice(0, 4));
 		var orig = card.original_title || card.original_name;
 		var kp_prox = '';
+
+		var config = getConfig();
 		var params = {
 			id: card.id,
-			url: kp_prox + 'https://kinopoiskapiunofficial.tech/',
-			rating_url: kp_prox + 'https://rating.kinopoisk.ru/',
+			url: kp_prox + config.url,
+			rating_url: kp_prox + config.rating_url,
 			headers: {
-				'X-API-KEY': '2a4a0808-81a3-40ae-b0d3-e11335ede616'
+				'X-API-KEY': config.api_key
 			},
-			cache_time: 60 * 60 * 24 * 1000 //86400000 сек = 1день Время кэша в секундах
+			cache_time: config.cache_time
 		};
 		getRating();
 
@@ -24,6 +157,10 @@
 			if (movieRating) {
 				return _showRating(movieRating[params.id]);
 			} else {
+				if (config.api_key === '') {
+					showError('Не задан API ключ. Рейтинг получить невозможно, зайдите в настройки плагина.');
+					return;
+				}
 				searchFilm();
 			}
 		}
@@ -46,13 +183,17 @@
 						else if (json.films && json.films.length) chooseFilm(json.films);
 						else chooseFilm([]);
 					}, function (a, c) {
-						showError(network.errorDecode(a, c));
+						var customError = getErrorMessageByCode(a.status);
+						var error = customError ? customError : network.errorDecode(a, c);
+						showError(error);
 					}, false, {
 						headers: params.headers
 					});
 				} else chooseFilm([]);
 			}, function (a, c) {
-				showError(network.errorDecode(a, c));
+				var customError = getErrorMessageByCode(a.status);
+				var error = customError ? customError : network.errorDecode(a, c);
+				showError(error);
 			}, false, {
 				headers: params.headers
 			});
@@ -133,7 +274,9 @@
 							}); // Кешируем данные
 							return _showRating(movieRating);
 						}, function (a, c) {
-							showError(network.errorDecode(a, c));
+							var customError = getErrorMessageByCode(a.status);
+							var error = customError ? customError : network.errorDecode(a, c);
+							showError(error);
 						}, false, {
 							headers: params.headers
 						});
@@ -255,6 +398,9 @@
 
 	function startPlugin() {
 		window.rating_plugin = true;
+
+		initSettings();
+
 		Lampa.Listener.follow('full', function (e) {
 			if (e.type == 'complite') {
 				var render = e.object.activity.render();
