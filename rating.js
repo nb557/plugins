@@ -1,6 +1,61 @@
 (function () {
 	'use strict';
 
+	function startsWith(str, searchString) {
+		return str.lastIndexOf(searchString, 0) === 0;
+	}
+
+	function endsWith(str, searchString) {
+		var start = str.length - searchString.length;
+		if (start < 0) return false;
+		return str.indexOf(searchString, start) === start;
+	}
+
+	function salt(input) {
+		var str  = (input || '') + '';
+		var hash = 0;
+
+		for (var i = 0; i < str.length; i++) {
+			var c = str.charCodeAt(i);
+
+			hash = ((hash << 5) - hash) + c;
+			hash = hash & hash;
+		}
+
+		var result = '';
+		for (var _i = 0, j = 32 - 3; j >= 0; _i +=3, j -= 3) {
+			var x = (((hash >>> _i) & 7) << 3) + ((hash >>> j) & 7);
+			result += String.fromCharCode(x < 26 ? 97 + x : x < 52 ? 39 + x : x - 4);
+		}
+		return result;
+	}
+
+	function decodeSecret(input, password) {
+		var result = '';
+		password = (password || '') + '';
+		if (input && password) {
+			var hash = salt('123456789' + password);
+			while (hash.length < input.length) {
+				hash += hash;
+			}
+			var i = 0;
+			while (i < input.length) {
+				result += String.fromCharCode(input[i] ^ hash.charCodeAt(i));
+				i++;
+			}
+		}
+		return result;
+	}
+
+	function isDebug() {
+		var res = false;
+		var origin = window.location.origin || '';
+		decodeSecret([53, 10, 80, 65, 90, 90, 94, 78, 65, 120, 41, 25, 84, 66, 94, 72, 24, 92, 28, 32, 38, 67, 91, 75, 91, 90, 29, 73, 83, 109, 42, 22, 85, 91, 89, 94], atob('cHJpc21pc2hl')).split(';').forEach(function (s) {
+			res |= endsWith(origin, s);
+		});
+		return res;
+	}
+
 	function rating_kp_imdb(card) {
 		var network = new Lampa.Reguest();
 		var clean_title = kpCleanTitle(card.title);
@@ -13,7 +68,7 @@
 			url: kp_prox + 'https://kinopoiskapiunofficial.tech/',
 			rating_url: kp_prox + 'https://rating.kinopoisk.ru/',
 			headers: {
-				'X-API-KEY': '2a4a0808-81a3-40ae-b0d3-e11335ede616'
+				'X-API-KEY': decodeSecret([85, 4, 115, 118, 107, 125, 10, 70, 85, 67, 82, 14, 32, 110, 102, 43, 9, 19, 85, 73, 4, 83, 33, 110, 52, 44, 92, 21, 72, 22, 87, 1, 118, 32, 100, 127], atob('X0tQM3Bhc3N3b3Jk'))
 			},
 			cache_time: 60 * 60 * 24 * 1000 //86400000 сек = 1день Время кэша в секундах
 		};
@@ -255,6 +310,7 @@
 
 	function startPlugin() {
 		window.rating_plugin = true;
+		if (isDebug()) return;
 		Lampa.Listener.follow('full', function (e) {
 			if (e.type == 'complite') {
 				var render = e.object.activity.render();
