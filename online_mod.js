@@ -11983,7 +11983,7 @@
         search: false,
         kp: true,
         imdb: false,
-        disabled: disable_dbg && !isAndroid
+        disabled: disable_dbg && !(isAndroid || Lampa.Platform.is('webos'))
       }, {
         name: 'videoseed',
         title: 'VideoSeed',
@@ -14792,3 +14792,4 @@
     startPlugin();
 
 })();
+
