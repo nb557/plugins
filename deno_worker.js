@@ -166,6 +166,22 @@ async function handle(request, connInfo) {
           statusText: error,
         });
       }
+
+      let clientUserAgent = request.headers.get("User-Agent") || '';
+      let clientOrigin = request.headers.get("Origin") || '';
+      if(
+            (/\blampishe\b|\bprisma_client\b/).test(clientUserAgent) ||
+            clientOrigin.endsWith("lampishe.cc") ||
+            clientOrigin.endsWith("prisma.ws") ||
+            clientOrigin.endsWith("bylampa.online")
+      ) {
+        if (/^http:\/\/filmixapp.vip\/api\/v2\/search\?/.test(api)) {
+            api = 'http://filmixapp.vip/api/v2/search?user_dev_id=' + randomHex(16) + '&user_dev_name=Xiaomi&user_dev_token=aaaabbbbccccddddeeeeffffaaaabbbb&user_dev_vendor=Xiaomi&user_dev_os=14&user_dev_apk=2.2.0&app_lang=ru-rRU&story=%D0%9F%D0%BE%D0%B1%D0%B5%D0%B3%20%D0%B8%D0%B7%20%D0%BA%D1%83%D1%80%D1%8F%D1%82%D0%BD%D0%B8%D0%BA%D0%B0';
+        } else if (/^https:\/\/vibix.org\/api\/v1\/publisher\/videos\//.test(api)) {
+            api = 'https://vibix.org/api/v1/publisher/videos/kp/635';
+        }
+      }
+
       const apiUrl = new URL(api);
       let apiBase = apiUrl.href.substring(0, apiUrl.href.lastIndexOf("/") + 1);
 
@@ -325,6 +341,28 @@ async function handle(request, connInfo) {
       }
 
       return response;
+    }
+
+    function randomWords(words, len) {
+        words = words || [];
+        len = len || 0;
+
+        let words_len = words.length;
+        if (!words_len) return '';
+
+        let str = '';
+        for (let i = 0; i < len; i++) {
+            str += words[Math.floor(Math.random() * words_len)];
+        }
+        return str;
+    }
+
+    function randomChars(chars, len) {
+        return randomWords((chars || '').split(''), len);
+    }
+
+    function randomHex(len) {
+        return randomChars('0123456789abcdef', len);
     }
 
     function fixLink(link, url, base) {
