@@ -1,4 +1,4 @@
-//25.01.2026 - Fix
+//28.01.2026 - Fix
 
 (function () {
     'use strict';
@@ -334,7 +334,7 @@
           return proxy + 'enc1/' + encodeURIComponent(btoa(proxy_enc + _part)) + '/' + _part2;
         }
 
-        if (enc === 'enc2') {
+        if (enc === 'enc2' || enc === 'enc2t') {
           var posEnd = link.lastIndexOf('?');
           var posStart = link.lastIndexOf('://');
           if (posEnd === -1 || posEnd <= posStart) posEnd = link.length;
@@ -342,7 +342,7 @@
           var name = link.substring(posStart + 3, posEnd);
           posStart = name.lastIndexOf('/');
           name = posStart !== -1 ? name.substring(posStart + 1) : '';
-          return proxy + 'enc2/' + encodeURIComponent(btoa(proxy_enc + link)) + '/' + name;
+          return proxy + 'enc2/' + encodeURIComponent(btoa(proxy_enc + link)) + '/' + name + (enc === 'enc2t' ? "?jacred.test" : '');
         }
 
         return proxy + proxy_enc + link;
@@ -4273,7 +4273,7 @@
         var apiSearch = function apiSearch(abuse) {
           var url = embed + 'search' + (abuse ? abuse_token : dev_token);
           url = Lampa.Utils.addUrlComponent(url, 'story=' + encodeURIComponent(clean_title));
-          url = abuse ? component.proxyLink(url, prox3, '', '') : component.proxyLink(url, prox, prox_enc, 'enc2');
+          url = abuse ? component.proxyLink(url, prox3, '', '') : component.proxyLink(url, prox, prox_enc, 'enc2t');
           network.clear();
           network.timeout(15000);
           network["native"](url, function (json) {
@@ -7289,7 +7289,7 @@
       function vibix_api_search(api, callback, error) {
         network.clear();
         network.timeout(15000);
-        network["native"](component.proxyLink(embed + api, prox, prox_enc), function (json) {
+        network["native"](component.proxyLink(embed + api, prox, prox_enc, 'enc2t'), function (json) {
           if (callback) callback(json);
         }, function (a, c) {
           if (a.status == 404 && (!a.responseText || a.responseText.indexOf('"Video not found"') !== -1)) {
@@ -13291,7 +13291,7 @@
       };
     }
 
-    var mod_version = '25.01.2026';
+    var mod_version = '28.01.2026';
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
     var isIFrame = window.parent !== window;
