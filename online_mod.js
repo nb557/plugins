@@ -1,4 +1,4 @@
-//28.01.2026 - Fix
+//31.01.2026 - Fix
 
 (function () {
     'use strict';
@@ -7267,6 +7267,7 @@
       var prox = component.proxy('vibix');
       var user_agent = Utils.baseUserAgent();
       var auth = Utils.decodeSecret([44, 23, 81, 32, 63, 32, 116, 90, 0, 115, 89, 14, 116, 10, 30, 49, 1, 61, 3, 115, 57, 64, 8, 57, 45, 21, 28, 88, 113, 14, 94, 29, 118, 56, 25, 102, 5, 15, 90, 29, 33, 68, 123, 6, 40, 35, 33, 91, 127, 62, 28, 65, 9, 49, 104, 55, 97, 14, 8, 46], atob('VmliaXhBdXRo'));
+      var key = Utils.decodeSecret([60, 11, 99, 54, 44, 49, 45, 25, 5, 34, 58, 39, 72, 60, 99, 101, 34, 2, 4, 3, 25, 29, 94, 59, 45, 53, 44, 13, 115, 50, 0, 51], atob('VmliaXhBdXRo'));
       var headers = Lampa.Platform.is('android') ? {
         'User-Agent': user_agent,
         'Authorization': auth
@@ -7391,14 +7392,54 @@
         return null;
       }
 
-      function encrypt(str) {
-        var result = 0;
+      function xorDecrypt(str) {
+        var key_len = key.length;
+        var len = str.length;
+        var result = '';
 
-        for (var i = 0; i < str.length; i++) {
-          result = (result << 5) - result + str.charCodeAt(i);
+        for (var i = 0; i < len; i++) {
+          result += String.fromCharCode(str.charCodeAt(i) ^ key.charCodeAt(i % key_len));
         }
 
-        return Math.abs(result).toString(36);
+        return result;
+      }
+
+      function binaryToUtf8(str) {
+        if (typeof TextDecoder !== "undefined") {
+          try {
+            var arr = new Uint8Array(str.length);
+
+            for (var i = 0; i < str.length; i++) {
+              arr[i] = str.charCodeAt(i);
+            }
+
+            return new TextDecoder('utf-8').decode(arr);
+          } catch (e) {}
+        }
+
+        try {
+          return decodeURIComponent(escape(str));
+        } catch (e) {
+          return str;
+        }
+      }
+
+      function decrypt(json) {
+        try {
+          var str = json.p;
+
+          if (json.v == 1) {
+            if (true) {
+              str = str.split('').reverse().join('');
+            }
+
+            str = binaryToUtf8(xorDecrypt(atob(str)));
+          }
+
+          return JSON.parse(str);
+        } catch (e) {
+          return {};
+        }
       }
 
       function getPage(json, empty) {
@@ -7428,10 +7469,14 @@
         var url = host + (info.type === 'movie' ? '/api/v1/embed/' : '/api/v1/embed-serials/') + info.id;
         url = Lampa.Utils.addUrlComponent(url, 'domain=' + encodeURIComponent(atob('dmliaXgub3Jn')));
         url = Lampa.Utils.addUrlComponent(url, 'iframe_url=' + encodeURIComponent(json.iframe_url));
-        url = Lampa.Utils.addUrlComponent(url, 'kp=' + encrypt(Date.now().toString()));
+        url = Lampa.Utils.addUrlComponent(url, 'nc=' + Math.floor(new Date().getTime() / 3600000));
         network.clear();
         network.timeout(15000);
         network["native"](component.proxyLink(url, prox, prox_enc2), function (json) {
+          if (json && Object.keys(json).length == 2 && typeof json.p === 'string' && json.v != null) {
+            json = decrypt(json);
+          }
+
           if (json && json.data && json.data.playlist && json.data.playlist.forEach) {
             component.loading(false);
             extract = json.data;
@@ -13291,7 +13336,7 @@
       };
     }
 
-    var mod_version = '28.01.2026';
+    var mod_version = '31.01.2026';
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
     var isIFrame = window.parent !== window;
