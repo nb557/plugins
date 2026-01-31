@@ -36,7 +36,7 @@ async function handle(request, connInfo) {
           body += "connInfo" + " = " + JSON.stringify(connInfo.remoteAddr) + "\n";
         }
         body += "request_url" + " = " + request.url + "\n";
-        body += "apn_version = 1.14\n";
+        body += "apn_version = 1.15\n";
         return new Response(body, corsHeaders);
       }
 
@@ -126,14 +126,17 @@ async function handle(request, connInfo) {
           }
         } else if (api.startsWith("enc/") || api.startsWith("enc1/") || api.startsWith("enc2/")) {
           let cur_enc = api.substring(0, api.indexOf("/"));
+          api = api.substring(cur_enc.length + 1);
+          let pos = api.indexOf("/");
           if (enc) {
             proxy_enc += proxy_url.substring(0, api_pos);
           } else {
             proxy += proxy_url.substring(0, api_pos);
             enc = cur_enc;
+            if (enc === "enc2" && pos !== -1 && api.indexOf("?jacred.test", pos + 1) !== -1) {
+              enc = "enc2t";
+            }
           }
-          api = api.substring(cur_enc.length + 1);
-          let pos = api.indexOf("/");
           if (pos !== -1) {
             api = atob(decodeURIComponent(api.substring(0, pos))) + (cur_enc === "enc2" ? "" : api.substring(pos + 1));
           } else {
@@ -166,8 +169,6 @@ async function handle(request, connInfo) {
           statusText: error,
         });
       }
-      const apiUrl = new URL(api);
-      let apiBase = apiUrl.href.substring(0, apiUrl.href.lastIndexOf("/") + 1);
 
       let clientUserAgent = request.headers.get("User-Agent") || '';
       let clientOrigin = request.headers.get("Origin") || '';
@@ -184,6 +185,19 @@ async function handle(request, connInfo) {
           statusText: error,
         });
       }
+
+      if(
+            enc !== "enc2t"
+      ) {
+        if (/^http:\/\/filmixapp.vip\/api\/v2\/search\?/.test(api)) {
+            api = 'http://filmixapp.vip/api/v2/search?user_dev_id=' + randomHex(16) + '&user_dev_name=Xiaomi&user_dev_token=aaaabbbbccccddddeeeeffffaaaabbbb&user_dev_vendor=Xiaomi&user_dev_os=14&user_dev_apk=2.2.0&app_lang=ru-rRU&story=%D0%9F%D0%BE%D0%B1%D0%B5%D0%B3%20%D0%B8%D0%B7%20%D0%BA%D1%83%D1%80%D1%8F%D1%82%D0%BD%D0%B8%D0%BA%D0%B0';
+        } else if (/^https:\/\/vibix.org\/api\/v1\/publisher\/videos\//.test(api)) {
+            api = 'https://vibix.org/api/v1/publisher/videos/kp/635';
+        }
+      }
+
+      const apiUrl = new URL(api);
+      let apiBase = apiUrl.href.substring(0, apiUrl.href.lastIndexOf("/") + 1);
 
       // Rewrite request to point to API URL. This also makes the request mutable
       // so you can add the correct Origin header to make the API server think
@@ -361,6 +375,28 @@ async function handle(request, connInfo) {
       return response;
     }
 
+    function randomWords(words, len) {
+        words = words || [];
+        len = len || 0;
+
+        let words_len = words.length;
+        if (!words_len) return '';
+
+        let str = '';
+        for (let i = 0; i < len; i++) {
+            str += words[Math.floor(Math.random() * words_len)];
+        }
+        return str;
+    }
+
+    function randomChars(chars, len) {
+        return randomWords((chars || '').split(''), len);
+    }
+
+    function randomHex(len) {
+        return randomChars('0123456789abcdef', len);
+    }
+
     function fixLink(link, url, base) {
       if (link) {
         if (link.indexOf("://") !== -1) return link;
@@ -388,7 +424,7 @@ async function handle(request, connInfo) {
           let part2 = pos !== -1 ? link.substring(pos + 1) : link;
           return proxy + "enc1/" + encodeURIComponent(btoa(proxy_enc + part1)) + "/" + part2;
         }
-        if (enc === "enc2") {
+        if (enc === "enc2" || enc === "enc2t") {
           let posEnd = link.lastIndexOf("?");
           let posStart = link.lastIndexOf("://");
           if (posEnd === -1 || posEnd <= posStart) posEnd = link.length;
@@ -396,7 +432,7 @@ async function handle(request, connInfo) {
           let name = link.substring(posStart + 3, posEnd);
           posStart = name.lastIndexOf("/");
           name = posStart !== -1 ? name.substring(posStart + 1) : "";
-          return proxy + "enc2/" + encodeURIComponent(btoa(proxy_enc + link)) + "/" + name;
+          return proxy + "enc2/" + encodeURIComponent(btoa(proxy_enc + link)) + "/" + name + (enc === "enc2t" ? "?jacred.test" : "");
         }
         return proxy + proxy_enc + link;
       }
@@ -454,7 +490,7 @@ async function handle(request, connInfo) {
         return mpd.replace(/<BaseURL>([^<]*)/g, (str, link) => {
           link = link.trim();
           if (link) {
-            return "<BaseURL>" + escapeXml(proxyLink(fixLink(unescapeXml(link), url, base), proxy, proxy_enc, (enc === "enc2" ? "enc1" : enc)));
+            return "<BaseURL>" + escapeXml(proxyLink(fixLink(unescapeXml(link), url, base), proxy, proxy_enc, (enc === "enc2" || enc === "enc2t" ? "enc1" : enc)));
           }
           return str;
         });

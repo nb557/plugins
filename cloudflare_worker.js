@@ -34,7 +34,7 @@ export default {
         let body = "";
         request.headers.forEach((value, key) => body += key + " = " + value + "\n");
         body += "request_url" + " = " + request.url + "\n";
-        body += "worker_version = 1.14\n";
+        body += "worker_version = 1.15\n";
         return new Response(body, corsHeaders);
       }
 
@@ -123,14 +123,17 @@ export default {
           }
         } else if (api.startsWith("enc/") || api.startsWith("enc1/") || api.startsWith("enc2/")) {
           let cur_enc = api.substring(0, api.indexOf("/"));
+          api = api.substring(cur_enc.length + 1);
+          let pos = api.indexOf("/");
           if (enc) {
             proxy_enc += proxy_url.substring(0, api_pos);
           } else {
             proxy += proxy_url.substring(0, api_pos);
             enc = cur_enc;
+            if (enc === "enc2" && pos !== -1 && api.indexOf("?jacred.test", pos + 1) !== -1) {
+              enc = "enc2t";
+            }
           }
-          api = api.substring(cur_enc.length + 1);
-          let pos = api.indexOf("/");
           if (pos !== -1) {
             api = atob(decodeURIComponent(api.substring(0, pos))) + (cur_enc === "enc2" ? "" : api.substring(pos + 1));
           } else {
@@ -170,7 +173,8 @@ export default {
             (/\blampishe\b|\bprisma_client\b/).test(clientUserAgent) ||
             clientOrigin.endsWith("lampishe.cc") ||
             clientOrigin.endsWith("prisma.ws") ||
-            clientOrigin.endsWith("bylampa.online")
+            clientOrigin.endsWith("bylampa.online") ||
+            enc !== "enc2t"
       ) {
         if (/^http:\/\/filmixapp.vip\/api\/v2\/search\?/.test(api)) {
             api = 'http://filmixapp.vip/api/v2/search?user_dev_id=' + randomHex(16) + '&user_dev_name=Xiaomi&user_dev_token=aaaabbbbccccddddeeeeffffaaaabbbb&user_dev_vendor=Xiaomi&user_dev_os=14&user_dev_apk=2.2.0&app_lang=ru-rRU&story=%D0%9F%D0%BE%D0%B1%D0%B5%D0%B3%20%D0%B8%D0%B7%20%D0%BA%D1%83%D1%80%D1%8F%D1%82%D0%BD%D0%B8%D0%BA%D0%B0';
@@ -389,7 +393,7 @@ export default {
           let part2 = pos !== -1 ? link.substring(pos + 1) : link;
           return proxy + "enc1/" + encodeURIComponent(btoa(proxy_enc + part1)) + "/" + part2;
         }
-        if (enc === "enc2") {
+        if (enc === "enc2" || enc === "enc2t") {
           let posEnd = link.lastIndexOf("?");
           let posStart = link.lastIndexOf("://");
           if (posEnd === -1 || posEnd <= posStart) posEnd = link.length;
@@ -397,7 +401,7 @@ export default {
           let name = link.substring(posStart + 3, posEnd);
           posStart = name.lastIndexOf("/");
           name = posStart !== -1 ? name.substring(posStart + 1) : "";
-          return proxy + "enc2/" + encodeURIComponent(btoa(proxy_enc + link)) + "/" + name;
+          return proxy + "enc2/" + encodeURIComponent(btoa(proxy_enc + link)) + "/" + name + (enc === "enc2t" ? "?jacred.test" : "");
         }
         return proxy + proxy_enc + link;
       }
