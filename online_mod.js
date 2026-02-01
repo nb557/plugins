@@ -1,4 +1,4 @@
-//31.01.2026 - Fix
+//01.02.2026 - Fix
 
 (function () {
     'use strict';
@@ -10882,9 +10882,9 @@
         network["native"](component.proxyLink(url, prox), function (str) {
           str = (str || '').replace(/\n/g, '');
           var urlParams = str.match(/\burlParams = '([^']+)'/);
-          var type = str.match(/\bvideoInfo\.type = '([^']+)'/);
-          var hash = str.match(/\bvideoInfo\.hash = '([^']+)'/);
-          var id = str.match(/\bvideoInfo\.id = '([^']+)'/);
+          var type = str.match(/\b(?:videoInfo|vInfo)\.type = '([^']+)'/);
+          var hash = str.match(/\b(?:videoInfo|vInfo)\.hash = '([^']+)'/);
+          var id = str.match(/\b(?:videoInfo|vInfo)\.id = '([^']+)'/);
           var player = str.match(/<script [^>]*\bsrc="(\/assets\/js\/app\.player_single[^"]+)"/);
           var json;
 
@@ -13336,7 +13336,7 @@
       };
     }
 
-    var mod_version = '31.01.2026';
+    var mod_version = '01.02.2026';
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
     var isIFrame = window.parent !== window;
