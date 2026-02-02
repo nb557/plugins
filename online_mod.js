@@ -1,4 +1,4 @@
-//01.02.2026 - Fix
+//02.02.2026 - Fix
 
 (function () {
     'use strict';
@@ -177,14 +177,12 @@
       var ip = getMyIp() || '';
       var param_ip = Lampa.Storage.field('online_mod_proxy_find_ip') === true ? 'ip' + ip + '/' : '';
       var proxy1 = new Date().getHours() % 2 ? 'https://cors.nb557.workers.dev/' : 'https://cors.fx666.workers.dev/';
-      var proxy2 = (window.location.protocol === 'https:' ? 'https://' : 'http://') + 'iqslgbok.deploy.cx/';
+      var proxy2 = 'https://apn-latest.onrender.com/' + (param_ip ? '' : 'ip/');
       var proxy3 = 'https://cors557.deno.dev/';
-      var proxy_apn = '';
       var proxy_secret = '';
       var proxy_secret_ip = '';
 
       if (isDebug()) {
-        proxy_apn = (window.location.protocol === 'https:' ? 'https://' : 'http://') + decodeSecret([59, 37, 28, 26, 10, 86, 38, 18, 92, 60, 41, 59, 9, 25, 27, 20, 36, 13, 93]);
         proxy_secret = decodeSecret([36, 63, 17, 6, 17, 0, 104, 90, 19, 40, 34, 102, 8, 20, 87, 15, 113, 91, 25, 55, 53, 46, 7, 88, 3, 74, 55, 90]);
         proxy_secret_ip = proxy_secret + (param_ip || 'ip/');
       }
@@ -196,9 +194,9 @@
       var user_proxy3 = (proxy_other_url || proxy3) + param_ip;
       if (name === 'lumex_api') return user_proxy2;
       if (name === 'filmix_site') return proxy_secret_ip || user_proxy1;
-      if (name === 'filmix_abuse') return window.location.protocol === 'https:' ? 'https://cors.apn.monster/' : 'http://cors.cfhttp.top/';
-      if (name === 'zetflix') return proxy_apn;
-      if (name === 'allohacdn') return proxy_other ? proxy_secret : proxy_apn;
+      if (name === 'filmix_abuse') return '';
+      if (name === 'zetflix') return '';
+      if (name === 'allohacdn') return proxy_secret;
       if (name === 'cookie') return user_proxy1;
       if (name === 'cookie2') return user_proxy2;
       if (name === 'cookie3') return user_proxy3;
@@ -209,15 +207,15 @@
         if (name === 'lumex') return proxy_secret;
         if (name === 'rezka') return user_proxy2;
         if (name === 'rezka2') return user_proxy2;
-        if (name === 'kinobase') return proxy_apn;
-        if (name === 'collaps') return proxy_other ? proxy_secret : proxy_apn;
-        if (name === 'cdnmovies') return proxy_other ? proxy_secret : proxy_apn;
+        if (name === 'kinobase') return proxy_secret;
+        if (name === 'collaps') return proxy_secret;
+        if (name === 'cdnmovies') return proxy_secret;
         if (name === 'filmix') return proxy_secret_ip || user_proxy1;
         if (name === 'videodb') return user_proxy2;
         if (name === 'fancdn') return user_proxy3;
         if (name === 'fancdn2') return user_proxy2;
-        if (name === 'fanserials') return user_proxy2;
-        if (name === 'fanserials_cdn') return proxy_other ? proxy_secret : proxy_apn;
+        if (name === 'fanserials') return user_proxy1;
+        if (name === 'fanserials_cdn') return proxy_secret;
         if (name === 'videoseed') return user_proxy1;
         if (name === 'vibix') return user_proxy2;
         if (name === 'redheadsound') return user_proxy2;
@@ -13336,7 +13334,7 @@
       };
     }
 
-    var mod_version = '01.02.2026';
+    var mod_version = '02.02.2026';
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
     var isIFrame = window.parent !== window;
