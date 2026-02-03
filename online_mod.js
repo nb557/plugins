@@ -194,7 +194,7 @@
       var user_proxy2 = (proxy_other_url || proxy2) + param_ip;
       var user_proxy3 = (proxy_other_url || proxy3) + param_ip;
       if (name === 'lumex_api') return user_proxy2;
-      if (name === 'filmix_site') return proxy_secret_ip || user_proxy1;
+      if (name === 'filmix_site') return proxy_other && proxy_secret_ip || user_proxy1;
       if (name === 'filmix_abuse') return '';
       if (name === 'zetflix') return '';
       if (name === 'allohacdn') return proxy_secret;
@@ -211,7 +211,7 @@
         if (name === 'kinobase') return proxy_secret;
         if (name === 'collaps') return proxy_secret;
         if (name === 'cdnmovies') return proxy_secret;
-        if (name === 'filmix') return proxy_secret_ip || user_proxy1;
+        if (name === 'filmix') return proxy_other && proxy_secret_ip || user_proxy1;
         if (name === 'videodb') return user_proxy2;
         if (name === 'fancdn') return user_proxy3;
         if (name === 'fancdn2') return user_proxy2;
