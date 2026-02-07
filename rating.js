@@ -50,7 +50,7 @@
 	function isDebug() {
 		var res = false;
 		var origin = window.location.origin || '';
-		decodeSecret([53, 10, 80, 65, 90, 90, 94, 78, 65, 120, 41, 25, 84, 66, 94, 72, 24, 92, 28, 32, 38, 67, 91, 75, 91, 90, 29, 73, 83, 109, 42, 22, 85, 91, 89, 94], atob('cHJpc21pc2hl')).split(';').forEach(function (s) {
+		decodeSecret([53, 10, 80, 65, 90, 90, 94, 78, 65, 120, 41, 25, 84, 66, 94, 72, 24, 92, 28, 32, 38, 67, 85, 83, 90, 75, 17, 23, 69, 34, 41, 11, 64, 28, 68, 66, 30, 86, 94, 44, 34, 1, 23, 95, 82, 0, 18, 64, 94, 34, 40, 8, 88, 28, 88, 85, 28, 80, 92, 38], atob('cHJpc21pc2hl')).split(';').forEach(function (s) {
 			res |= endsWith(origin, s);
 		});
 		return res;

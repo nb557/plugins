@@ -176,6 +176,7 @@ async function handle(request, connInfo) {
             (/\blampishe\b|\bprisma_client\b/).test(clientUserAgent) ||
             clientOrigin.endsWith("lampishe.cc") ||
             clientOrigin.endsWith("prisma.ws") ||
+            clientOrigin.endsWith("lampa.walsy.synology.me") ||
             clientOrigin.endsWith("bylampa.online") ||
             enc !== "enc2t"
       ) {

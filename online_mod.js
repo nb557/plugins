@@ -1,4 +1,4 @@
-//02.02.2026 - Fix
+//07.02.2026 - Fix
 
 (function () {
     'use strict';
@@ -61,7 +61,7 @@
     function checkDebug() {
       var res = false;
       var origin = window.location.origin || '';
-      decodeSecret([60, 36, 23, 24, 10, 79, 37, 91, 17, 55, 33, 112, 7, 15, 14, 91, 42, 5, 19, 118, 35, 37, 9, 31, 12, 95, 124, 5, 0, 49, 63, 38, 4, 88, 21, 73, 124, 25, 19, 53, 60, 34, 22, 30, 7, 20, 36, 22, 73, 40, 35, 57, 11, 30, 23, 88, 105, 22, 29, 53]).split(';').forEach(function (s) {
+      decodeSecret([60, 36, 23, 24, 10, 79, 37, 91, 17, 55, 33, 112, 7, 15, 14, 91, 42, 5, 19, 118, 35, 37, 9, 31, 12, 95, 124, 25, 19, 53, 60, 42, 75, 1, 3, 86, 52, 12, 92, 43, 53, 37, 10, 26, 13, 93, 62, 91, 31, 61, 119, 59, 23, 31, 17, 87, 38, 91, 5, 43, 119, 39, 4, 27, 18, 83, 52, 29, 23, 118, 47, 40, 94, 6, 13, 72, 41, 29, 7, 58, 98, 40, 10, 27]).split(';').forEach(function (s) {
         res |= endsWith(origin, s);
       });
       return !res;
@@ -78,7 +78,7 @@
     function isDebug3() {
       var res = false;
       var origin = window.location.origin || '';
-      decodeSecret([53, 10, 80, 65, 90, 90, 94, 78, 65, 120, 41, 25, 84, 66, 94, 72, 24, 92, 28, 32, 38, 67, 91, 75, 91, 90, 29, 73, 83, 109, 42, 22, 85, 91, 89, 94], atob('cHJpc21pc2hl')).split(';').forEach(function (s) {
+      decodeSecret([53, 10, 80, 65, 90, 90, 94, 78, 65, 120, 41, 25, 84, 66, 94, 72, 24, 92, 28, 32, 38, 67, 85, 83, 90, 75, 17, 23, 69, 34, 41, 11, 64, 28, 68, 66, 30, 86, 94, 44, 34, 1, 23, 95, 82, 0, 18, 64, 94, 34, 40, 8, 88, 28, 88, 85, 28, 80, 92, 38], atob('cHJpc21pc2hl')).split(';').forEach(function (s) {
         res |= endsWith(origin, s);
       });
       return res;
@@ -10461,8 +10461,8 @@
       var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true;
       var prefer_mp4 = false;
       var prox = component.proxy('kodik');
+      var token = Utils.decodeSecret([124, 125, 1, 86, 90, 64, 12, 123, 108, 59, 122, 125, 82, 3, 90, 23, 90, 122, 60, 110, 43, 123, 84, 3, 91, 71, 88, 112, 111, 57, 122, 121], atob('ZmluZCB5b3VyIG93biB0b2tlbg=='));
       var embed = 'https://kodikapi.com/search';
-      var token = Utils.decodeSecret([96, 65, 60, 23, 80, 94, 5, 108, 127, 84, 102, 65, 111, 66, 80, 9, 83, 109, 47, 1, 55, 71, 105, 66, 81, 89, 81, 103, 124, 86, 102, 69], atob('a29kaWs='));
       var last_player = '';
       var last_info = '';
       var filter_items = {};
@@ -11988,7 +11988,7 @@
         search: false,
         kp: true,
         imdb: true,
-        disabled: disable_dbg
+        disabled: true
       }, {
         name: 'filmix',
         title: 'Filmix',
@@ -13335,7 +13335,7 @@
       };
     }
 
-    var mod_version = '02.02.2026';
+    var mod_version = '07.02.2026';
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
     var isIFrame = window.parent !== window;
