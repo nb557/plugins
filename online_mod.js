@@ -1,4 +1,4 @@
-//07.02.2026 - Fix
+//08.02.2026 - Fix
 
 (function () {
     'use strict';
@@ -117,11 +117,11 @@
     }
 
     function filmixHost$1() {
-      return 'https://filmix.lat';
+      return 'https://filmix.my';
     }
 
     function filmixAppHost() {
-      return 'http://filmixapp.vip';
+      return 'http://filmixapp.cyou';
     }
 
     function filmixToken(dev_id, token) {
@@ -13335,7 +13335,7 @@
       };
     }
 
-    var mod_version = '07.02.2026';
+    var mod_version = '08.02.2026';
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
     var isIFrame = window.parent !== window;
