@@ -1,4 +1,4 @@
-//08.02.2026 - Fix
+//09.02.2026 - Fix
 
 (function () {
     'use strict';
@@ -6749,15 +6749,21 @@
       var object = _object;
       var select_title = '';
       var prox = component.proxy('videoseed');
+      var host = atob('aHR0cHM6Ly9raW5vc2VyaWFscy5uZXQ=');
+      var ref = host + '/';
       var user_agent = Utils.baseUserAgent();
       var embed = atob('aHR0cHM6Ly9hcGkudmlkZW9zZWVkLnR2L2FwaXYyLnBocA==');
       var suffix = Utils.decodeSecret([56, 36, 14, 19, 12, 7, 117, 77, 17, 59, 120, 122, 3, 69, 82, 9, 119, 16, 71, 107, 42, 46, 0, 67, 87, 10, 116, 77, 74, 111, 125, 127, 80, 64, 84, 92, 115, 22]);
       var headers = Lampa.Platform.is('android') ? {
+        'Origin': host,
+        'Referer': ref,
         'User-Agent': user_agent
       } : {};
       var prox_enc = '';
 
       if (prox) {
+        prox_enc += 'param/Origin=' + encodeURIComponent(host) + '/';
+        prox_enc += 'param/Referer=' + encodeURIComponent(ref) + '/';
         prox_enc += 'param/User-Agent=' + encodeURIComponent(user_agent) + '/';
       }
 
@@ -6795,13 +6801,8 @@
         network.timeout(10000);
         network["native"](component.proxyLink(api, prox, prox_enc, 'enc2'), function (json) {
           if (json && json.data && json.data[0] && json.data[0].iframe) {
-            var url = json.data[0].iframe;
-            var pos = url.indexOf('?');
-
-            if (pos !== -1) {
-              url = url.substring(0, pos);
-            }
-
+            var url = host + Utils.parseURL(json.data[0].iframe).pathname;
+            url = Lampa.Utils.addUrlComponent(url, 'token=' + Utils.randomHex(32));
             network.clear();
             network.timeout(10000);
             network["native"](component.proxyLink(url, prox, prox_enc), function (str) {
@@ -6918,7 +6919,7 @@
           }).join(''));
         };
 
-        var trashList = ['qVNP035fDl3hd05QZUkkYsRYC1glOVERZU0YGNvpepEFC', 'g8c71IUSaroqb636BTt7hlKNMA4oR718nyDbbiMm6PCEh', '3dNupT1rfIIIQgFh5Xhbk2i18Rfe4GN8Dq6IxL5saG9Y1', 'hxFNhEtJfd1WeZkns6d7DLvJ8vv8E88XenAtZ4UvDJeBV', '7r3aw2Eat03AiCGA260OBqg7qYmtPbG7aFY8T2b1GSNuL'];
+        var trashList = [atob('YTBCZnREaUZaVXNLV3A2d0o5VnloMmxIcWoxQ2JjOGVuTVlQQVQ3VGFialpqdkcySWZaRU9XYm9ZdDFvUTZPSw=='), atob('NnNlbFdvNUcwcjczNGttWm5hSHZZSmpFU3VpY1BJTGRYVGJ0WHUwcTR4Q3hWbmJaaDRKWFRKRElOeXNJRXY2aQ=='), atob('U0hiTkJZa085VkNoeTNtMjg1NnF3WEljS0ZUQXAwTTdXbjFyUllvY1lVbmFLeThXNkJsekdlUUhnMjFYNmZGbg=='), atob('QWw2aXhzYlZuQ1dlZHBSd0hjdjdHTGhNWTFUeTl6YXIwU1pmS29PNk9rM3c1ejRJbUVqNjFidkRCdEhQSXF0Mg=='), atob('WEV6bjVZUE9sRnM5VndjdThKMzRmdEh5R1FheDFXNzZoQUNlWjBEb0RNckg4TGQ1aGhqNVd6em5Md2c3amZnVg==')];
         var x = data.substring(2);
         trashList.forEach(function (trash) {
           x = x.replace('|||' + enc(trash), '');
@@ -13335,7 +13336,7 @@
       };
     }
 
-    var mod_version = '08.02.2026';
+    var mod_version = '09.02.2026';
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
     var isIFrame = window.parent !== window;
