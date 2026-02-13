@@ -1,4 +1,4 @@
-//09.02.2026 - Fix
+//13.02.2026 - Fix
 
 (function () {
     'use strict';
@@ -7268,6 +7268,7 @@
       var user_agent = Utils.baseUserAgent();
       var auth = Utils.decodeSecret([44, 23, 81, 32, 63, 32, 116, 90, 0, 115, 89, 14, 116, 10, 30, 49, 1, 61, 3, 115, 57, 64, 8, 57, 45, 21, 28, 88, 113, 14, 94, 29, 118, 56, 25, 102, 5, 15, 90, 29, 33, 68, 123, 6, 40, 35, 33, 91, 127, 62, 28, 65, 9, 49, 104, 55, 97, 14, 8, 46], atob('VmliaXhBdXRo'));
       var key = Utils.decodeSecret([60, 11, 99, 54, 44, 49, 45, 25, 5, 34, 58, 39, 72, 60, 99, 101, 34, 2, 4, 3, 25, 29, 94, 59, 45, 53, 44, 13, 115, 50, 0, 51], atob('VmliaXhBdXRo'));
+      var sign_key = Utils.decodeSecret([60, 38, 113, 24, 14, 63, 62, 42, 85, 44, 52, 20, 72, 43, 52, 3, 109, 89, 117, 60, 10, 29, 65, 11, 40, 3, 102, 56, 5, 17, 36, 55], atob('VmliaXhBdXRo'));
       var headers = Lampa.Platform.is('android') ? {
         'User-Agent': user_agent,
         'Authorization': auth
@@ -7442,6 +7443,62 @@
         }
       }
 
+      function sign(key, secret) {
+        function encode(msg) {
+          var x = 0;
+
+          if (msg.length === 0) {
+            return x.toString();
+          }
+
+          for (var i = 0; i < msg.length; i++) {
+            var c = msg.charCodeAt(i);
+            x = (x << 5) - x + c;
+            x = x & x;
+          }
+
+          var y = Math.abs(x).toString(16);
+
+          while (y.length < 8) {
+            y = '0' + y;
+          }
+
+          var z = [y];
+
+          for (var j = 0; j < msg.length; j += 3) {
+            var part = msg.substring(j, j + 3);
+            var r = 0;
+
+            for (var k = 0; k < part.length; k++) {
+              r += part.charCodeAt(k);
+            }
+
+            z.push(r.toString(16));
+          }
+
+          return z.join('');
+        }
+
+        var salt1 = '';
+        var salt2 = '';
+
+        if (key.length > 64) {
+          key = encode(key);
+        }
+
+        while (key.length < 64) {
+          key += "\0";
+        }
+
+        for (var i = 0; i < 64; i++) {
+          salt1 += String.fromCharCode(key.charCodeAt(i) ^ 54);
+          salt2 += String.fromCharCode(key.charCodeAt(i) ^ 92);
+        }
+
+        var sign0 = encode(salt1 + secret);
+        return encode(salt2 + sign0);
+      }
+
       function getPage(json, empty) {
         var info = json && json.iframe_url && parseIFrame(json.iframe_url);
 
@@ -7466,10 +7523,18 @@
           prox_enc2 += 'param/Referer=' + encodeURIComponent(ref) + '/';
         }
 
+        var domain = atob('dmliaXgub3Jn');
+        var iframe_url = json.iframe_url;
+        var timestamp = Math.floor(Date.now() / 1000);
+        var nonce = Math.random().toString(36).substring(2, 15);
+        var secret = [domain, iframe_url, timestamp.toString(), nonce].join('|');
+        var sig = sign(sign_key, secret);
         var url = host + (info.type === 'movie' ? '/api/v1/embed/' : '/api/v1/embed-serials/') + info.id;
-        url = Lampa.Utils.addUrlComponent(url, 'domain=' + encodeURIComponent(atob('dmliaXgub3Jn')));
-        url = Lampa.Utils.addUrlComponent(url, 'iframe_url=' + encodeURIComponent(json.iframe_url));
-        url = Lampa.Utils.addUrlComponent(url, 'nc=' + Math.floor(new Date().getTime() / 3600000));
+        url = Lampa.Utils.addUrlComponent(url, 'domain=' + encodeURIComponent(domain));
+        url = Lampa.Utils.addUrlComponent(url, 'iframe_url=' + encodeURIComponent(iframe_url));
+        url = Lampa.Utils.addUrlComponent(url, 'sig=' + encodeURIComponent(sig));
+        url = Lampa.Utils.addUrlComponent(url, 'ts=' + timestamp);
+        url = Lampa.Utils.addUrlComponent(url, 'nonce=' + encodeURIComponent(nonce));
         network.clear();
         network.timeout(15000);
         network["native"](component.proxyLink(url, prox, prox_enc2), function (json) {
@@ -13336,7 +13401,7 @@
       };
     }
 
-    var mod_version = '09.02.2026';
+    var mod_version = '13.02.2026';
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
     var isIFrame = window.parent !== window;
