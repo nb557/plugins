@@ -1,4 +1,4 @@
-//13.02.2026 - Fix
+//01.03.2026 - Fix
 
 (function () {
     'use strict';
@@ -14,7 +14,7 @@
     }
 
     var myIp = '';
-    var currentFanserialsHost = decodeSecret([95, 57, 28, 42, 55, 125, 28, 124, 75, 83, 86, 35, 27, 63, 54, 46, 82, 63, 9, 27, 89, 40, 28], atob('RnVja0Zhbg=='));
+    var currentFanserialsHost = decodeSecret([95, 57, 28, 42, 55, 125, 28, 124, 75, 83, 86, 35, 27, 63, 54, 46, 82, 63, 9, 27, 81, 56, 6], atob('RnVja0Zhbg=='));
 
     function salt(input) {
       var str = (input || '') + '';
@@ -109,7 +109,7 @@
     }
 
     function fanserialsHost() {
-      return currentFanserialsHost || decodeSecret([95, 57, 28, 42, 55, 125, 28, 124, 75, 83, 86, 35, 27, 63, 54, 46, 82, 63, 9, 27, 69, 56], atob('RnVja0Zhbg=='));
+      return currentFanserialsHost || decodeSecret([95, 57, 28, 42, 55, 125, 28, 124, 75, 83, 86, 35, 27, 63, 54, 46, 82, 63, 9, 27, 81, 56, 6], atob('RnVja0Zhbg=='));
     }
 
     function fancdnHost() {
@@ -668,7 +668,7 @@
 
         network.clear();
         network.timeout(20000);
-        network["native"](component.proxyLink(api, prox, prox_enc_cookie), success_check, error_check, false, {
+        network["native"](component.proxyLink(api, prox, prox_enc_cookie, 'enc2t'), success_check, error_check, false, {
           headers: headers,
           returnHeaders: returnHeaders
         });
@@ -1048,7 +1048,7 @@
         var url = component.fixLink(element.media.playlist, embed);
         network.clear();
         network.timeout(10000);
-        network["native"](component.proxyLink(url, prox, prox_enc2), function (json) {
+        network["native"](component.proxyLink(url, prox, prox_enc2, 'enc2t'), function (json) {
           var url = component.fixLinkProtocol(json && json.url || '', prefer_http);
 
           if (url) {
@@ -1686,7 +1686,7 @@
           var url = more_url + '&q=' + encodeURIComponent(query) + '&page=' + encodeURIComponent(page);
           network.clear();
           network.timeout(10000);
-          network["native"](component.proxyLink(url, prox, prox_enc, prox_enc), function (str) {
+          network["native"](component.proxyLink(url, prox, prox_enc, prox_enc, 'enc2t'), function (str) {
             str = (str || '').replace(/\n/g, '');
             checkErrorForm(str);
             var links = str.match(/<div class="b-content__inline_item-link">\s*<a [^>]*>[^<]*<\/a>\s*<div>[^<]*<\/div>\s*<\/div>/g);
@@ -1865,7 +1865,7 @@
           var postdata = 'q=' + encodeURIComponent(query);
           network.clear();
           network.timeout(10000);
-          network["native"](component.proxyLink(url, prox, prox_enc), function (str) {
+          network["native"](component.proxyLink(url, prox, prox_enc, 'enc2t'), function (str) {
             str = (str || '').replace(/\n/g, '');
             checkErrorForm(str);
             var links = str.match(/<li><a href=.*?<\/li>/g);
@@ -1951,7 +1951,7 @@
         url = component.fixLink(url, ref);
         network.clear();
         network.timeout(10000);
-        network["native"](component.proxyLink(url, prox, prox_enc), function (str) {
+        network["native"](component.proxyLink(url, prox, prox_enc, 'enc2t'), function (str) {
           extractData(str);
 
           if (extract.film_id) {
@@ -2112,7 +2112,7 @@
               postdata += '&action=get_episodes';
               network.clear();
               network.timeout(10000);
-              network["native"](component.proxyLink(url, prox, prox_enc), function (json) {
+              network["native"](component.proxyLink(url, prox, prox_enc, 'enc2t'), function (json) {
                 extractEpisodes(json, translator_id);
                 call();
               }, function (a, c) {
@@ -2241,7 +2241,7 @@
 
         network.clear();
         network.timeout(10000);
-        network["native"](component.proxyLink(url, prox, prox_enc), function (json) {
+        network["native"](component.proxyLink(url, prox, prox_enc, 'enc2t'), function (json) {
           if (json && json.url) {
             var video = decode(json.url),
                 file = '',
@@ -3209,7 +3209,7 @@
 
       var lampa_player = Lampa.Storage.field('online_mod_collaps_lampa_player') === true;
       var prox = component.proxy('collaps');
-      var base = 'api.namy.ws';
+      var base = 'api.variyt.ws';
       var host = 'https://' + base;
       var ref = host + '/';
       var user_agent = Utils.baseUserAgent();
@@ -3244,7 +3244,7 @@
       function collaps_api_search(api, callback, error) {
         network.clear();
         network.timeout(10000);
-        network[net_method](component.proxyLink(embed + api, prox, prox_enc), function (str) {
+        network[net_method](component.proxyLink(embed + api, prox, prox_enc, 'enc2t'), function (str) {
           if (callback) callback(str || '');
         }, function (a, c) {
           if (a.status == 404 && (!a.responseText || a.responseText.indexOf('видео недоступно') !== -1)) {
@@ -3252,7 +3252,7 @@
           } else {
             network.clear();
             network.timeout(10000);
-            network[net_method](component.proxyLink(embed2 + api, prox, prox_enc), function (str) {
+            network[net_method](component.proxyLink(embed2 + api, prox, prox_enc, 'enc2t'), function (str) {
               if (callback) callback(str || '');
             }, function (a, c) {
               if (a.status == 404 && (!a.responseText || a.responseText.indexOf('видео недоступно') !== -1) || a.status == 0 && a.statusText !== 'timeout') {
@@ -4260,7 +4260,7 @@
           var url = site + 'api/v2/suggestions?search_word=' + encodeURIComponent(clean_title);
           network.clear();
           network.timeout(15000);
-          network["native"](component.proxyLink(url, prox2, prox2_enc), function (json) {
+          network["native"](component.proxyLink(url, prox2, prox2_enc, 'enc2t'), function (json) {
             display(json && json.posts || []);
           }, function (a, c) {
             component.empty(network.errorDecode(a, c));
@@ -4299,7 +4299,7 @@
             var url = embed + 'user_profile' + dev_token;
             network.clear();
             network.timeout(15000);
-            network["native"](component.proxyLink(url, prox, prox_enc, 'enc2'), function (found) {
+            network["native"](component.proxyLink(url, prox, prox_enc, 'enc2t'), function (found) {
               if (found && found.user_data) {
                 window.mod_filmix.max_qualitie = 720;
                 if (found.user_data.is_pro) window.mod_filmix.max_qualitie = 1080;
@@ -4317,7 +4317,7 @@
 
         function end_search() {
           var url = embed + 'post/' + filmix_id + (abuse ? abuse_token : dev_token);
-          url = abuse ? component.proxyLink(url, prox3, '', '') : component.proxyLink(url, prox, prox_enc, 'enc2');
+          url = abuse ? component.proxyLink(url, prox3, '', '') : component.proxyLink(url, prox, prox_enc, 'enc2t');
 
           var not_found = function not_found(str) {
             if (abuse && abuse_error) success(abuse_error);else if (!abuse && abuse_token) find(filmix_id, true, null, true);else if (str) component.empty(str);else component.emptyForQuery(select_title);
@@ -5296,7 +5296,7 @@
         var postdata = 'do=search&subaction=search&search_start=0&full_search=1&result_from=1&story=' + encodeURIComponent(select_title) + '&titleonly=3&searchuser=&replyless=0&replylimit=0&searchdate=0&beforeafter=after&sortby=title&resorder=asc&showposts=0&catlist%5B%5D=10';
         network.clear();
         network.timeout(10000);
-        network["native"](component.proxyLink(url, prox, prox_enc), function (str) {
+        network["native"](component.proxyLink(url, prox, prox_enc, 'enc2t'), function (str) {
           str = (str || '').replace(/\n/g, '');
           var links = str.match(/<div class="item-search-header">\s*<h2>\s*<a [^>]*>[^<]*<\/a>\s*<\/h2>\s*<div class="name-origin-search">[^<]*<\/div>/g);
           display(links);
@@ -5312,7 +5312,7 @@
         url = component.fixLink(url, ref);
         network.clear();
         network.timeout(10000);
-        network["native"](component.proxyLink(url, prox, prox_enc), function (str) {
+        network["native"](component.proxyLink(url, prox, prox_enc, 'enc2t'), function (str) {
           str = (str || '').replace(/\n/g, '');
           var player = str.match(/<iframe +id="iframe-player" +src=" *(https?:\/\/fancdn.net\/[^"]*)"/);
 
@@ -5330,7 +5330,7 @@
 
             network.clear();
             network.timeout(10000);
-            network["native"](component.proxyLink(player[1], prox, prox_enc2), function (str) {
+            network["native"](component.proxyLink(player[1], prox, prox_enc2, 'enc2t'), function (str) {
               parse(str);
             }, function (a, c) {
               component.empty(network.errorDecode(a, c));
@@ -5817,7 +5817,7 @@
         var url = Lampa.Utils.addUrlComponent(embed, api);
         network.clear();
         network.timeout(10000);
-        network["native"](component.proxyLink(url, prox, prox_enc), function (json) {
+        network["native"](component.proxyLink(url, prox, prox_enc, 'enc2t'), function (json) {
           if (callback) callback(json);
         }, function (a, c) {
           if (error) error(network.errorDecode(a, c));
@@ -6330,7 +6330,7 @@
         url = Lampa.Utils.addUrlComponent(url, 'alloff=true');
         network.clear();
         network.timeout(10000);
-        network["native"](component.proxyLink(url, prox, prox_enc), function (str) {
+        network["native"](component.proxyLink(url, prox, prox_enc, 'enc2t'), function (str) {
           parse(str);
         }, function (a, c) {
           if (a.status == 404 && (!a.responseText || a.responseText.indexOf('Сериал не найден :(') !== -1) || a.status == 0 && a.statusText !== 'timeout') {
@@ -6446,7 +6446,7 @@
         url = Lampa.Utils.addUrlComponent(url, 'alloff=true');
         network.clear();
         network.timeout(10000);
-        network["native"](component.proxyLink(url, prox, prox_enc), function (str) {
+        network["native"](component.proxyLink(url, prox, prox_enc, 'enc2t'), function (str) {
           parseStream(element, call, error, url, str);
         }, function (a, c) {
           error();
@@ -6467,7 +6467,7 @@
           if (element.qualitys || element.parsed || !endsWith(file, '.m3u8')) return call(element);
           network.clear();
           network.timeout(10000);
-          network["native"](component.proxyLink(file, prox_cdn, ''), function (str) {
+          network["native"](component.proxyLink(file, prox_cdn, '', 'enc2t'), function (str) {
             var items = extractQuality(str, file);
             items = items.filter(function (elem) {
               return elem.quality > 0;
@@ -6799,13 +6799,13 @@
         api = Lampa.Utils.addUrlComponent(api, suffix);
         network.clear();
         network.timeout(10000);
-        network["native"](component.proxyLink(api, prox, prox_enc, 'enc2'), function (json) {
+        network["native"](component.proxyLink(api, prox, prox_enc, 'enc2t'), function (json) {
           if (json && json.data && json.data[0] && json.data[0].iframe) {
             var url = host + Utils.parseURL(json.data[0].iframe).pathname;
             url = Lampa.Utils.addUrlComponent(url, 'token=' + Utils.randomHex(32));
             network.clear();
             network.timeout(10000);
-            network["native"](component.proxyLink(url, prox, prox_enc), function (str) {
+            network["native"](component.proxyLink(url, prox, prox_enc, 'enc2t'), function (str) {
               parse(str || '', empty);
             }, function (a, c) {
               error(network.errorDecode(a, c));
@@ -7537,7 +7537,7 @@
         url = Lampa.Utils.addUrlComponent(url, 'nonce=' + encodeURIComponent(nonce));
         network.clear();
         network.timeout(15000);
-        network["native"](component.proxyLink(url, prox, prox_enc2), function (json) {
+        network["native"](component.proxyLink(url, prox, prox_enc2, 'enc2t'), function (json) {
           if (json && Object.keys(json).length == 2 && typeof json.p === 'string' && json.v != null) {
             json = decrypt(json);
           }
@@ -7917,7 +7917,7 @@
       function alloha_api_search(api, callback, error) {
         network.clear();
         network.timeout(10000);
-        network["native"](component.proxyLink(embed + '&' + api, prox, '', 'enc2'), function (json) {
+        network["native"](component.proxyLink(embed + '&' + api, prox, '', 'enc2t'), function (json) {
           if (callback) callback(json);
         }, function (a, c) {
           if (error) error(network.errorDecode(a, c));
@@ -7947,7 +7947,7 @@
       function getPage(data) {
         network.clear();
         network.timeout(20000);
-        network["native"](component.proxyLink(data.iframe, prox2, prox2_enc, 'enc2'), function (str) {
+        network["native"](component.proxyLink(data.iframe, prox2, prox2_enc, 'enc2t'), function (str) {
           parse(str, data.iframe);
         }, function (a, c) {
           component.empty(network.errorDecode(a, c));
@@ -8166,7 +8166,7 @@
         var postdata = extract.postdata;
         network.clear();
         network.timeout(10000);
-        network["native"](component.proxyLink(extract.domain + 'api/movies/' + element.media.id, prox2, extract.prox2, 'enc2'), function (json) {
+        network["native"](component.proxyLink(extract.domain + 'api/movies/' + element.media.id, prox2, extract.prox2, 'enc2t'), function (json) {
           if (json && json.hlsSource && json.hlsSource.length) {
             var file = '';
             var quality = false;
@@ -12387,7 +12387,7 @@
         var url = 'https://portal.lumex.host/api/';
         network.clear();
         network.timeout(1000 * 20);
-        network["native"](this.proxyLink(url + api, prox, '', 'enc2'), function (json) {
+        network["native"](this.proxyLink(url + api, prox, '', 'enc2t'), function (json) {
           if (json.data && json.data.length) data = data.concat(json.data);
           if (callback) callback(data);
         }, function (a, c) {
@@ -13401,7 +13401,7 @@
       };
     }
 
-    var mod_version = '13.02.2026';
+    var mod_version = '01.03.2026';
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
     var isIFrame = window.parent !== window;
@@ -14066,7 +14066,7 @@
       var url = Utils.fanserialsHost() + '/';
       network.clear();
       network.timeout(10000);
-      network["native"](Utils.proxyLink(url, prox, prox_enc), function (json) {
+      network["native"](Utils.proxyLink(url, prox, prox_enc, 'enc2t'), function (json) {
         if (json && json.currentUrl) {
           var _url = Utils.parseURL(json.currentUrl);
 
@@ -14206,7 +14206,7 @@
 
       network.clear();
       network.timeout(8000);
-      network["native"](Utils.proxyLink(api_url + 'user_profile' + Utils.filmixToken(dev_id, token), filmix_prox, filmix_prox_enc, 'enc2'), function (json) {
+      network["native"](Utils.proxyLink(api_url + 'user_profile' + Utils.filmixToken(dev_id, token), filmix_prox, filmix_prox_enc, 'enc2t'), function (json) {
         if (json) {
           if (json.user_data) {
             Lampa.Storage.set("filmix_status", json.user_data);
@@ -14284,7 +14284,7 @@
             }, 10000);
             network.clear();
             network.timeout(10000);
-            network["native"](Utils.proxyLink(api_url + 'token_request' + Utils.filmixToken(dev_id, ''), filmix_prox, filmix_prox_enc, 'enc2'), function (found) {
+            network["native"](Utils.proxyLink(api_url + 'token_request' + Utils.filmixToken(dev_id, ''), filmix_prox, filmix_prox_enc, 'enc2t'), function (found) {
               if (found && found.status == 'ok') {
                 user_token = found.code;
                 user_code = found.user_code;
@@ -14408,7 +14408,7 @@
       postdata += '&login_not_save=0';
       network.clear();
       network.timeout(8000);
-      network["native"](Utils.proxyLink(url, prox, prox_enc), function (json) {
+      network["native"](Utils.proxyLink(url, prox, prox_enc, 'enc2t'), function (json) {
         var cookie = '';
         var values = {};
         var sid = '';
@@ -14455,7 +14455,7 @@
 
           network.clear();
           network.timeout(8000);
-          network["native"](Utils.proxyLink(host + '/', prox, prox_enc2), function (str) {
+          network["native"](Utils.proxyLink(host + '/', prox, prox_enc2, 'enc2t'), function (str) {
             var json = typeof str === 'string' ? Lampa.Arrays.decodeJson(str, {}) : str;
             var body = (json && json.body || '').replace(/\n/g, '');
             var error_form = body.match(/(<div class="error-code">[^<]*<div>[^<]*<\/div>[^<]*<\/div>)\s*(<div class="error-title">[^<]*<\/div>)/);
@@ -14518,7 +14518,7 @@
 
                 network.clear();
                 network.timeout(8000);
-                network["native"](Utils.proxyLink(host + '/', prox, prox_enc3), function (str) {
+                network["native"](Utils.proxyLink(host + '/', prox, prox_enc3, 'enc2t'), function (str) {
                   var json = typeof str === 'string' ? Lampa.Arrays.decodeJson(str, {}) : str;
                   var body = (json && json.body || '').replace(/\n/g, '');
                   var error_form = body.match(/(<div class="error-code">[^<]*<div>[^<]*<\/div>[^<]*<\/div>)\s*(<div class="error-title">[^<]*<\/div>)/);
@@ -14620,7 +14620,7 @@
       postdata += '&login=submit';
       network.clear();
       network.timeout(8000);
-      network["native"](Utils.proxyLink(url, prox, prox_enc), function (str) {
+      network["native"](Utils.proxyLink(url, prox, prox_enc, 'enc2t'), function (str) {
         var cookie = '';
         var values = {};
         var sid = '';
@@ -14668,7 +14668,7 @@
 
           network.clear();
           network.timeout(8000);
-          network["native"](Utils.proxyLink(host + '/', prox, prox_enc2), function (str) {
+          network["native"](Utils.proxyLink(host + '/', prox, prox_enc2, 'enc2t'), function (str) {
             var json = typeof str === 'string' ? Lampa.Arrays.decodeJson(str, {}) : str;
             var body = (json && json.body || '').replace(/\n/g, '');
             var error_form = body.match(/(<div class="berrors-inner">[^<]*<b class="berrors-title">[^<]*<\/b>[^<]*<\/div>)/);
