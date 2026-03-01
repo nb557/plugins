@@ -36,7 +36,7 @@ async function handle(request, connInfo) {
           body += "connInfo" + " = " + JSON.stringify(connInfo.remoteAddr) + "\n";
         }
         body += "request_url" + " = " + request.url + "\n";
-        body += "worker_version = 1.15\n";
+        body += "worker_version = 1.16\n";
         return new Response(body, corsHeaders);
       }
 
@@ -172,18 +172,58 @@ async function handle(request, connInfo) {
 
       let clientUserAgent = request.headers.get("User-Agent") || '';
       let clientOrigin = request.headers.get("Origin") || '';
+      if (!clientOrigin) {
+        let clientReferer = request.headers.get("Referer") || '';
+        let found = clientReferer.match(/^https?:\/\/([^\/?#]*)/);
+        if (found) clientOrigin = found[1];
+      }
       if(
             (/\blampishe\b|\bprisma_client\b/).test(clientUserAgent) ||
             clientOrigin.endsWith("lampishe.cc") ||
             clientOrigin.endsWith("prisma.ws") ||
             clientOrigin.endsWith("lampa.walsy.synology.me") ||
-            clientOrigin.endsWith("bylampa.online") ||
+            clientOrigin.endsWith("tg.pp.ru") ||
+            clientOrigin.endsWith("bylampa.online")
+      ) {
+        let error = "Malformed URL";
+        return new Response(error + ": " + api, {
+          ...corsHeaders,
+          status: 404,
+          statusText: error,
+        });
+      }
+
+      if(
             enc !== "enc2t"
       ) {
-        if (/^http:\/\/filmixapp.vip\/api\/v2\/search\?/.test(api)) {
-            api = 'http://filmixapp.vip/api/v2/search?user_dev_id=' + randomHex(16) + '&user_dev_name=Xiaomi&user_dev_token=aaaabbbbccccddddeeeeffffaaaabbbb&user_dev_vendor=Xiaomi&user_dev_os=14&user_dev_apk=2.2.0&app_lang=ru-rRU&story=%D0%9F%D0%BE%D0%B1%D0%B5%D0%B3%20%D0%B8%D0%B7%20%D0%BA%D1%83%D1%80%D1%8F%D1%82%D0%BD%D0%B8%D0%BA%D0%B0';
-        } else if (/^https:\/\/vibix.org\/api\/v1\/publisher\/videos\//.test(api)) {
-            api = 'https://vibix.org/api/v1/publisher/videos/kp/635';
+        let found = api.match(/^https?:\/\/([^\/?#]*)/);
+        if (found &&
+            [
+              "filmixapp.cyou",
+              "filmixapp.vip",
+              "filmix.my",
+              "portal.lumex.host",
+              "p.lumex.space",
+              "api.lumex.space",
+              "api.namy.ws",
+              "api.variyt.ws",
+              "api.kinogram.best",
+              "1fanserials.ru",
+              "1fanserials.net",
+              "1fanserials.fun",
+              "fanserial.me",
+              "lomont.site",
+              "rezka.ag",
+              "kvk.zone",
+              "vibix.org"
+            ].indexOf(found[1]) !== -1
+        ) {
+          let error = "Malformed URL";
+          return new Response(error + ": " + api, {
+            ...corsHeaders,
+            status: 404,
+            statusText: error,
+          });
         }
       }
 

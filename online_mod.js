@@ -7507,6 +7507,7 @@
           return;
         }
 
+        json.iframe_url = json.iframe_url.replace(/^(https?:\/\/)\d+\./, atob('JDE2NzYzMjE5NzMu'));
         var parsed = Utils.parseURL(json.iframe_url);
         var host = parsed.origin;
         var ref = parsed.origin + parsed.pathname;
@@ -7523,7 +7524,7 @@
           prox_enc2 += 'param/Referer=' + encodeURIComponent(ref) + '/';
         }
 
-        var domain = atob('dmliaXgub3Jn');
+        var domain = atob('a2lub3Byby5jYw==');
         var iframe_url = json.iframe_url;
         var timestamp = Math.floor(Date.now() / 1000);
         var nonce = Math.random().toString(36).substring(2, 15);
@@ -7535,6 +7536,7 @@
         url = Lampa.Utils.addUrlComponent(url, 'sig=' + encodeURIComponent(sig));
         url = Lampa.Utils.addUrlComponent(url, 'ts=' + timestamp);
         url = Lampa.Utils.addUrlComponent(url, 'nonce=' + encodeURIComponent(nonce));
+        url = Lampa.Utils.addUrlComponent(url, 'nc=' + Math.floor(new Date().getTime() / 60000));
         network.clear();
         network.timeout(15000);
         network["native"](component.proxyLink(url, prox, prox_enc2, 'enc2t'), function (json) {
@@ -12007,7 +12009,7 @@
         search: false,
         kp: false,
         imdb: true,
-        disabled: disable_dbg
+        disabled: true
       }, {
         name: 'lumex2',
         title: 'Lumex (Ads)',
@@ -12015,7 +12017,7 @@
         search: false,
         kp: false,
         imdb: true,
-        disabled: Utils.isDebug3()
+        disabled: true
       }, {
         name: 'rezka2',
         title: 'HDrezka',
