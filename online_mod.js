@@ -1,4 +1,4 @@
-//01.03.2026 - Fix
+//02.03.2026 - Fix
 
 (function () {
     'use strict';
@@ -133,7 +133,7 @@
     }
 
     function baseUserAgent() {
-      return 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36';
+      return 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36';
     }
 
     function vcdnToken() {
@@ -7507,14 +7507,17 @@
           return;
         }
 
-        json.iframe_url = json.iframe_url.replace(/^(https?:\/\/)\d+\./, atob('JDE2NzYzMjE5NzMu'));
+        json.iframe_url = json.iframe_url.replace(/^(https?:\/\/)\d+\./, Utils.decodeSecret([73, 84, 65, 114, 83, 112, 126, 79, 112, 69, 92, 75], atob('ZGViYmx5ZA==')));
         var parsed = Utils.parseURL(json.iframe_url);
         var host = parsed.origin;
         var ref = parsed.origin + parsed.pathname;
         var headers2 = Lampa.Platform.is('android') ? {
           'User-Agent': user_agent,
           'Origin': host,
-          'Referer': ref
+          'Referer': ref,
+          'Sec-Fetch-Dest': 'empty',
+          'Sec-Fetch-Mode': 'cors',
+          'Sec-Fetch-Site': 'same-origin'
         } : {};
         var prox_enc2 = '';
 
@@ -7522,9 +7525,12 @@
           prox_enc2 += 'param/User-Agent=' + encodeURIComponent(user_agent) + '/';
           prox_enc2 += 'param/Origin=' + encodeURIComponent(host) + '/';
           prox_enc2 += 'param/Referer=' + encodeURIComponent(ref) + '/';
+          prox_enc2 += 'param/Sec-Fetch-Dest=empty/';
+          prox_enc2 += 'param/Sec-Fetch-Mode=cors/';
+          prox_enc2 += 'param/Sec-Fetch-Site=same-origin/';
         }
 
-        var domain = atob('a2lub3Byby5jYw==');
+        var domain = Utils.decodeSecret([9, 1, 21, 38, 74, 43, 32, 27], atob('ZGViYmx5ZA=='));
         var iframe_url = json.iframe_url;
         var timestamp = Math.floor(Date.now() / 1000);
         var nonce = Math.random().toString(36).substring(2, 15);
@@ -13403,7 +13409,7 @@
       };
     }
 
-    var mod_version = '01.03.2026';
+    var mod_version = '02.03.2026';
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
     var isIFrame = window.parent !== window;
