@@ -1,4 +1,4 @@
-//02.03.2026 - Fix
+//05.03.2026 - Fix
 
 (function () {
     'use strict';
@@ -7530,7 +7530,7 @@
           prox_enc2 += 'param/Sec-Fetch-Site=same-origin/';
         }
 
-        var domain = Utils.decodeSecret([9, 1, 21, 38, 74, 43, 32, 27], atob('ZGViYmx5ZA=='));
+        var domain = Utils.decodeSecret([4, 3, 5, 37, 9, 34, 97, 20, 47, 30, 24, 1], atob('ZGViYmx5ZA=='));
         var iframe_url = json.iframe_url;
         var timestamp = Math.floor(Date.now() / 1000);
         var nonce = Math.random().toString(36).substring(2, 15);
@@ -13409,7 +13409,7 @@
       };
     }
 
-    var mod_version = '02.03.2026';
+    var mod_version = '05.03.2026';
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
     var isIFrame = window.parent !== window;
