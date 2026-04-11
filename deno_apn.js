@@ -27,7 +27,6 @@ async function handle(request, connInfo) {
       let remove_compression = false;
       let params = [];
       let cdn_info = "cdn_c8Bc9aMo";
-      let user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36";
 
       if (api === "headers") {
         let body = "";
@@ -36,7 +35,7 @@ async function handle(request, connInfo) {
           body += "connInfo" + " = " + JSON.stringify(connInfo.remoteAddr) + "\n";
         }
         body += "request_url" + " = " + request.url + "\n";
-        body += "apn_version = 1.16\n";
+        body += "apn_version = 1.17\n";
         return new Response(body, corsHeaders);
       }
 
@@ -211,6 +210,7 @@ async function handle(request, connInfo) {
               "1fanserials.ru",
               "1fanserials.net",
               "1fanserials.fun",
+              "1fanserials.com",
               "fanserial.me",
               "lomont.site",
               "rezka.ag",
@@ -276,37 +276,6 @@ async function handle(request, connInfo) {
         request.headers.set("X-Forwarded-Proto", "https");
         request.headers.set("X-Real-IP", ip);
         request.headers.set("cf-connecting-ip", ip);
-      }
-      if (apiUrl.hostname === "rezka.ag" || apiUrl.hostname === "hdrezka.ag" || apiUrl.hostname === "hdrezka.me" || apiUrl.hostname === "hdrezka.sh" || apiUrl.hostname === "hdrezka.cm" || apiUrl.hostname === "hdrezka.kim" || apiUrl.hostname === "hdrezka.la" || apiUrl.hostname === "rezka.pub" || apiUrl.hostname === "kinopub.me") {
-        request.headers.set("User-Agent", user_agent);
-      }
-      if (apiUrl.hostname.endsWith(".svetacdn.in")) {
-        request.headers.set("Origin", "https://videocdn.tv");
-        request.headers.set("Referer", "https://videocdn.tv/");
-      }
-      if (apiUrl.hostname === "api.lumex.pw") {
-        request.headers.set("User-Agent", user_agent);
-        request.headers.set("Origin", "https://p.lumex.pw");
-        request.headers.set("Referer", "https://p.lumex.pw/");
-        request.headers.set("Sec-Fetch-Dest", "empty");
-        request.headers.set("Sec-Fetch-Mode", "cors");
-        request.headers.set("Sec-Fetch-Site", "same-site");
-      }
-      if (apiUrl.hostname.endsWith("cdnmovies-stream.online") || apiUrl.hostname.endsWith("cdnmovies-hls-stream.online") || apiUrl.hostname.endsWith(".sarnage.cc")) {
-        request.headers.set("Origin", "https://cdnmovies.net");
-        request.headers.set("Referer", "https://cdnmovies.net/");
-      }
-      if (apiUrl.hostname.endsWith(".bazon.site")) {
-        request.headers.set("User-Agent", user_agent);
-        request.headers.set("Origin", "https://bazon.cc");
-        request.headers.set("Referer", "https://bazon.cc/");
-      }
-      if (["kodikapi.com", "kodik.biz", "kodik.info"].indexOf(apiUrl.hostname) !== -1) {
-        request.headers.delete("Origin");
-        request.headers.delete("Referer");
-      }
-      if (apiUrl.hostname === "kinoplay.site" || apiUrl.hostname === "kinoplay1.site" || apiUrl.hostname === "kinoplay2.site") {
-        request.headers.set("Cookie", "invite=a246a3f46c82fe439a45c3dbbbb24ad5");
       }
       if (apiUrl.pathname.endsWith(".m3u8") || apiUrl.pathname.endsWith(".m3u") || apiUrl.pathname.endsWith(".M3U8") || apiUrl.pathname.endsWith(".M3U") || apiUrl.pathname.endsWith(".mpd") || apiUrl.pathname.endsWith(".MPD")) {
         request.headers.delete("Range");
