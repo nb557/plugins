@@ -1,4 +1,4 @@
-//11.04.2026 - Fix
+//13.04.2026 - Fix
 
 (function () {
     'use strict';
@@ -184,7 +184,7 @@
       var proxy_secret_ip = '';
 
       if (isDebug()) {
-        proxy_secret = decodeSecret([36, 63, 17, 6, 17, 0, 104, 90, 19, 40, 34, 102, 8, 20, 87, 15, 113, 91, 25, 55, 53, 46, 7, 88, 3, 74, 55, 90]);
+        proxy_secret = decodeSecret([36, 63, 17, 6, 17, 0, 104, 90, 19, 40, 34, 102, 8, 20, 87, 15, 113, 91, 25, 55, 53, 46, 7, 88, 3, 74, 55, 90, 19, 40, 34, 100]);
         proxy_secret_ip = proxy_secret + (param_ip || 'ip/');
       }
 
@@ -214,16 +214,16 @@
         if (name === 'filmix') return proxy_other && !proxy_other_url && proxy_secret_ip || user_proxy1;
         if (name === 'videodb') return user_proxy2;
         if (name === 'fancdn') return user_proxy3;
-        if (name === 'fancdn2') return user_proxy2;
+        if (name === 'fancdn2') return user_proxy1;
         if (name === 'fanserials') return user_proxy1;
         if (name === 'fanserials_cdn') return proxy_secret;
-        if (name === 'videoseed') return user_proxy1;
-        if (name === 'vibix') return user_proxy2;
+        if (name === 'videoseed') return proxy_secret;
+        if (name === 'vibix') return proxy_secret;
         if (name === 'redheadsound') return user_proxy2;
         if (name === 'anilibria') return user_proxy2;
-        if (name === 'anilibria2') return user_proxy2;
+        if (name === 'anilibria2') return user_proxy1;
         if (name === 'animelib') return proxy_secret;
-        if (name === 'kodik') return user_proxy2;
+        if (name === 'kodik') return user_proxy1;
         if (name === 'kinopub') return user_proxy2;
       }
 
@@ -13422,7 +13422,7 @@
       };
     }
 
-    var mod_version = '11.04.2026';
+    var mod_version = '13.04.2026';
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
     var isIFrame = window.parent !== window;
