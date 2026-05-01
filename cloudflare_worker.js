@@ -33,7 +33,7 @@ export default {
         let body = "";
         request.headers.forEach((value, key) => body += key + " = " + value + "\n");
         body += "request_url" + " = " + request.url + "\n";
-        body += "worker_version = 1.17\n";
+        body += "worker_version = 1.18\n";
         return new Response(body, corsHeaders);
       }
 
@@ -203,11 +203,14 @@ export default {
               "api.lumex.space",
               "api.namy.ws",
               "api.variyt.ws",
+              "api.zenithjs.ws",
+              "api.ortified.ws",
               "api.kinogram.best",
               "1fanserials.ru",
               "1fanserials.net",
               "1fanserials.fun",
               "1fanserials.com",
+              "1fanserials.online",
               "fanserial.me",
               "lomont.site",
               "rezka.ag",
