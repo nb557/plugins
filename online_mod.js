@@ -1,4 +1,4 @@
-//01.05.2026 - Fix
+//03.05.2026 - Fix
 
 (function () {
     'use strict';
@@ -220,6 +220,7 @@
         if (name === 'videoseed') return proxy_secret;
         if (name === 'vibix') return proxy_secret;
         if (name === 'redheadsound') return user_proxy2;
+        if (name === 'cdnvideohub') return proxy_secret;
         if (name === 'anilibria') return user_proxy2;
         if (name === 'anilibria2') return user_proxy1;
         if (name === 'animelib') return proxy_secret;
@@ -5311,7 +5312,7 @@
           var player = str.match(/<iframe +id="iframe-player" +src=" *(\/movies\/(\d+)[^"]*)"/);
 
           if (player) {
-            var player_url = Lampa.Utils.addUrlComponent(embed + 'films.php', 'kp=' + player[2]);
+            var player_url = Lampa.Utils.addUrlComponent(embed + atob('ZmlsbS5waHA='), 'kp=' + player[2]);
             var pos = player[1].indexOf('?');
 
             if (pos !== -1) {
@@ -5793,7 +5794,7 @@
         prox_enc += 'param/User-Agent=' + encodeURIComponent(user_agent) + '/';
       }
 
-      var embed = host + '/films.php';
+      var embed = host + atob('L2ZpbG0ucGhw');
       var filter_items = {};
       var choice = {
         season: 0,
@@ -8777,6 +8778,15 @@
       var select_title = '';
       var prefer_http = Lampa.Storage.field('online_mod_prefer_http') === true;
       var prox = component.proxy('cdnvideohub');
+      var user_agent = Utils.baseUserAgent();
+      var prox_enc = '';
+
+      if (prox) {
+        prox_enc += 'param/Origin=/';
+        prox_enc += 'param/Referer=/';
+        prox_enc += 'param/User-Agent=' + encodeURIComponent(user_agent) + '/';
+      }
+
       var embed = atob('aHR0cHM6Ly9wbGFwaS5jZG52aWRlb2h1Yi5jb20vYXBpL3YxL3BsYXllci9zdi8=');
       var filter_items = {};
       var choice = {
@@ -8802,7 +8812,7 @@
         var url = Lampa.Utils.addUrlComponent(embed + atob('cGxheWxpc3Q/cHViPTEyJmFnZ3I9a3A='), 'id=' + kinopoisk_id);
         network.clear();
         network.timeout(10000);
-        network["native"](component.proxyLink(url, prox), function (json) {
+        network["native"](component.proxyLink(url, prox, prox_enc), function (json) {
           parse(json);
         }, function (a, c) {
           if (a.status == 500 && !a.responseText || a.status == 0 && a.statusText !== 'timeout') {
@@ -9059,7 +9069,7 @@
         }
 
         items.forEach(function (item) {
-          item.file = component.fixLinkProtocol(item.file, prefer_http, true);
+          item.file = component.proxyLink(component.fixLinkProtocol(item.file, prefer_http, true), prox, prox_enc);
         });
         return items;
       }
@@ -9075,7 +9085,7 @@
         var url = embed + 'video/' + element.data_id;
         network.clear();
         network.timeout(10000);
-        network["native"](component.proxyLink(url, prox), function (json) {
+        network["native"](component.proxyLink(url, prox, prox_enc), function (json) {
           if (json && json.sources) {
             var file = '',
                 quality = false;
@@ -13404,7 +13414,7 @@
       };
     }
 
-    var mod_version = '01.05.2026';
+    var mod_version = '03.05.2026';
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
     var isIFrame = window.parent !== window;
@@ -13453,6 +13463,7 @@
       Lampa.Storage.set('online_mod_proxy_videoseed', Lampa.Platform.is('android') || isLocal ? 'false' : 'true');
       Lampa.Storage.set('online_mod_proxy_vibix', Lampa.Platform.is('android') ? 'false' : 'true');
       Lampa.Storage.set('online_mod_proxy_redheadsound', Lampa.Platform.is('android') ? 'false' : 'true');
+      Lampa.Storage.set('online_mod_proxy_cdnvideohub', 'false');
       Lampa.Storage.set('online_mod_proxy_videodb', 'false');
       Lampa.Storage.set('online_mod_proxy_zetflix', 'false');
       Lampa.Storage.set('online_mod_proxy_kinopub', 'true');
@@ -14757,6 +14768,7 @@
         template += "\n        <div class=\"settings-param selector\" data-name=\"online_mod_proxy_videoseed\" data-type=\"toggle\">\n            <div class=\"settings-param__name\">#{online_mod_proxy_balanser} VideoSeed</div>\n            <div class=\"settings-param__value\"></div>\n        </div>";
         template += "\n        <div class=\"settings-param selector\" data-name=\"online_mod_proxy_vibix\" data-type=\"toggle\">\n            <div class=\"settings-param__name\">#{online_mod_proxy_balanser} Vibix</div>\n            <div class=\"settings-param__value\"></div>\n        </div>";
         template += "\n        <div class=\"settings-param selector\" data-name=\"online_mod_proxy_redheadsound\" data-type=\"toggle\">\n            <div class=\"settings-param__name\">#{online_mod_proxy_balanser} RedHeadSound</div>\n            <div class=\"settings-param__value\"></div>\n        </div>";
+        template += "\n        <div class=\"settings-param selector\" data-name=\"online_mod_proxy_cdnvideohub\" data-type=\"toggle\">\n            <div class=\"settings-param__name\">#{online_mod_proxy_balanser} CDNVideoHub</div>\n            <div class=\"settings-param__value\"></div>\n        </div>";
       }
 
       template += "\n        <div class=\"settings-param selector\" data-name=\"online_mod_proxy_anilibria\" data-type=\"toggle\">\n            <div class=\"settings-param__name\">#{online_mod_proxy_balanser} AniLibria</div>\n            <div class=\"settings-param__value\"></div>\n        </div>";
