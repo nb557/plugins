@@ -88,7 +88,7 @@
       }, function (a, c) {
         use_proxy = !use_proxy && (proxy_cnt < 10 || good_cnt > proxy_cnt / 2);
 
-        if (use_proxy && (a.status == 429 || a.status == 0 && a.statusText !== 'timeout')) {
+        if (use_proxy && (a.status == 429 || a.status == 451 || a.status == 0 && a.statusText !== 'timeout')) {
           proxy_cnt++;
           network.timeout(20000);
           network.silent(kp_prox + url, function (json) {

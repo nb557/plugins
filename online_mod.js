@@ -1,4 +1,4 @@
-//03.05.2026 - Fix
+//08.05.2026 - Fix
 
 (function () {
     'use strict';
@@ -454,7 +454,7 @@
       }, function (a, c) {
         use_proxy = !use_proxy && (proxy_cnt < 10 || good_cnt > proxy_cnt / 2);
 
-        if (use_proxy && (a.status == 429 || a.status == 0 && a.statusText !== 'timeout')) {
+        if (use_proxy && (a.status == 429 || a.status == 451 || a.status == 0 && a.statusText !== 'timeout')) {
           proxy_cnt++;
           network$1.timeout(15000);
           network$1.silent(kp_prox + url, function (json) {
@@ -12439,7 +12439,7 @@
         if (object.movie.original_title) orig_titles.push(object.movie.original_title);
         if (object.movie.original_name) orig_titles.push(object.movie.original_name);
 
-        var display = function display(items) {
+        var postprocess = function postprocess(items, success, error) {
           if (items && items.length && items.forEach) {
             var is_sure = false;
             var is_imdb = false;
@@ -12519,11 +12519,17 @@
               }
             }
 
-            if (cards.length == 1 && is_sure) {
-              _this4.extendChoice();
+            if (cards.length == 1 && is_sure) success(cards);else error(items);
+          } else error([]);
+        };
 
-              sources[balanser].search(object, cards[0].kp_id || cards[0].kinopoisk_id || cards[0].kinopoiskId || cards[0].filmId || cards[0].imdb_id, cards);
-            } else {
+        var display = function display(items) {
+          postprocess(items, function (cards) {
+            _this4.extendChoice();
+
+            sources[balanser].search(object, cards[0].kp_id || cards[0].kinopoisk_id || cards[0].kinopoiskId || cards[0].filmId || cards[0].imdb_id, cards);
+          }, function (items) {
+            if (items.length) {
               items.forEach(function (c) {
                 if (c.episodes) {
                   var season_count = 1;
@@ -12540,8 +12546,8 @@
               _this4.similars(items);
 
               _this4.loading(false);
-            }
-          } else _this4.emptyForQuery(query);
+            } else _this4.emptyForQuery(query);
+          });
         };
 
         var vcdn_search_by_title = function vcdn_search_by_title(callback, error) {
@@ -12615,9 +12621,23 @@
         var vcdn_search_imdb = function vcdn_search_imdb() {
           var error = function error() {
             if (imdb_sources.indexOf(balanser) >= 0) {
-              _this4.extendChoice();
+              var error1 = function error1() {
+                _this4.extendChoice();
 
-              sources[balanser].search(object, object.movie.imdb_id);
+                sources[balanser].search(object, object.movie.imdb_id);
+              };
+
+              if (search_sources.indexOf(balanser) >= 0) error1();else {
+                kp_search_by_title(function (data) {
+                  postprocess(data, function (cards) {
+                    _this4.extendChoice();
+
+                    sources[balanser].search(object, cards[0].kp_id || cards[0].kinopoisk_id || cards[0].kinopoiskId || cards[0].filmId || cards[0].imdb_id, cards);
+                  }, function (items) {
+                    error1();
+                  });
+                }, error1);
+              }
             } else if (search_sources.indexOf(balanser) >= 0) {
               _this4.extendChoice();
 
@@ -13414,7 +13434,7 @@
       };
     }
 
-    var mod_version = '03.05.2026';
+    var mod_version = '08.05.2026';
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
     var isIFrame = window.parent !== window;
