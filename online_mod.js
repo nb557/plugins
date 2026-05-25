@@ -13652,6 +13652,7 @@
     }
 
     var mod_version = '21.05.2026';
+        mod_version = mod_version + ' (tmod)';
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
     var isIFrame = window.parent !== window;
