@@ -12361,13 +12361,6 @@
         imdb: false,
         disabled: true
       }, {
-        name: 'anilibria2t',
-        title: 'AniLibria.top.torrent',
-        source: new anilibria2t(this, object),
-        search: true,
-        kp: false,
-        imdb: false
-      }, {
         name: 'anilibria2',
         title: 'AniLibria.top',
         source: new anilibria2(this, object),
@@ -12406,6 +12399,16 @@
         imdb: true,
         disabled: true
       }];
+        
+    all_sources.push({
+      name: 'anilibria2t',
+      title: 'AniLibria.top.torrent',
+      source: new anilibria2t(this, object),
+      search: true,
+      kp: false,
+      imdb: false
+    });
+        
       var obj_filter_sources = all_sources.filter(function (s) {
         return !s.disabled;
       });
