@@ -1,4 +1,4 @@
-//21.05.2026 - Fix
+//11.06.2026 - Fix
 
 (function () {
     'use strict';
@@ -12396,18 +12396,8 @@
       };
 
       this.vcdn_api_search = function (api, data, callback, error) {
-        var prox = this.proxy('lumex_api');
-        var url = 'https://portal.lumex.host/api/';
-        network.clear();
-        network.timeout(1000 * 20);
-        network["native"](this.proxyLink(url + api, prox, '', 'enc2t'), function (json) {
-          if (json.data && json.data.length) data = data.concat(json.data);
-          if (callback) callback(data);
-        }, function (a, c) {
-          if (a.status == 404 && a.responseJSON && a.responseJSON.result === false || a.status == 0 && a.statusText !== 'timeout') {
-            if (callback) callback(data);
-          } else if (error) error(network.errorDecode(a, c));
-        });
+        if (callback) callback(data);
+        return;
       };
 
       this.kp_api_search = function (api, callback, error) {
@@ -13434,7 +13424,7 @@
       };
     }
 
-    var mod_version = '21.05.2026';
+    var mod_version = '11.06.2026';
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
     var isIFrame = window.parent !== window;
