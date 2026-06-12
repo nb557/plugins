@@ -1,4 +1,4 @@
-//11.06.2026 - Fix
+//12.06.2026 - Fix
 
 (function () {
     'use strict';
@@ -13424,7 +13424,7 @@
       };
     }
 
-    var mod_version = '11.06.2026';
+    var mod_version = '12.06.2026';
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
     var isIFrame = window.parent !== window;
