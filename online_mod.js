@@ -14177,17 +14177,19 @@
       }
 
       if (Lampa.VPN && (Utils.isDebug() || Utils.isDebug2())) {
-        if (Lampa.VPN.region) {
-          Lampa.VPN.region = function (call) {
-            if (call) call('de');
-          };
-        }
+        try {
+          if (Lampa.VPN.region) {
+            Lampa.VPN.region = function (call) {
+              if (call) call('de');
+            };
+          }
 
-        if (Lampa.VPN.code) {
-          Lampa.VPN.code = function () {
-            return 'de';
-          };
-        }
+          if (Lampa.VPN.code) {
+            Lampa.VPN.code = function () {
+              return 'de';
+            };
+          }
+        } catch (e) {}
       }
     } ///////FILMIX/////////
 
