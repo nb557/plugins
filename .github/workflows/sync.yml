@@ -1,27 +1,24 @@
-name: Upstream Sync
+name: Sync Upstream
 
-permissions:
-  contents: write
+permissions: write-all              # grant write permission
 
-on:
+on: 
   schedule:
-    - cron: "0 0 * * *"  
-  workflow_dispatch:     
+    - cron: '0 0 * * 1'             # scheduled for 00:00 every Monday
+  workflow_dispatch:                # trigger manually
 
 jobs:
-  sync_latest_from_upstream:
-    name: Sync latest commits from upstream repo
+  sync-upstream:
     runs-on: ubuntu-latest
-    if: ${{ github.event.repository.fork }} 
-
-    steps:
-      - name: Checkout target repo
-        uses: actions/checkout@v4
-
-      - name: Sync upstream changes
-        uses: aormsby/Fork-Sync-With-Upstream-action@v3.4
+    steps: 
+      - name: Checkout
+        uses: actions/checkout@v3
         with:
-          upstream_sync_repo: nb557/plugins
-          upstream_sync_branch: main  
-          target_sync_branch: main    
-          target_repo_token: ${{ secrets.GITHUB_TOKEN }} 
+          ref: upstream             # set the branch to merge to
+          fetch-depth: 0 
+      - name: Sync Upstream
+        uses: zhangnew/sync-upstream@v1
+        with:
+          upstream: nb557/plugins     # set the upstream repo
+          upstream-branch: main   # set the upstream branch to merge from
+          branch: main          # set the branch to merge to
