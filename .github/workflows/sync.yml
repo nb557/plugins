@@ -1,4 +1,4 @@
-name: Upstream Sync
+name: Upstream Sync with Custom Changes
 
 permissions:
   contents: write
@@ -10,31 +10,41 @@ on:
 
 jobs:
   sync_latest_from_upstream:
-    name: Sync latest commits from upstream repo
+    name: Sync upstream commits and apply custom changes
     runs-on: ubuntu-latest
     if: ${{ github.event.repository.fork }} 
 
     steps:
-      # Шаг 1: Клонируем ваш форк
       - name: Checkout target repo
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          fetch-depth: 0  # Важно для полной истории
+          fetch-depth: 0  # Полная история для merge
 
-      # Шаг 2: Добавляем upstream репозиторий
       - name: Add upstream repo
         run: |
           git remote add upstream https://github.com/nb557/plugins.git
           git fetch upstream
 
-      # Шаг 3: Сливаем изменения
-      - name: Merge upstream changes
+      - name: Merge upstream changes (preserve your changes)
         run: |
           git checkout main
-          git merge upstream/main --allow-unrelated-histories -X theirs || true
+          # Вариант 1: Merge (сохранит ваши коммиты поверх)
+          git merge upstream/main --no-edit --allow-unrelated-histories || true
           
-      # Шаг 4: Пушим обратно в ваш форк
-      - name: Push changes
+          # ИЛИ Вариант 2: Rebase (ваши коммиты будут сверху)
+          # git rebase upstream/main || true
+
+      - name: Resolve conflicts (if any)
+        run: |
+          # Проверяем есть ли конфликты
+          if git ls-files -u | grep -q .; then
+            echo "Конфликты обнаружены! Принимаем наши изменения в конфликтных файлах"
+            git checkout --ours .
+            git add .
+            git commit -m "Resolved conflicts: kept our changes" || true
+          fi
+
+      - name: Push changes to your fork
         run: |
           git push origin main
