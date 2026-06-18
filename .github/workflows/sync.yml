@@ -1,24 +1,40 @@
-name: Sync Upstream
+name: Upstream Sync
 
-permissions: write-all              # grant write permission
+permissions:
+  contents: write
 
-on: 
+on:
   schedule:
-    - cron: '0 0 * * 1'             # scheduled for 00:00 every Monday
-  workflow_dispatch:                # trigger manually
+    - cron: "0 0 * * *"  
+  workflow_dispatch:     
 
 jobs:
-  sync-upstream:
+  sync_latest_from_upstream:
+    name: Sync latest commits from upstream repo
     runs-on: ubuntu-latest
-    steps: 
-      - name: Checkout
-        uses: actions/checkout@v3
+    if: ${{ github.event.repository.fork }} 
+
+    steps:
+      # Шаг 1: Клонируем ваш форк
+      - name: Checkout target repo
+        uses: actions/checkout@v4
         with:
-          ref: upstream             # set the branch to merge to
-          fetch-depth: 0 
-      - name: Sync Upstream
-        uses: zhangnew/sync-upstream@v1
-        with:
-          upstream: nb557/plugins     # set the upstream repo
-          upstream-branch: main   # set the upstream branch to merge from
-          branch: main          # set the branch to merge to
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0  # Важно для полной истории
+
+      # Шаг 2: Добавляем upstream репозиторий
+      - name: Add upstream repo
+        run: |
+          git remote add upstream https://github.com/nb557/plugins.git
+          git fetch upstream
+
+      # Шаг 3: Сливаем изменения
+      - name: Merge upstream changes
+        run: |
+          git checkout main
+          git merge upstream/main --allow-unrelated-histories -X theirs || true
+          
+      # Шаг 4: Пушим обратно в ваш форк
+      - name: Push changes
+        run: |
+          git push origin main
