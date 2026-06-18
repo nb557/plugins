@@ -1,50 +1,8 @@
-name: Upstream Sync with Custom Changes
-
-permissions:
-  contents: write
-
-on:
-  schedule:
-    - cron: "0 0 * * *"  
-  workflow_dispatch:     
-
-jobs:
-  sync_latest_from_upstream:
-    name: Sync upstream commits and apply custom changes
-    runs-on: ubuntu-latest
-    if: ${{ github.event.repository.fork }} 
-
-    steps:
-      - name: Checkout target repo
-        uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          fetch-depth: 0  # Полная история для merge
-
-      - name: Add upstream repo
-        run: |
-          git remote add upstream https://github.com/nb557/plugins.git
-          git fetch upstream
-
-      - name: Merge upstream changes (preserve your changes)
-        run: |
-          git checkout main
-          # Вариант 1: Merge (сохранит ваши коммиты поверх)
-          git merge upstream/main --no-edit --allow-unrelated-histories || true
-          
-          # ИЛИ Вариант 2: Rebase (ваши коммиты будут сверху)
-          # git rebase upstream/main || true
-
-      - name: Resolve conflicts (if any)
-        run: |
-          # Проверяем есть ли конфликты
-          if git ls-files -u | grep -q .; then
-            echo "Конфликты обнаружены! Принимаем наши изменения в конфликтных файлах"
-            git checkout --ours .
-            git add .
-            git commit -m "Resolved conflicts: kept our changes" || true
-          fi
-
-      - name: Push changes to your fork
-        run: |
-          git push origin main
+- name: GitHub Sync to Upstream Repository
+  uses: Jai-JAP/sync-upstream-repo@v1.4.0
+  with:
+    upstream_repo: "https://github.com/nb557/plugins.git"
+    upstream_branch: "main"
+    downstream_branch: "main"
+    token: ${{ secrets.GITHUB_TOKEN }}
+    merge_args: "--strategy-option ours"
