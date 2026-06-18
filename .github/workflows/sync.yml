@@ -13,7 +13,7 @@ env:
   # Optional fetch arguments
   FETCH_ARGS: ""
   # Optional merge arguments
-  MERGE_ARGS: ""
+  MERGE_ARGS: "--strategy-option ours"
   # Optional push arguments
   PUSH_ARGS: ""
   # Optional toggle to spawn time logs (keeps action active) 
