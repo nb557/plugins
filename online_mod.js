@@ -1,4 +1,4 @@
-//12.06.2026 - Fix
+//29.06.2026 - Fix
 
 (function () {
     'use strict';
@@ -13424,7 +13424,7 @@
       };
     }
 
-    var mod_version = '12.06.2026';
+    var mod_version = '29.06.2026';
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
     var isIFrame = window.parent !== window;
@@ -14163,18 +14163,6 @@
           e.object.activity.render().find('.view--torrent').after(btn);
         }
       });
-
-      if (Lampa.Storage.get('online_mod_use_stream_proxy', '') === '') {
-        $.ajax({
-          url: (window.location.protocol === 'https:' ? 'https://' : 'http://') + 'ipwho.is/?fields=ip,country_code',
-          jsonp: 'callback',
-          dataType: 'jsonp'
-        }).done(function (json) {
-          if (json && json.country_code) {
-            Lampa.Storage.set('online_mod_use_stream_proxy', '' + (json.country_code === 'UA'));
-          }
-        });
-      }
 
       if (Lampa.VPN && (Utils.isDebug() || Utils.isDebug2())) {
         try {
