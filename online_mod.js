@@ -1,4 +1,4 @@
-//29.06.2026 - Fix
+//30.06.2026 - Fix
 
 (function () {
     'use strict';
@@ -10952,8 +10952,8 @@
         if (element.stream) return call(element);
         if (!element.link) return error();
         var link_match = element.link.match(/^((https?:)?\/\/[^\/]+)\/.*$/);
-        var link_origin = component.fixLinkProtocol(link_match ? link_match[1] : '//kodikplayer.com', prefer_http);
-        var url = component.fixLinkProtocol(element.link, prefer_http);
+        var link_origin = component.fixLinkProtocol(link_match ? link_match[1] : '//kodikplayer.com', false);
+        var url = component.fixLinkProtocol(element.link, false);
         network.clear();
         network.timeout(10000);
         network["native"](component.proxyLink(url, prox), function (str) {
@@ -13424,7 +13424,7 @@
       };
     }
 
-    var mod_version = '29.06.2026';
+    var mod_version = '30.06.2026';
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
     var isIFrame = window.parent !== window;
