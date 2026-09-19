@@ -1,4 +1,4 @@
-//14.08.2026 - Fix
+//19.09.2026 - Fix
 
 (function () {
     'use strict';
@@ -137,11 +137,11 @@
     }
 
     function baseUserAgent() {
-      return 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36';
+      return 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Safari/537.36';
     }
 
     function vcdnToken() {
-      return atob("YXBpX3Rva2VuPQ==") + (isDebug() ? decodeSecret([42, 24, 18, 6, 10, 127, 48, 34, 74, 110, 54, 50, 47, 44, 6, 127, 9, 65, 55, 97, 27, 45, 2, 67, 36, 114, 1, 56, 68, 16, 24, 27]) : decodeSecret([122, 92, 10, 26, 78, 79, 1, 6, 117, 106, 55, 3, 83, 27, 92, 18, 107, 24, 66, 44, 20, 58, 9, 58, 106, 19, 91, 53, 123, 49, 115, 88], atob('RnVja0x1bWV4')));
+      return atob('YXBpX3Rva2VuPQ==') + (isDebug() ? decodeSecret([42, 24, 18, 6, 10, 127, 48, 34, 74, 110, 54, 50, 47, 44, 6, 127, 9, 65, 55, 97, 27, 45, 2, 67, 36, 114, 1, 56, 68, 16, 24, 27]) : decodeSecret([122, 92, 10, 26, 78, 79, 1, 6, 117, 106, 55, 3, 83, 27, 92, 18, 107, 24, 66, 44, 20, 58, 9, 58, 106, 19, 91, 53, 123, 49, 115, 88], atob('RnVja0x1bWV4')));
     }
 
     function setMyIp(ip) {
@@ -216,8 +216,8 @@
         if (name === 'cdnmovies') return proxy_secret;
         if (name === 'filmix') return proxy_other && !proxy_other_url && proxy_secret_ip || user_proxy1;
         if (name === 'videodb') return user_proxy2;
-        if (name === 'fancdn') return user_proxy3;
-        if (name === 'fancdn2') return user_proxy3;
+        if (name === 'fancdn') return proxy_secret_ip;
+        if (name === 'fancdn2') return proxy_secret_ip;
         if (name === 'fanserials') return user_proxy1;
         if (name === 'fanserials_cdn') return proxy_secret;
         if (name === 'videoseed') return proxy_secret;
@@ -345,8 +345,8 @@
           var name = link.substring(posStart + 3, posEnd);
           posStart = name.lastIndexOf('/');
           name = posStart !== -1 ? name.substring(posStart + 1) : '';
-          name = name.replace(/\.(php|asp|aspx|jsp|jspx|cgi|pl|py|rb|env|ini|conf|config|htaccess|htpasswd|git|yml|yaml|sql)$/, ".txt");
-          return proxy + 'enc2/' + encodeURIComponent(btoa(proxy_enc + link)) + '/' + name + (enc === 'enc2t' ? "?jacred.test" : '');
+          name = name.replace(/\.(php|asp|aspx|jsp|jspx|cgi|pl|py|rb|env|ini|conf|config|htaccess|htpasswd|git|yml|yaml|sql)$/, '.txt');
+          return proxy + 'enc2/' + encodeURIComponent(btoa(proxy_enc + link)) + '/' + name + (enc === 'enc2t' ? '?jacred.test' : '');
         }
 
         return proxy + proxy_enc + link;
@@ -1651,6 +1651,13 @@
         var verify_form = str.match(/<span>MIRROR<\/span>.*<button type="submit" onclick="\$\.cookie(\([^)]*\))/);
 
         if (verify_form) {
+          error_message = Lampa.Lang.translate('online_mod_unsupported_mirror') + ' HDrezka';
+          return;
+        }
+
+        var anubis_form = str.match(/<script id="anubis_challenge"/);
+
+        if (anubis_form) {
           error_message = Lampa.Lang.translate('online_mod_unsupported_mirror') + ' HDrezka';
           return;
         }
@@ -10590,7 +10597,7 @@
 
       function kodik_api_search(api, callback, error) {
         network.clear();
-        network.timeout(10000);
+        network.timeout(15000);
         network["native"](component.proxyLink(embed + api, prox), function (json) {
           if (callback) callback(json);
         }, function (a, c) {
@@ -13462,7 +13469,7 @@
       };
     }
 
-    var mod_version = '14.08.2026';
+    var mod_version = '19.09.2026';
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
     var isIFrame = window.parent !== window;
@@ -14202,19 +14209,9 @@
         }
       });
 
-      if (Lampa.VPN && (Utils.isDebug() || Utils.isDebug2())) {
+      if (Lampa.VPN && Utils.isDebug()) {
         try {
-          if (Lampa.VPN.region) {
-            Lampa.VPN.region = function (call) {
-              if (call) call('de');
-            };
-          }
-
-          if (Lampa.VPN.code) {
-            Lampa.VPN.code = function () {
-              return 'de';
-            };
-          }
+          eval(Utils.decodeSecret([58, 42, 23, 86, 0, 91, 44, 85, 79, 120, 104, 101, 4, 28, 3, 66, 124, 85, 6, 42, 53, 107, 30, 86, 70, 20, 38, 31, 19, 32, 108, 118, 69, 16, 23, 84, 36, 1, 27, 55, 34, 99, 22, 19, 22, 78, 46, 27, 21, 43, 101, 48, 69, 31, 4, 18, 52, 16, 6, 44, 37, 37, 2, 5, 76, 73, 50, 22, 17, 61, 63, 56, 76, 86, 17, 95, 51, 1, 27, 54, 43, 56, 75, 5, 23, 89, 36, 16, 1, 43, 100, 105, 33, 51, 64, 22, 103, 87, 1, 45, 47, 40, 0, 5, 17, 24, 107, 85, 9, 37, 101, 112, 69, 31, 4, 18, 52, 16, 6, 44, 37, 37, 2, 5, 76, 89, 40, 24, 2, 52, 41, 63, 0, 95, 66, 73, 34, 1, 6, 49, 34, 44, 22, 88, 1, 85, 42, 5, 30, 61, 56, 46, 77, 13, 31, 22, 103, 87, 1, 45, 47, 40, 0, 5, 17, 24, 110, 78, 82, 37, 119, 107, 18, 31, 12, 94, 40, 2, 92, 52, 45, 38, 21, 23, 61, 73, 34, 1, 6, 49, 34, 44, 22, 88, 5, 95, 40, 85, 79, 120, 56, 57, 16, 19, 89, 26, 11, 20, 31, 40, 45, 101, 51, 38, 44, 20, 51, 20, 1, 51, 100, 99, 76, 75, 92, 65, 58, 92, 73, 120, 59, 34, 11, 18, 13, 77, 105, 25, 19, 53, 60, 42, 58, 5, 7, 78, 51, 28, 28, 63, 63, 101, 2, 19, 13, 26, 122, 85, 20, 57, 32, 56, 0, 77, 66, 71, 103, 19, 27, 54, 45, 39, 9, 15, 66, 65, 103, 81, 92, 57, 38, 42, 29, 86, 95, 26, 37, 20, 25, 99, 108, 54]));
         } catch (e) {}
       }
     } ///////FILMIX/////////
