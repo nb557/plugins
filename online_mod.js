@@ -1,4 +1,4 @@
-//19.09.2026 - Fix
+//20.09.2026 - Fix
 
 (function () {
     'use strict';
@@ -3738,7 +3738,7 @@
           video = player && JSON.parse(player);
         } catch (e) {}
 
-        if (video && video.forEach) {
+        if (video && video.length && video.forEach) {
           component.loading(false);
           extract = video;
           filter();
@@ -5595,7 +5595,7 @@
       }
 
       function parse(json, empty) {
-        if (json && json.forEach && json.length) {
+        if (json && json.length && json.forEach) {
           component.loading(false);
           extract = json;
           filter();
@@ -6097,7 +6097,7 @@
       }
 
       function parse(json, empty) {
-        if (json && json.forEach && json.length) {
+        if (json && json.length && json.forEach) {
           component.loading(false);
           extract = json;
           filter();
@@ -6936,7 +6936,7 @@
           }
         }
 
-        if (json && json.file && json.file.forEach) {
+        if (json && json.file && json.file.length && json.file.forEach) {
           component.loading(false);
           extract = json;
           filter();
@@ -7590,7 +7590,7 @@
             json = decrypt(json);
           }
 
-          if (json && json.data && json.data.playlist && json.data.playlist.forEach) {
+          if (json && json.data && json.data.playlist && json.data.playlist.length && json.data.playlist.forEach) {
             component.loading(false);
             extract = json.data;
             filter();
@@ -8689,7 +8689,7 @@
           json = find && (0, eval)('"use strict"; (function(){ return ' + find[1] + '; })();');
         } catch (e) {}
 
-        if (json && json.playlist && json.playlist.forEach) {
+        if (json && json.playlist && json.playlist.length && json.playlist.forEach) {
           extract = json.playlist;
           filter();
           append(filtred());
@@ -8914,7 +8914,7 @@
       function parse(json) {
         component.loading(false);
 
-        if (json && json.items && json.items.forEach) {
+        if (json && json.items && json.items.length && json.items.forEach) {
           var seasons = [];
           var items = json.items;
           items.sort(function (a, b) {
@@ -8947,7 +8947,7 @@
             }
           });
           extract = {
-            title_name: json.title_name || select_title,
+            title_name: json.titleName || json.title_name || select_title,
             items: items,
             seasons: seasons
           };
@@ -13469,7 +13469,7 @@
       };
     }
 
-    var mod_version = '19.09.2026';
+    var mod_version = '20.09.2026';
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
     var isIFrame = window.parent !== window;
