@@ -218,8 +218,8 @@
         if (name === 'videodb') return user_proxy2;
         if (name === 'fancdn') return proxy_secret_ip;
         if (name === 'fancdn2') return proxy_secret_ip;
-        if (name === 'fanserials') return user_proxy1;
-        if (name === 'fanserials_cdn') return proxy_secret;
+        if (name === 'fanserials') return proxy_secret_ip;
+        if (name === 'fanserials_cdn') return proxy_secret_ip;
         if (name === 'videoseed') return proxy_secret;
         if (name === 'vibix') return proxy_secret;
         if (name === 'redheadsound') return user_proxy2;
@@ -7672,7 +7672,7 @@
         prox_enc += 'param/User-Agent=' + encodeURIComponent(user_agent) + '/';
       }
 
-      var embed = (prefer_http ? 'http:' : 'https:') + atob('Ly9jZXJhbWV0Lm5ldC8=');
+      var embed = (prefer_http ? 'http:' : 'https:') + atob('Ly9sb21vbnQuc2l0ZS8=');
       var filter_items = {};
       var choice = {
         season: 0,

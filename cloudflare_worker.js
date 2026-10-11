@@ -33,7 +33,7 @@ export default {
         let body = "";
         request.headers.forEach((value, key) => body += key + " = " + value + "\n");
         body += "request_url" + " = " + request.url + "\n";
-        body += "worker_version = 1.18\n";
+        body += "worker_version = 1.19\n";
         return new Response(body, corsHeaders);
       }
 
@@ -42,6 +42,7 @@ export default {
       if (forwarded_for) real_ip = forwarded_for.split(",").map(s=>s.trim()).find(s=>s && !s.match(/^(127\.|10\.|172\.1[6-9]|172\.2[0-9]|172\.3[01]|192\.168\.)/)) || "";
       if (!real_ip) real_ip = request.headers.get("cf-connecting-ip");
       if (!real_ip) real_ip = request.headers.get("X-Real-IP");
+      if (real_ip.startsWith("::ffff:") && real_ip.indexOf(".") !== -1) real_ip = real_ip.substring(7);
 
       if (api === "jsonip") {
           return new Response(JSON.stringify({ip: real_ip}), {
@@ -227,11 +228,28 @@ export default {
       if (true) {
         request.headers.delete("X-Forwarded-For");
         request.headers.delete("X-Forwarded-Proto");
-        //request.headers.delete("X-Real-IP");
-        //request.headers.delete("cf-connecting-ip");
+        request.headers.delete("X-Forwarded-Host");
+        request.headers.delete("X-Forwarded-Server");
+        request.headers.delete("X-Real-IP");
+        request.headers.delete("x-request-id");
+        request.headers.delete("cf-connecting-ip");
         request.headers.delete("cf-ipcountry");
         request.headers.delete("cf-ray");
         request.headers.delete("cf-visitor");
+        request.headers.delete("x-koyeb-backend");
+        request.headers.delete("x-koyeb-deployment-id");
+        request.headers.delete("x-koyeb-glb");
+        request.headers.delete("x-koyeb-host-port");
+        request.headers.delete("x-koyeb-original-host");
+        request.headers.delete("x-koyeb-route");
+        request.headers.delete("x-koyeb-service-id");
+        request.headers.delete("x-b3-parentspanid");
+        request.headers.delete("x-b3-sampled");
+        request.headers.delete("x-b3-spanid");
+        request.headers.delete("x-b3-traceid");
+        request.headers.delete("x-envoy-attempt-count");
+        request.headers.delete("x-envoy-decorator-operation");
+        request.headers.delete("x-envoy-external-address");
       }
       if (ip && ip !== "no") {
         //request.headers.set("X-Forwarded-For", ip);
