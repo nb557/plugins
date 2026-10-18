@@ -1,4 +1,4 @@
-//10.10.2026 - Fix
+//18.10.2026 - Fix
 
 (function () {
     'use strict';
@@ -7659,6 +7659,9 @@
       var host = Utils.decodeSecret([95, 57, 28, 42, 55, 125, 28, 124, 25, 93, 66, 41, 7, 46, 48, 49, 92, 33, 25, 64, 26, 33, 7, 40, 32, 33, 90, 63, 23, 27, 69, 56], atob('RnVja0Zhbg=='));
       var ref = host + '/';
       var user_agent = Utils.baseUserAgent();
+
+      var embed_host = (prefer_http ? 'http:' : 'https:') + atob('Ly9sb21vbnQuc2l0ZQ==');
+      var embed = embed_host + '/';
       var headers = Lampa.Platform.is('android') ? {
         'Origin': host,
         'Referer': ref,
@@ -7672,7 +7675,17 @@
         prox_enc += 'param/User-Agent=' + encodeURIComponent(user_agent) + '/';
       }
 
-      var embed = (prefer_http ? 'http:' : 'https:') + atob('Ly9sb21vbnQuc2l0ZS8=');
+      var prox_enc2 = '';
+
+      if (prox) {
+        prox_enc2 += 'param/Origin=' + encodeURIComponent(embed_host) + '/';
+        prox_enc2 += 'param/Referer=' + encodeURIComponent(embed) + '/';
+        prox_enc2 += 'param/User-Agent=' + encodeURIComponent(user_agent) + '/';
+        prox_enc2 += 'param/Sec-Fetch-Dest=empty/';
+        prox_enc2 += 'param/Sec-Fetch-Mode=cors/';
+        prox_enc2 += 'param/Sec-Fetch-Site=same-origin/';
+      }
+
       var filter_items = {};
       var choice = {
         season: 0,
@@ -7754,6 +7767,39 @@
         network.clear();
         extract = null;
       };
+
+      function decode(h) {
+        if (!h || 'string' != typeof h) return null;
+
+        try {
+          h = h.replace(/-/g, '+').replace(/_/g, '/');
+
+          h = function (h) {
+            var t = h.length % 4;
+            if (!t) return h;
+            var i = h;
+
+            for (var e = t; e < 4; e++) {
+              i += '=';
+            }
+
+            return i;
+          }(h);
+
+          h = atob(h);
+          var r = '';
+          var i = atob('eHUwdktUTDR3SkJ1VTJqNw==');
+
+          for (var e = 0; e < h.length; e++) {
+            var s = h.charCodeAt(e) ^ i.charCodeAt(e % i.length);
+            r += String.fromCharCode(s);
+          }
+
+          return /^https?:\/\//.test(r) ? r : null;
+        } catch (e) {
+          return null;
+        }
+      }
       /**
        * Получить поток
        * @param {*} element
@@ -7764,9 +7810,10 @@
         var file = '';
         var quality = false;
         var subtitles = [];
+        var video = json && json.h && decode(json.h);
 
-        if (json && json.video) {
-          file = component.fixLink(json.video, url);
+        if (video) {
+          file = component.fixLink(video, url);
 
           if (prox && !prox_cdn) {
             file = file.replace(/\/\/cdn(\d+)\./, '//s$1.');
@@ -7825,7 +7872,7 @@
           if (element.qualitys || element.parsed || !endsWith(file, '.m3u8')) return call(element);
           network.clear();
           network.timeout(10000);
-          network["native"](component.proxyLink(file, prox_cdn, '', 'enc2t'), function (str) {
+          network["native"](component.proxyLink(file, prox_cdn, prox_enc2, 'enc2t'), function (str) {
             var items = extractQuality(str, file);
             items = items.filter(function (elem) {
               return elem.quality > 0;
@@ -15420,7 +15467,7 @@
       };
     }
 
-    var mod_version = '10.10.2026';
+    var mod_version = '18.10.2026';
     var isMSX = !!(window.TVXHost || window.TVXManager);
     var isTizen = navigator.userAgent.toLowerCase().indexOf('tizen') !== -1;
     var isIFrame = window.parent !== window;
