@@ -96,13 +96,13 @@
             oncomplite(json);
           }, onerror, false, {
             headers: {
-              'X-API-KEY': decodeSecret([49, 75, 99, 64, 77, 100, 12, 71, 94, 125, 54, 65, 48, 88, 64, 50, 15, 18, 94, 119, 96, 28, 49, 88, 18, 53, 90, 20, 67, 40, 51, 78, 102, 22, 66, 102], atob('MktQcGFzc3dvcmQ='))
+              'X-API-KEY': Lampa.Storage.field('kp_api_key') || ''
             }
           });
         } else onerror(a, c);
       }, false, {
         headers: {
-          'X-API-KEY': decodeSecret([46, 112, 67, 90, 13, 115, 6, 112, 126, 67, 41, 122, 16, 66, 0, 37, 5, 37, 126, 73, 127, 39, 17, 66, 82, 34, 80, 35, 99, 22, 44, 117, 70, 12, 2, 113], atob('MUtQcGFzc3dvcmQ='))
+          'X-API-KEY': Lampa.Storage.field('kp_api_key') || ''
         }
       });
     }
