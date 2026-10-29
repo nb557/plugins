@@ -630,6 +630,32 @@
       return loadPart;
     }
 
+    function withReactions(oncomplite) {
+      return function (result) {
+        var movie = result && result.movie;
+        var tmdb = Lampa.Api.sources.tmdb;
+        var cub = Lampa.Api.sources.cub;
+
+        if (!movie || !movie.imdb_id || !tmdb || !cub) return oncomplite(result);
+
+        tmdb.get('find/' + movie.imdb_id + '?external_source=imdb_id', {}, function (found) {
+          var matches = found.movie_results && found.movie_results.length ? found.movie_results : found.tv_results;
+
+          if (matches && matches[0]) {
+            cub.reactionsGet({
+              method: movie.type,
+              id: matches[0].id
+            }, function (reactions) {
+              result.reactions = reactions;
+              oncomplite(result);
+            });
+          } else oncomplite(result);
+        }, function () {
+          oncomplite(result);
+        });
+      };
+    }
+
     function full() {
       var params = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
       var oncomplite = arguments.length > 1 ? arguments[1] : undefined;
@@ -648,7 +674,7 @@
       if (kinopoisk_id) {
         getById(kinopoisk_id, params, function (json) {
           var status = new Lampa.Status(4);
-          status.onComplite = oncomplite;
+          status.onComplite = withReactions(oncomplite);
           status.append('movie', json);
           status.append('persons', json && json.persons);
           status.append('collection', json && json.collection);
